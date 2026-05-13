@@ -2,17 +2,11 @@
 
 import '@rainbow-me/rainbowkit/styles.css';
 import {
-  connectorsForWallets,
+  getDefaultConfig,
   RainbowKitProvider,
   darkTheme
 } from '@rainbow-me/rainbowkit';
-import {
-  metaMaskWallet,
-  walletConnectWallet,
-  rainbowWallet,
-  coinbaseWallet,
-} from '@rainbow-me/rainbowkit/wallets';
-import { createConfig, http, WagmiProvider } from 'wagmi';
+import { WagmiProvider, http } from 'wagmi';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 
 const arcTestnet = {
@@ -21,39 +15,24 @@ const arcTestnet = {
   nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
   rpcUrls: {
     default: { http: ['https://rpc.testnet.arc.network'] },
+    public: { http: ['https://rpc.testnet.arc.network'] },
   },
   blockExplorers: {
     default: { name: 'ArcScan', url: 'https://testnet.arcscan.app' },
   },
+  testnet: true,
 } as const;
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || 'd81f0a9e995c256929f364a174ab440e';
 
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: 'Recommended',
-      wallets: [
-        metaMaskWallet,
-        rainbowWallet,
-        walletConnectWallet,
-        coinbaseWallet,
-      ],
-    },
-  ],
-  {
-    appName: 'ArcLauncher Pro',
-    projectId,
-  }
-);
-
-const config = createConfig({
-  connectors,
+const config = getDefaultConfig({
+  appName: 'ArcLauncher Pro',
+  projectId,
   chains: [arcTestnet],
+  ssr: true,
   transports: {
     [arcTestnet.id]: http(),
   },
-  ssr: true,
 });
 
 const queryClient = new QueryClient();
