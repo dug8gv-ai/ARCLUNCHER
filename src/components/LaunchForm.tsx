@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Rocket } from 'lucide-react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseUnits } from 'viem';
+import { Rocket, CheckCircle2, Loader2 } from 'lucide-react';
+import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
+import { parseUnits, erc20Abi } from 'viem';
 
 // ABI snippet for ArcLauncher
 const ARC_LAUNCHER_ABI = [
@@ -21,31 +20,63 @@ const ARC_LAUNCHER_ABI = [
   }
 ];
 
-// Mock contract address for ArcLauncher
-const ARC_LAUNCHER_ADDRESS = '0x1234567890123456789012345678901234567890';
+// Mock contract address for ArcLauncher and USDC
+const ARC_LAUNCHER_ADDRESS = process.env.NEXT_PUBLIC_LAUNCHER_ADDRESS || '0x0000000000000000000000000000000000000000';
+const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x0000000000000000000000000000000000000000';
 
 export function LaunchForm() {
   const { isConnected } = useAccount();
+  const publicClient = usePublicClient();
+  const { writeContractAsync } = useWriteContract();
+  
   const [formData, setFormData] = useState({ name: '', ticker: '', supply: '', image: '' });
   
-  const { writeContract, data: hash, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+  const [status, setStatus] = useState<'idle' | 'approving' | 'launching' | 'success'>('idle');
 
   const handleLaunch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConnected) return alert("Please connect your wallet first.");
-    
-    // In a real flow, you would first call USDC approve() for 4 USDC.
-    // For brevity, we assume approval is done or we call it here.
+    if (!publicClient) return alert("Network error. Please refresh.");
+
     try {
-      writeContract({
+      // Step 1: Approve 4 USDC
+      setStatus('approving');
+      const feeAmount = parseUnits('4', 6); // USDC usually has 6 decimals
+      
+      const approveHash = await writeContractAsync({
+        address: USDC_ADDRESS as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'approve',
+        args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, feeAmount],
+      });
+      
+      // Wait for approval confirmation
+      await publicClient.waitForTransactionReceipt({ hash: approveHash });
+
+      // Step 2: Launch Token
+      setStatus('launching');
+      const launchHash = await writeContractAsync({
         address: ARC_LAUNCHER_ADDRESS as `0x${string}`,
         abi: ARC_LAUNCHER_ABI,
         functionName: 'launchToken',
         args: [formData.name, formData.ticker, parseUnits(formData.supply || '0', 18)],
       });
+
+      // Wait for launch confirmation
+      await publicClient.waitForTransactionReceipt({ hash: launchHash });
+      
+      setStatus('success');
+      
+      // Reset after a few seconds
+      setTimeout(() => {
+        setStatus('idle');
+        setFormData({ name: '', ticker: '', supply: '', image: '' });
+      }, 5000);
+
     } catch (error) {
       console.error(error);
+      setStatus('idle');
+      alert("Transaction failed or was rejected.");
     }
   };
 
@@ -66,6 +97,7 @@ export function LaunchForm() {
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
             required
+            disabled={status !== 'idle'}
           />
         </div>
         
@@ -79,6 +111,7 @@ export function LaunchForm() {
               value={formData.ticker}
               onChange={(e) => setFormData({...formData, ticker: e.target.value})}
               required
+              disabled={status !== 'idle'}
             />
           </div>
           <div>
@@ -90,6 +123,7 @@ export function LaunchForm() {
               value={formData.supply}
               onChange={(e) => setFormData({...formData, supply: e.target.value})}
               required
+              disabled={status !== 'idle'}
             />
           </div>
         </div>
@@ -102,6 +136,7 @@ export function LaunchForm() {
             className="w-full cyber-input rounded-lg p-3"
             value={formData.image}
             onChange={(e) => setFormData({...formData, image: e.target.value})}
+            disabled={status !== 'idle'}
           />
         </div>
 
@@ -122,15 +157,14 @@ export function LaunchForm() {
 
         <button 
           type="submit" 
-          disabled={isPending || isConfirming}
-          className="w-full cyber-button py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2"
+          disabled={status !== 'idle'}
+          className="w-full cyber-button py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isPending ? 'Confirm in Wallet...' : isConfirming ? 'Deploying...' : 'Deploy Token'}
+          {status === 'approving' && <><Loader2 className="animate-spin" /> Approving USDC...</>}
+          {status === 'launching' && <><Loader2 className="animate-spin" /> Deploying Token...</>}
+          {status === 'success' && <><CheckCircle2 className="text-green-400" /> Launched Successfully!</>}
+          {status === 'idle' && 'Deploy Token'}
         </button>
-        
-        {isConfirmed && (
-          <p className="text-green-400 text-sm text-center mt-2">Token Launched Successfully!</p>
-        )}
       </form>
     </div>
   );

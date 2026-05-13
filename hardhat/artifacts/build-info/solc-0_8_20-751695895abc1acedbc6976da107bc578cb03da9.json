@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_20-751695895abc1acedbc6976da107bc578cb03da9",
+  "solcVersion": "0.8.20",
+  "solcLongVersion": "0.8.20+commit.a1b79de6",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/ArcLauncher.sol": "project/contracts/ArcLauncher.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/ArcLauncher.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\n/**\n * @title ArcLauncher\n * @dev High-Frequency Token Launchpad with Global Metrics on Arc Testnet\n */\n\ninterface IERC20 {\n    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);\n    function transfer(address recipient, uint256 amount) external returns (bool);\n}\n\ncontract ArcLauncher {\n    address public constant USDC = 0x3600000000000000000000000000000000000000; // Arc Testnet USDC ERC-20 Interface\n    address public treasury;\n    \n    uint256 public constant LAUNCH_FEE = 4 * 10**6; // 4 USDC (assuming 6 decimals)\n    uint256 public constant LP_ALLOCATION = 3 * 10**6; // 3 USDC\n    uint256 public constant TREASURY_ALLOCATION = 1 * 10**6; // 1 USDC\n    \n    uint256 public totalTokensCreated;\n    uint256 public totalMarketVolume;\n\n    event TokenLaunched(address indexed creator, address indexed tokenAddress, string name, string ticker, uint256 supply);\n    event Swap(address indexed user, address indexed tokenAddress, uint256 usdcAmount, uint256 tokenAmount, bool isBuy);\n\n    constructor(address _treasury) {\n        treasury = _treasury;\n    }\n\n    /**\n     * @dev Launches a new token.\n     * Requires 4 USDC fee to be approved beforehand.\n     * Splits fee: 3 USDC to LP, 1 USDC to Treasury.\n     * Note: In a real implementation, this function would deploy a new ERC20 token contract,\n     * initialize the AMM pool with the LP_ALLOCATION and 99% of the token supply.\n     */\n    function launchToken(string memory name, string memory ticker, uint256 supply) external {\n        // Transfer 4 USDC from user\n        require(\n            IERC20(USDC).transferFrom(msg.sender, address(this), LAUNCH_FEE),\n            \"USDC transfer failed\"\n        );\n        \n        // Split the fee\n        require(\n            IERC20(USDC).transfer(treasury, TREASURY_ALLOCATION),\n            \"Treasury transfer failed\"\n        );\n        \n        // The remaining 3 USDC stays in this contract or is sent to the specific token's LP pool.\n        \n        // Mocking token deployment address\n        address mockTokenAddress = address(uint160(uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, name)))));\n\n        totalTokensCreated += 1;\n        totalMarketVolume += LAUNCH_FEE;\n\n        emit TokenLaunched(msg.sender, mockTokenAddress, name, ticker, supply);\n    }\n    \n    /**\n     * @dev Emits a swap event to be picked up by Supabase indexer.\n     */\n    function swap(address tokenAddress, uint256 usdcAmount, uint256 tokenAmount, bool isBuy) external {\n        if (isBuy) {\n            require(IERC20(USDC).transferFrom(msg.sender, address(this), usdcAmount), \"USDC transfer failed\");\n        } else {\n            require(IERC20(USDC).transfer(msg.sender, usdcAmount), \"USDC transfer failed\");\n        }\n        \n        totalMarketVolume += usdcAmount;\n        emit Swap(msg.sender, tokenAddress, usdcAmount, tokenAmount, isBuy);\n    }\n}\n"
+      }
+    }
+  }
+}
