@@ -23,7 +23,7 @@ const arcTestnet = {
 
 const config = getDefaultConfig({
   appName: 'ArcLauncher Pro',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '142c62c2f42a176e5d02640248545a47', // Using a fallback for testing
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID || 'd81f0a9e995c256929f364a174ab440e', 
   chains: [arcTestnet],
   ssr: true,
 });
