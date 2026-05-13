@@ -2,11 +2,17 @@
 
 import '@rainbow-me/rainbowkit/styles.css';
 import {
-  getDefaultConfig,
+  connectorsForWallets,
   RainbowKitProvider,
   darkTheme
 } from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
+import {
+  metaMaskWallet,
+  walletConnectWallet,
+  rainbowWallet,
+  coinbaseWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { createConfig, http, WagmiProvider } from 'wagmi';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 
 const arcTestnet = {
@@ -21,10 +27,32 @@ const arcTestnet = {
   },
 } as const;
 
-const config = getDefaultConfig({
-  appName: 'ArcLauncher Pro',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID || 'd81f0a9e995c256929f364a174ab440e', 
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || 'd81f0a9e995c256929f364a174ab440e';
+
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: 'Recommended',
+      wallets: [
+        metaMaskWallet,
+        rainbowWallet,
+        walletConnectWallet,
+        coinbaseWallet,
+      ],
+    },
+  ],
+  {
+    appName: 'ArcLauncher Pro',
+    projectId,
+  }
+);
+
+const config = createConfig({
+  connectors,
   chains: [arcTestnet],
+  transports: {
+    [arcTestnet.id]: http(),
+  },
   ssr: true,
 });
 
