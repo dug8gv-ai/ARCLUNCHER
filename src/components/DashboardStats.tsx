@@ -1,15 +1,64 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Coins, TrendingUp } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export function DashboardStats() {
-  // In a real app, these would be fetched via Supabase listeners
-  const stats = {
-    volume: "1,245,600",
-    tokens: 432,
-    newToday: 24
-  };
+  const [stats, setStats] = useState({
+    volume: "0",
+    tokens: 0,
+    newToday: 0
+  });
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        // Fetch total market volume
+        const { data: volumeData, error: volumeError } = await supabase.rpc('get_global_market_volume');
+        
+        // Fetch daily new launches
+        const { data: dailyData, error: dailyError } = await supabase.rpc('get_daily_new_launches');
+
+        // Fetch total tokens created
+        const { count, error: tokensError } = await supabase
+          .from('token_launches')
+          .select('*', { count: 'exact', head: true });
+
+        if (volumeError || dailyError || tokensError) {
+          console.error("Error fetching stats from Supabase", volumeError, dailyError, tokensError);
+          return;
+        }
+
+        // Format volume (e.g. 1000000 becomes 1,000,000)
+        // Since get_global_market_volume might return large integers representing 6 decimals (USDC),
+        // we divide by 10^6 to get actual USDC amount.
+        const actualVolume = volumeData ? (Number(volumeData) / 1000000).toLocaleString() : "0";
+
+        setStats({
+          volume: actualVolume,
+          tokens: count || 0,
+          newToday: dailyData || 0
+        });
+
+      } catch (e) {
+        console.error("Exception fetching stats:", e);
+      }
+    }
+
+    fetchStats();
+
+    // Set up Realtime listener to update stats live
+    const channel = supabase.channel('dashboard_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'token_launches' }, fetchStats)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'token_swaps' }, fetchStats)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
