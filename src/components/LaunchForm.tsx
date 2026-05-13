@@ -39,9 +39,14 @@ export function LaunchForm() {
     if (!publicClient) return alert("Network error. Please refresh.");
 
     try {
+      console.log("Starting launch process...");
+      console.log("Launcher Address:", ARC_LAUNCHER_ADDRESS);
+      console.log("USDC Address:", USDC_ADDRESS);
+
       // Step 1: Approve 4 USDC
       setStatus('approving');
-      const feeAmount = parseUnits('4', 6); // USDC usually has 6 decimals
+      const feeAmount = parseUnits('4', 6); 
+      console.log("Approving USDC Amount:", feeAmount.toString());
       
       const approveHash = await writeContractAsync({
         address: USDC_ADDRESS as `0x${string}`,
@@ -50,20 +55,25 @@ export function LaunchForm() {
         args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, feeAmount],
       });
       
-      // Wait for approval confirmation
+      console.log("Approval Hash:", approveHash);
       await publicClient.waitForTransactionReceipt({ hash: approveHash });
+      console.log("Approval confirmed.");
 
       // Step 2: Launch Token
       setStatus('launching');
+      const supplyAmount = parseUnits(formData.supply || '0', 18);
+      console.log("Launching Token with Supply:", supplyAmount.toString());
+
       const launchHash = await writeContractAsync({
         address: ARC_LAUNCHER_ADDRESS as `0x${string}`,
         abi: ARC_LAUNCHER_ABI,
         functionName: 'launchToken',
-        args: [formData.name, formData.ticker, parseUnits(formData.supply || '0', 18)],
+        args: [formData.name, formData.ticker, supplyAmount],
       });
 
-      // Wait for launch confirmation
+      console.log("Launch Hash:", launchHash);
       await publicClient.waitForTransactionReceipt({ hash: launchHash });
+      console.log("Token launched successfully!");
       
       setStatus('success');
       
@@ -73,10 +83,12 @@ export function LaunchForm() {
         setFormData({ name: '', ticker: '', supply: '', image: '' });
       }, 5000);
 
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Detailed Transaction Error:", error);
       setStatus('idle');
-      alert("Transaction failed or was rejected.");
+      // Show more specific error if available
+      const errorMsg = error?.shortMessage || error?.message || "Transaction failed or was rejected.";
+      alert(errorMsg);
     }
   };
 
