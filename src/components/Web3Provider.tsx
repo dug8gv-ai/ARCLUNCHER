@@ -12,20 +12,18 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 const arcTestnet = {
   id: 5042002,
   name: 'Arc Testnet',
-  iconUrl: 'https://example.com/icon.svg',
-  iconBackground: '#fff',
-  nativeCurrency: { name: 'Arc', symbol: 'ARC', decimals: 18 },
+  nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://rpc-testnet.arc.network'] },
+    default: { http: ['https://rpc.testnet.arc.network'] },
   },
   blockExplorers: {
-    default: { name: 'ArcScan', url: 'https://explorer-testnet.arc.network' },
+    default: { name: 'ArcScan', url: 'https://testnet.arcscan.app' },
   },
 } as const;
 
 const config = getDefaultConfig({
   appName: 'ArcLauncher Pro',
-  projectId: 'YOUR_PROJECT_ID', // Replaced with environment variable in production
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '142c62c2f42a176e5d02640248545a47', // Using a fallback for testing
   chains: [arcTestnet],
   ssr: true,
 });
