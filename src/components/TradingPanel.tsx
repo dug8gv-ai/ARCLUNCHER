@@ -99,14 +99,15 @@ export function TradingPanel({ token }: TradingPanelProps) {
         .select('usdc_amount, token_amount, is_buy')
         .eq('token_address', token.token_address.toLowerCase());
 
-      const supply = Number(token.initial_supply || token.supply || 1000000000);
-      const initialTokens = supply; 
-      const initialUSDC = supply * 0.01; // Start price at 0.01
+      // VIRTUAL LIQUIDITY POOL FOR DYNAMIC "MEME COIN" CHART PATTERNS
+      // We use a small virtual pool so that regular trades (e.g., $10 - $100)
+      // create massive, visible green and red candles just like real meme coins.
+      const VIRTUAL_USDC = 100; // Small liquidity for high volatility
+      const VIRTUAL_TOKENS = VIRTUAL_USDC / 0.01; // 10,000 tokens virtual supply
+      const k = VIRTUAL_USDC * VIRTUAL_TOKENS;
 
-      const k = initialUSDC * initialTokens;
-
-      let currentUSDC = initialUSDC;
-      let currentTokens = initialTokens;
+      let currentUSDC = VIRTUAL_USDC;
+      let currentTokens = VIRTUAL_TOKENS;
 
       swaps?.forEach(s => {
         if (s.is_buy) {
@@ -118,9 +119,9 @@ export function TradingPanel({ token }: TradingPanelProps) {
         }
       });
 
-      // Ensure currentUSDC never goes below initialUSDC (Price Floor)
-      if (currentUSDC < initialUSDC) currentUSDC = initialUSDC;
-      if (currentTokens > initialTokens) currentTokens = initialTokens;
+      // Strict Floor Protection (Price never below 0.01)
+      if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
+      if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
 
       const dX = Number(val);
       if (isBuy) {
@@ -128,7 +129,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
         const newUSDC = currentUSDC + dX;
         const newTokens = k / newUSDC;
         const tokensOut = currentTokens - newTokens;
-        setEstimatedTokens(Math.floor(tokensOut).toLocaleString());
+        setEstimatedTokens((tokensOut).toFixed(2));
       } else {
         // Sell: Input is Tokens (dX), Output is USDC
         const newTokens = currentTokens + dX;
@@ -136,12 +137,13 @@ export function TradingPanel({ token }: TradingPanelProps) {
         let usdcOut = currentUSDC - newUSDC;
         
         // Floor protection
-        if (currentUSDC - usdcOut < initialUSDC) {
-          usdcOut = currentUSDC - initialUSDC;
+        if (currentUSDC - usdcOut < VIRTUAL_USDC) {
+          usdcOut = currentUSDC - VIRTUAL_USDC;
         }
         
         setEstimatedTokens(Math.max(0, usdcOut).toFixed(6));
       }
+
 
 
     } catch (e) {
