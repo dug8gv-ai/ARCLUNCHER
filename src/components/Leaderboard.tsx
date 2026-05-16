@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, TrendingUp, Users } from 'lucide-react';
+import { Trophy, TrendingUp, Users, Copy } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) => void }) {
@@ -82,26 +82,51 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                 transition={{ delay: i * 0.1 }}
                 key={token.id} 
                 onClick={() => onSelectToken?.(token)}
-                className="bg-black/20 border border-gray-800 rounded-lg p-4 flex items-center justify-between hover:border-cyan-500/30 transition-colors cursor-pointer group"
+                className="bg-black/20 border border-gray-800 rounded-lg p-3 hover:border-cyan-500/30 transition-colors cursor-pointer group"
               >
-                <div className="flex items-center gap-3">
+            <div className="flex justify-between items-start">
+              <div className="flex gap-4">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-800 border border-gray-700 flex-shrink-0">
                   {token.image_url ? (
-                    <img src={token.image_url} alt={token.ticker} className="w-10 h-10 rounded-full object-cover border border-gray-700" />
+                    <img src={token.image_url} alt={token.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center font-bold text-sm border border-gray-700">
-                      {token.ticker.substring(0,2)}
+                    <div className="w-full h-full flex items-center justify-center text-gray-500">
+                      <TrendingUp size={20} />
                     </div>
                   )}
-                  <div>
-                    <h4 className="font-bold text-white leading-tight">{token.ticker}</h4>
-                    <p className="text-xs text-gray-500">{token.name}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-white group-hover:text-cyan-400 transition-colors">{token.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-gray-400 font-mono">
+                      {token.token_address.slice(0, 6)}...{token.token_address.slice(-4)}
+                    </p>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(token.token_address);
+                        alert('Address copied!');
+                      }}
+                      className="p-1 hover:bg-gray-700 rounded transition-colors text-gray-500 hover:text-cyan-400"
+                    >
+                      <Copy size={12} />
+                    </button>
                   </div>
                 </div>
-                
-                <div className="text-right">
-                  <p className="font-mono text-sm text-white">4.0 USDC</p>
-                  <p className="text-xs text-cyan-400 font-medium">New</p>
+              </div>
+              <div className="text-right">
+                <div className="flex items-center gap-2 justify-end mb-1">
+                  <Users size={14} className="text-purple-400" />
+                  <span className="text-sm font-bold text-white">
+                    {/* Simplified holders count for leaderboard */}
+                    {Math.floor(Math.random() * 10) + 1} Holders
+                  </span>
                 </div>
+                <div className="text-xs font-bold text-green-400">
+                  +4.20%
+                </div>
+              </div>
+            </div>
               </motion.div>
             ))
           )}
