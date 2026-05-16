@@ -21,7 +21,7 @@ async function main() {
   const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, wallet);
   
   console.log("Deploying ArcLauncher...");
-  const launcher = await factory.deploy(wallet.address);
+  const launcher = await factory.deploy();
 
   await launcher.waitForDeployment();
 

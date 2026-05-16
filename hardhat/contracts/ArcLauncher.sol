@@ -1,71 +1,69 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/**
- * @title ArcLauncher
- * @dev High-Frequency Token Launchpad with Global Metrics on Arc Testnet
- */
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-interface IERC20 {
-    // Note: We remove "returns (bool)" because the Arc system contract might return nothing (0x)
-    function transferFrom(address sender, address recipient, uint256 amount) external;
-    function transfer(address recipient, uint256 amount) external;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+contract ArcToken is ERC20, Ownable {
+    constructor(
+        string memory name,
+        string memory symbol,
+        uint256 initialSupply,
+        address creator
+    ) ERC20(name, symbol) Ownable(msg.sender) {
+        _mint(creator, initialSupply);
+    }
 }
 
 contract ArcLauncher {
-    address public constant USDC = 0x3600000000000000000000000000000000000000; // Arc Testnet USDC ERC-20 Interface
-    address public treasury;
-    
-    uint256 public constant LAUNCH_FEE = 4 * 10**6; // 4 USDC (assuming 6 decimals)
-    uint256 public constant LP_ALLOCATION = 3 * 10**6; // 3 USDC
-    uint256 public constant TREASURY_ALLOCATION = 1 * 10**6; // 1 USDC
-    
-    uint256 public totalTokensCreated;
-    uint256 public totalMarketVolume;
+    address public constant USDC_ADDRESS = 0x3600000000000000000000000000000000000000;
+    uint256 public constant LAUNCH_FEE = 4 * 10**6; // 4 USDC (Assuming 6 decimals for logic, but native is 18)
 
-    event TokenLaunched(address indexed creator, address indexed tokenAddress, string name, string ticker, uint256 supply);
-    event Swap(address indexed user, address indexed tokenAddress, uint256 usdcAmount, uint256 tokenAmount, bool isBuy);
-
-    constructor(address _treasury) {
-        treasury = _treasury;
+    struct TokenInfo {
+        address creator;
+        string name;
+        string ticker;
+        uint256 supply;
+        address tokenAddress;
     }
 
-    /**
-     * @dev Launches a new token.
-     * Requires 4 USDC fee to be approved beforehand.
-     * Splits fee: 3 USDC to LP, 1 USDC to Treasury.
-     * Note: In a real implementation, this function would deploy a new ERC20 token contract,
-     * initialize the AMM pool with the LP_ALLOCATION and 99% of the token supply.
-     */
+    mapping(string => address) public tickerToToken;
+    mapping(address => TokenInfo) public tokens;
+
+    event TokenLaunched(address indexed tokenAddress, string name, string ticker, uint256 supply, address indexed creator);
+    event TokenSwapped(address indexed tokenAddress, address indexed user, uint256 usdcAmount, uint256 tokenAmount, bool isBuy);
+
     function launchToken(string memory name, string memory ticker, uint256 supply) external {
-        // Transfer 4 USDC from user
-        IERC20(USDC).transferFrom(msg.sender, address(this), LAUNCH_FEE);
-        
-        // Split the fee
-        IERC20(USDC).transfer(treasury, TREASURY_ALLOCATION);
-        
-        // The remaining 3 USDC stays in this contract or is sent to the specific token's LP pool.
-        
-        // Mocking token deployment address
-        address mockTokenAddress = address(uint160(uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, name)))));
+        // Native USDC is 18 decimals, standard is 6. We use the fee as defined.
+        uint256 fee = 4 * 10**18; // Use 18 decimals for native USDC
+        IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), fee);
 
-        totalTokensCreated += 1;
-        totalMarketVolume += LAUNCH_FEE;
+        uint256 totalMint = supply * 10**18;
+        ArcToken newToken = new ArcToken(name, ticker, totalMint, address(this));
+        address tokenAddr = address(newToken);
+        
+        tickerToToken[ticker] = tokenAddr;
+        tokens[tokenAddr] = TokenInfo({
+            creator: msg.sender,
+            name: name,
+            ticker: ticker,
+            supply: totalMint,
+            tokenAddress: tokenAddr
+        });
 
-        emit TokenLaunched(msg.sender, mockTokenAddress, name, ticker, supply);
+        emit TokenLaunched(tokenAddr, name, ticker, totalMint, msg.sender);
     }
-    
-    /**
-     * @dev Emits a swap event to be picked up by Supabase indexer.
-     */
+
     function swap(address tokenAddress, uint256 usdcAmount, uint256 tokenAmount, bool isBuy) external {
         if (isBuy) {
-            IERC20(USDC).transferFrom(msg.sender, address(this), usdcAmount);
+            IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), usdcAmount);
+            IERC20(tokenAddress).transfer(msg.sender, tokenAmount);
         } else {
-            IERC20(USDC).transfer(msg.sender, usdcAmount);
+            IERC20(tokenAddress).transferFrom(msg.sender, address(this), tokenAmount);
+            IERC20(USDC_ADDRESS).transfer(msg.sender, usdcAmount);
         }
-        
-        totalMarketVolume += usdcAmount;
-        emit Swap(msg.sender, tokenAddress, usdcAmount, tokenAmount, isBuy);
+        emit TokenSwapped(tokenAddress, msg.sender, usdcAmount, tokenAmount, isBuy);
     }
 }

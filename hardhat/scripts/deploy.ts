@@ -8,7 +8,7 @@ async function main() {
   const TREASURY_ADDRESS = deployer.address; // Setting the deployer as the treasury for now
 
   const ArcLauncher = await ethers.getContractFactory("ArcLauncher");
-  const launcher = await ArcLauncher.deploy(TREASURY_ADDRESS);
+  const launcher = await ArcLauncher.deploy();
 
   await launcher.waitForDeployment();
 
