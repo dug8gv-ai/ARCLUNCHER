@@ -55,13 +55,17 @@ contract ArcLauncher {
 
     function swap(address tokenAddress, uint256 usdcAmount, uint256 tokenAmount, bool isBuy) external {
         if (isBuy) {
-            // In a real pool, USDC would be taken here
-            // We transfer tokens from our pool to the user
+            // Take USDC from user
+            IERC20(usdcAddress).transferFrom(msg.sender, address(this), usdcAmount);
+            // Give Tokens to user
             ArcToken(tokenAddress).transfer(msg.sender, tokenAmount);
         } else {
-            // User sells tokens back to pool
-            // ArcToken(tokenAddress).transferFrom(msg.sender, address(this), tokenAmount);
+            // Take Tokens from user
+            ArcToken(tokenAddress).transferFrom(msg.sender, address(this), tokenAmount);
+            // Give USDC to user
+            IERC20(usdcAddress).transfer(msg.sender, usdcAmount);
         }
-        emit Swap(msg.sender, tokenAddress, usdcAmount, tokenAmount, isBuy);
+        
+        emit TokenSwapped(tokenAddress, msg.sender, usdcAmount, tokenAmount, isBuy);
     }
 }

@@ -164,8 +164,8 @@ export function LaunchForm() {
       const { error: dbError } = await supabase
         .from('token_launches')
         .insert({
-          creator_address: userAddress,
-          token_address: finalTokenAddress,
+          creator_address: userAddress?.toLowerCase(),
+          token_address: finalTokenAddress.toLowerCase(),
           name: formData.name,
           ticker: formData.ticker,
           supply: Number(formData.supply), 

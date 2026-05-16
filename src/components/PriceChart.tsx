@@ -57,7 +57,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       const { data: swaps, error } = await supabase
         .from('token_swaps')
         .select('*')
-        .eq('token_address', selectedToken.token_address)
+        .eq('token_address', selectedToken.token_address.toLowerCase())
         .order('created_at', { ascending: true });
 
       if (error || !swaps || swaps.length === 0) {

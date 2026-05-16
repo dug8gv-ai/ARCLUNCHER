@@ -76,7 +76,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
       const { data: swaps } = await supabase
         .from('token_swaps')
         .select('usdc_amount, token_amount, is_buy')
-        .eq('token_address', token.token_address);
+        .eq('token_address', token.token_address.toLowerCase());
 
       const supply = Number(token.initial_supply || token.supply || 0);
       if (supply === 0) {
@@ -84,8 +84,8 @@ export function TradingPanel({ token }: TradingPanelProps) {
         return;
       }
 
-      const initialUSDC = 3; 
       const initialTokens = supply * 0.99; 
+      const initialUSDC = 3; 
       const k = initialUSDC * initialTokens;
 
       let currentUSDC = initialUSDC;
@@ -129,26 +129,34 @@ export function TradingPanel({ token }: TradingPanelProps) {
     
     const tokenAmountForDB = Number(estimatedTokens.replace(/,/g, ''));
     if (tokenAmountForDB <= 0) {
-      alert("Calculation error: Estimated tokens cannot be 0. Please wait for the price to update or check the supply.");
+      alert("Error: Estimated tokens is 0. Wait for calculation.");
       return;
     }
+
+    // DEBUG ALERT
+    alert(`DEBUG INFO:\nToken: ${token.token_address}\nUSDC: ${amount}\nTokens: ${tokenAmountForDB.toLocaleString()}\nIsBuy: ${isBuy}`);
 
     try {
       setStatus('approving');
       const usdcAmount = parseUnits(amount, 6);
-      
-      // Use the same estimate logic for the real transaction
-      const tokensPerUsdc = Number(estimatedTokens.replace(/,/g, '')) / Number(amount);
-      const tokenAmountWei = parseUnits(Number(estimatedTokens.replace(/,/g, '')).toFixed(0), 18);
-      const tokenAmountForDB = Number(estimatedTokens.replace(/,/g, ''));
+      const tokenAmountWei = parseUnits(tokenAmountForDB.toString(), 18);
 
       if (isBuy) {
-        // Approve USDC for Buying
+        // Approve USDC
         const approveHash = await writeContractAsync({
           address: USDC_ADDRESS as `0x${string}`,
           abi: erc20Abi,
           functionName: 'approve',
           args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, usdcAmount],
+        });
+        await publicClient?.waitForTransactionReceipt({ hash: approveHash });
+      } else {
+        // Approve Tokens for Sell
+        const approveHash = await writeContractAsync({
+          address: token.token_address as `0x${string}`,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, tokenAmountWei],
         });
         await publicClient?.waitForTransactionReceipt({ hash: approveHash });
       }
@@ -163,26 +171,20 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
       await publicClient?.waitForTransactionReceipt({ hash: swapHash });
 
-      // Step 3: Sync with Supabase (CRITICAL)
+      // Sync with Supabase (Lowercase)
       const swapData = {
-        user_address: userAddress,
-        token_address: token.token_address,
+        user_address: userAddress?.toLowerCase(),
+        token_address: token.token_address.toLowerCase(),
         usdc_amount: Number(amount),
         token_amount: tokenAmountForDB,
         is_buy: isBuy,
         type: isBuy ? 'buy' : 'sell'
       };
 
-      console.log("Recording swap in DB:", swapData);
       const { error: dbError } = await supabase.from('token_swaps').insert(swapData);
+      if (dbError) alert("Database Sync Error: " + dbError.message);
 
-      if (dbError) {
-        alert("Database Error: " + dbError.message);
-        console.error(dbError);
-        // Don't throw, just alert so user knows why UI didn't update
-      }
-
-      alert(`SUCCESS!\nTokens: ${tokenAmountForDB.toLocaleString()}\nTransaction confirmed on blockchain and recorded in DB.`);
+      alert(`SUCCESS! Transaction confirmed.`);
       
       // Step 4: Prompt to add token to MetaMask
       if (window.ethereum) {
