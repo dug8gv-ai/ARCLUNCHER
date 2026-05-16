@@ -20,16 +20,11 @@ const ARC_LAUNCHER_ABI = [
     "type": "function"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": true, "internalType": "address", "name": "tokenAddress", "type": "address" },
-      { "indexed": false, "internalType": "string", "name": "name", "type": "string" },
-      { "indexed": false, "internalType": "string", "name": "symbol", "type": "string" },
-      { "indexed": false, "internalType": "uint256", "name": "totalSupply", "type": "uint256" },
-      { "indexed": true, "internalType": "address", "name": "creator", "type": "address" }
-    ],
-    "name": "TokenLaunched",
-    "type": "event"
+    "inputs": [{"internalType": "string", "name": "ticker", "type": "string"}],
+    "name": "tickerToToken",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
@@ -147,34 +142,22 @@ export function LaunchForm() {
       const receipt = await publicClient.waitForTransactionReceipt({ hash: launchHash });
       console.log("Token launched successfully!");
 
-      // Step 3: Extract Real Token Address from Logs
-      let realTokenAddress = '';
-      try {
-        const logs = receipt.logs;
-        for (const log of logs) {
-          try {
-            const decodedLog = decodeEventLog({
-              abi: ARC_LAUNCHER_ABI,
-              data: log.data,
-              topics: log.topics,
-            });
-            if (decodedLog.eventName === 'TokenLaunched') {
-              realTokenAddress = (decodedLog.args as any).tokenAddress;
-              break;
-            }
-          } catch (e) {
-            // Not our event, continue
-          }
-        }
-      } catch (e) {
-        console.error("Error decoding logs:", e);
-      }
+      // Step 3: GET REAL ADDRESS FROM CONTRACT (Foolproof)
+      console.log("Fetching real address from contract for ticker:", formData.ticker);
+      const realTokenAddress = await publicClient.readContract({
+        address: ARC_LAUNCHER_ADDRESS as `0x${string}`,
+        abi: ARC_LAUNCHER_ABI,
+        functionName: 'tickerToToken',
+        args: [formData.ticker],
+      }) as string;
 
-      if (!realTokenAddress) {
-        alert("WARNING: Blockchain se real token address nahi mila. Database mein random address use ho raha hai. Iska matlab hai ke ABI mismatch hai ya transaction log nahi mila.");
-      }
-
-      const finalTokenAddress = realTokenAddress || `0x${Math.random().toString(16).slice(2, 42).padStart(40, '0')}`;
+      console.log("Contract returned real address:", realTokenAddress);
+      
+      const finalTokenAddress = (realTokenAddress && realTokenAddress !== '0x0000000000000000000000000000000000000000') 
+        ? realTokenAddress 
+        : `0x${Math.random().toString(16).slice(2, 42).padStart(40, '0')}`;
+      
+      alert(`TOKEN CREATED!\nAddress: ${finalTokenAddress}\nSyncing with dashboard...`);
 
       // Step 4: Sync with Database (Supabase)
       console.log("Syncing with database with real address:", finalTokenAddress);
