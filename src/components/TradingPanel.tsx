@@ -99,15 +99,10 @@ export function TradingPanel({ token }: TradingPanelProps) {
         .select('usdc_amount, token_amount, is_buy')
         .eq('token_address', token.token_address.toLowerCase());
 
-      const supply = Number(token.initial_supply || token.supply || 0);
-      if (supply === 0) {
-        console.error("Token supply is 0 or undefined");
-        return;
-      }
-
       const supply = Number(token.initial_supply || token.supply || 1000000000);
       const initialTokens = supply; 
       const initialUSDC = supply * 0.01; // Start price at 0.01
+
       const k = initialUSDC * initialTokens;
 
       let currentUSDC = initialUSDC;
