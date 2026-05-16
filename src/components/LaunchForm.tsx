@@ -143,22 +143,58 @@ export function LaunchForm() {
       const receipt = await publicClient.waitForTransactionReceipt({ hash: launchHash });
       console.log("Token launched successfully!");
 
-      // Step 3: GET REAL ADDRESS FROM CONTRACT (Foolproof)
-      console.log("Fetching real address from contract for ticker:", formData.ticker);
-      const realTokenAddress = await publicClient.readContract({
-        address: ARC_LAUNCHER_ADDRESS as `0x${string}`,
-        abi: ARC_LAUNCHER_ABI,
-        functionName: 'tickerToToken',
-        args: [formData.ticker],
-      }) as string;
+      // Step 3: GET REAL ADDRESS FROM EVENT LOGS (Foolproof)
+      console.log("Extracting real address from logs...");
+      
+      const LAUNCHED_EVENT_ABI = {
+        "anonymous": false,
+        "inputs": [
+          {"indexed": true, "internalType": "address", "name": "tokenAddress", "type": "address"},
+          {"indexed": false, "internalType": "string", "name": "name", "type": "string"},
+          {"indexed": false, "internalType": "string", "name": "ticker", "type": "string"},
+          {"indexed": false, "internalType": "uint256", "name": "supply", "type": "uint256"},
+          {"indexed": true, "internalType": "address", "name": "creator", "type": "address"}
+        ],
+        "name": "TokenLaunched",
+        "type": "event"
+      };
 
-      console.log("Contract returned real address:", realTokenAddress);
+      let finalTokenAddress = '';
       
-      const finalTokenAddress = (realTokenAddress && realTokenAddress !== '0x0000000000000000000000000000000000000000') 
-        ? realTokenAddress 
-        : `0x${Math.random().toString(16).slice(2, 42).padStart(40, '0')}`;
-      
+      // Look through logs for TokenLaunched event
+      for (const log of receipt.logs) {
+        try {
+          const decodedLog = decodeEventLog({
+            abi: [LAUNCHED_EVENT_ABI],
+            data: log.data,
+            topics: log.topics,
+          });
+          if (decodedLog.eventName === 'TokenLaunched') {
+            finalTokenAddress = (decodedLog.args as any).tokenAddress;
+            break;
+          }
+        } catch (e) {
+          // Continue if log doesn't match
+        }
+      }
+
+      if (!finalTokenAddress) {
+        console.warn("Could not find TokenLaunched event in logs, falling back to contract call");
+        finalTokenAddress = await publicClient.readContract({
+          address: ARC_LAUNCHER_ADDRESS as `0x${string}`,
+          abi: ARC_LAUNCHER_ABI,
+          functionName: 'tickerToToken',
+          args: [formData.ticker],
+        }) as string;
+      }
+
+      if (!finalTokenAddress || finalTokenAddress === '0x0000000000000000000000000000000000000000') {
+        throw new Error("Could not retrieve token address from blockchain.");
+      }
+
+      console.log("FINAL TOKEN ADDRESS:", finalTokenAddress);
       alert(`TOKEN CREATED!\nAddress: ${finalTokenAddress}\nSyncing with dashboard...`);
+
 
       // Step 4: Sync with Database (Supabase)
       console.log("Syncing with database with real address:", finalTokenAddress);
