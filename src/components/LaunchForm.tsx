@@ -43,12 +43,14 @@ const USDC_ABI = [
   }
 ];
 
-// Mock contract address for ArcLauncher and USDC
+// Arc Testnet Constants (Default fallbacks)
+const ARC_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
+
 const ARC_LAUNCHER_ADDRESS = process.env.NEXT_PUBLIC_LAUNCHER_ADDRESS || '0x0000000000000000000000000000000000000000';
-const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x0000000000000000000000000000000000000000';
+const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || ARC_USDC_ADDRESS;
 
 export function LaunchForm() {
-  const { isConnected } = useAccount();
+  const { isConnected, address: userAddress } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
   
@@ -60,6 +62,10 @@ export function LaunchForm() {
     e.preventDefault();
     if (!isConnected) return alert("Please connect your wallet first.");
     if (!publicClient) return alert("Network error. Please refresh.");
+    
+    if (ARC_LAUNCHER_ADDRESS === '0x0000000000000000000000000000000000000000') {
+      return alert("Launcher address is not configured. Please set NEXT_PUBLIC_LAUNCHER_ADDRESS.");
+    }
 
     try {
       console.log("Starting launch process...");
