@@ -272,14 +272,27 @@ export function TradingPanel({ token }: TradingPanelProps) {
           <div className="flex justify-between text-[10px] text-gray-500 mb-2">
             <span>{isBuy ? 'Amount in USDC' : `Amount in ${token.ticker}`}</span>
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1"><Wallet size={10}/> {balance} USDC</span>
-              <span className="flex items-center gap-1 text-cyan-400"><TrendingUp size={10}/> {tokenBalance} {token.ticker}</span>
-              <button 
-                onClick={handleMax}
-                className="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20 font-black hover:bg-cyan-500 hover:text-black transition-all"
-              >
-                MAX
-              </button>
+              {isBuy ? (
+                <>
+                  <span className="flex items-center gap-1"><Wallet size={10}/> {balance} USDC</span>
+                  <button 
+                    onClick={() => setAmount(balance)}
+                    className="bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20 font-black hover:bg-green-500 hover:text-black transition-all"
+                  >
+                    MAX BUY
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="flex items-center gap-1 text-cyan-400"><TrendingUp size={10}/> {tokenBalance} {token.ticker}</span>
+                  <button 
+                    onClick={() => setAmount(tokenBalance)}
+                    className="bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20 font-black hover:bg-red-500 hover:text-black transition-all"
+                  >
+                    MAX SELL
+                  </button>
+                </>
+              )}
             </div>
           </div>
           <input 
@@ -290,6 +303,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
             className="w-full bg-transparent text-2xl font-mono text-white outline-none"
           />
         </div>
+
 
         <button 
           onClick={handleTrade}
