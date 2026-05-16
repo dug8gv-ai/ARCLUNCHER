@@ -71,65 +71,61 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       }
 
 
-      // Calculate Metrics
-      let latestPrice = 0;
-      let totalVolume = 0;
-      let uniqueHolders = 0;
-      let mcap = 0;
-      const supply = Number(selectedToken.initial_supply || selectedToken.supply || 1000000000);
-
+      // Convert swaps to 1-minute OHLC candles
+      let candles: any[] = [];
       if (swaps && swaps.length > 0) {
-        latestPrice = Number(swaps[swaps.length - 1].usdc_amount / swaps[swaps.length - 1].token_amount);
-        totalVolume = swaps.reduce((acc, s) => acc + Number(s.usdc_amount), 0);
-        uniqueHolders = new Set(swaps.map(s => s.user_address)).size;
-        mcap = latestPrice * supply;
-      } else {
-        // User requested fixed starting price of 0.01
-        latestPrice = 0.01;
-        mcap = latestPrice * supply;
-        uniqueHolders = 1; 
-        totalVolume = 0;
+        const groupedByMinute: { [key: number]: any[] } = {};
+        
+        swaps.forEach(swap => {
+          const time = Math.floor(new Date(swap.created_at).getTime() / 60000) * 60;
+          if (!groupedByMinute[time]) groupedByMinute[time] = [];
+          groupedByMinute[time].push(swap);
+        });
+
+        const sortedMinutes = Object.keys(groupedByMinute).map(Number).sort((a, b) => a - b);
+        
+        candles = sortedMinutes.map((time, i) => {
+          const minuteSwaps = groupedByMinute[time];
+          const prices = minuteSwaps.map(s => Number(s.usdc_amount / s.token_amount));
+          
+          return {
+            time: time as any,
+            open: i === 0 ? 0.01 : candles[i-1].close,
+            high: Math.max(...prices),
+            low: Math.min(...prices),
+            close: prices[prices.length - 1]
+          };
+        });
       }
-
-      setMetrics({
-        mcap: mcap.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-        fdv: mcap.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-        holders: uniqueHolders.toString(),
-        volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-        price: latestPrice.toFixed(4)
-      });
-
-      // Convert swaps to OHLC candles
-      let candles = swaps.map((swap, index) => {
-        const time = Math.floor(new Date(swap.created_at).getTime() / 1000);
-        if (isNaN(time)) return null;
-
-        const currentPrice = Number(swap.usdc_amount / swap.token_amount);
-
-        return {
-          time: time as any,
-          open: index === 0 ? 0.01 : Number(swaps[index-1].usdc_amount / swaps[index-1].token_amount),
-          high: currentPrice * 1.001,
-          low: currentPrice * 0.999,
-          close: currentPrice
-        };
-      }).filter(c => c !== null);
 
       // If no candles, add a placeholder "Launch Candle" at 0.01
       if (candles.length === 0) {
-        const launchTime = Math.floor(new Date(selectedToken.created_at || Date.now()).getTime() / 1000);
+        const launchTime = Math.floor(new Date(selectedToken.created_at || Date.now()).getTime() / 60000) * 60;
         candles = [{
           time: launchTime as any,
-          open: 0.01,
-          high: 0.01,
-          low: 0.01,
-          close: 0.01
+          open: 0.01, high: 0.01, low: 0.01, close: 0.01
         }];
       }
 
       if (candles.length > 0) {
-        candleSeries.setData(candles as any);
+        candleSeries.setData(candles);
       }
+
+      // 3. Update Metrics
+      const supply = Number(selectedToken.initial_supply || selectedToken.supply || 1000000000);
+      const latestPrice = candles.length > 0 ? candles[candles.length - 1].close : 0.01;
+      const totalVolume = swaps?.reduce((acc, s) => acc + Number(s.usdc_amount), 0) || 0;
+      const uniqueHolders = new Set(swaps?.map(s => s.user_address)).size || 1;
+      const mcap = latestPrice * supply;
+
+      setMetrics({
+        mcap: mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        fdv: mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        holders: uniqueHolders.toString(),
+        volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
+        price: latestPrice.toFixed(6)
+      });
+
 
     }
 
