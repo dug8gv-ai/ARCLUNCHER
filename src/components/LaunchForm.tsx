@@ -157,6 +157,10 @@ export function LaunchForm() {
         console.error("Error decoding logs:", e);
       }
 
+      if (!realTokenAddress) {
+        alert("WARNING: Blockchain se real token address nahi mila. Database mein random address use ho raha hai. Iska matlab hai ke ABI mismatch hai ya transaction log nahi mila.");
+      }
+
       const finalTokenAddress = realTokenAddress || `0x${Math.random().toString(16).slice(2, 42).padStart(40, '0')}`;
 
       // Step 4: Sync with Database (Supabase)

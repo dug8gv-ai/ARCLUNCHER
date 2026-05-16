@@ -133,8 +133,11 @@ export function TradingPanel({ token }: TradingPanelProps) {
       return;
     }
 
+    // CONFIG DEBUG
+    alert(`SYSTEM CONFIG:\nLauncher: ${ARC_LAUNCHER_ADDRESS}\nUSDC: ${USDC_ADDRESS}\nNetwork: Arc Testnet`);
+
     // DEBUG ALERT
-    alert(`DEBUG INFO:\nToken: ${token.token_address}\nUSDC: ${amount}\nTokens: ${tokenAmountForDB.toLocaleString()}\nIsBuy: ${isBuy}`);
+    alert(`TRADE INFO:\nToken: ${token.token_address}\nUSDC: ${amount}\nTokens: ${tokenAmountForDB.toLocaleString()}`);
 
     try {
       setStatus('approving');
