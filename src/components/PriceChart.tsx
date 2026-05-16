@@ -60,25 +60,45 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         .eq('token_address', selectedToken.token_address.toLowerCase())
         .order('created_at', { ascending: true });
 
-      if (error || !swaps || swaps.length === 0) {
-        candleSeries.setData([]);
-        setMetrics({ mcap: '0', fdv: '0', holders: '0', volume: '0', price: '0' });
+      if (error) {
+        console.error("Error fetching swaps:", error);
         return;
       }
 
+      if (!swaps || swaps.length === 0) {
+        candleSeries.setData([]);
+        // Don't return yet, we want to calculate initial metrics below
+      }
+
+
       // Calculate Metrics
-      const latestPrice = Number(swaps[swaps.length - 1].usdc_amount / swaps[swaps.length - 1].token_amount);
-      const totalVolume = swaps.reduce((acc, s) => acc + Number(s.usdc_amount), 0);
-      const uniqueHolders = new Set(swaps.map(s => s.user_address)).size;
-      const mcap = latestPrice * (selectedToken.initial_supply || 0);
+      let latestPrice = 0;
+      let totalVolume = 0;
+      let uniqueHolders = 0;
+      let mcap = 0;
+
+      if (swaps && swaps.length > 0) {
+        latestPrice = Number(swaps[swaps.length - 1].usdc_amount / swaps[swaps.length - 1].token_amount);
+        totalVolume = swaps.reduce((acc, s) => acc + Number(s.usdc_amount), 0);
+        uniqueHolders = new Set(swaps.map(s => s.user_address)).size;
+        mcap = latestPrice * (selectedToken.initial_supply || selectedToken.supply || 0);
+      } else {
+        // Initial state from launch (3 USDC for 99% of supply)
+        const supply = Number(selectedToken.initial_supply || selectedToken.supply || 1);
+        latestPrice = 3 / (supply * 0.99);
+        mcap = latestPrice * supply;
+        uniqueHolders = 1; // The creator
+        totalVolume = 0;
+      }
 
       setMetrics({
-        mcap: mcap.toLocaleString(undefined, { maximumFractionDigits: 6 }),
-        fdv: mcap.toLocaleString(undefined, { maximumFractionDigits: 6 }),
+        mcap: mcap.toLocaleString(undefined, { maximumFractionDigits: 2 }),
+        fdv: mcap.toLocaleString(undefined, { maximumFractionDigits: 2 }),
         holders: uniqueHolders.toString(),
         volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-        price: latestPrice.toFixed(10)
+        price: latestPrice.toFixed(12)
       });
+
 
       // Convert swaps to OHLC candles (Safe version)
       const candles = swaps.map((swap, index) => {
