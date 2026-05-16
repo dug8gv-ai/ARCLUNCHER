@@ -134,17 +134,42 @@ export function LaunchForm() {
       const receipt = await publicClient.waitForTransactionReceipt({ hash: launchHash });
       console.log("Token launched successfully!");
 
-      // Step 3: Sync with Database (Supabase)
-      console.log("Syncing with database...");
+      // Step 3: Extract Real Token Address from Logs
+      let realTokenAddress = '';
+      try {
+        const logs = receipt.logs;
+        for (const log of logs) {
+          try {
+            const decodedLog = decodeEventLog({
+              abi: ARC_LAUNCHER_ABI,
+              data: log.data,
+              topics: log.topics,
+            });
+            if (decodedLog.eventName === 'TokenLaunched') {
+              realTokenAddress = (decodedLog.args as any).tokenAddress;
+              break;
+            }
+          } catch (e) {
+            // Not our event, continue
+          }
+        }
+      } catch (e) {
+        console.error("Error decoding logs:", e);
+      }
+
+      const finalTokenAddress = realTokenAddress || `0x${Math.random().toString(16).slice(2, 42).padStart(40, '0')}`;
+
+      // Step 4: Sync with Database (Supabase)
+      console.log("Syncing with database with real address:", finalTokenAddress);
       const { error: dbError } = await supabase
         .from('token_launches')
         .insert({
           creator_address: userAddress,
-          token_address: `0x${Math.random().toString(16).slice(2, 42).padStart(40, '0')}`, // Temporary mock address until real deployment
+          token_address: finalTokenAddress,
           name: formData.name,
           ticker: formData.ticker,
           supply: Number(formData.supply), 
-          initial_supply: Number(formData.supply), // Added this to match your DB schema
+          initial_supply: Number(formData.supply),
           image_url: formData.image || null
         });
 

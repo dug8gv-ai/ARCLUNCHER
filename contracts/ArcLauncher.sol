@@ -1,71 +1,56 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/**
- * @title ArcLauncher
- * @dev High-Frequency Token Launchpad with Global Metrics on Arc Testnet
- */
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-interface IERC20 {
-    // Note: We remove "returns (bool)" because the Arc system contract might return nothing (0x)
-    function transferFrom(address sender, address recipient, uint256 amount) external;
-    function transfer(address recipient, uint256 amount) external;
+contract ArcToken is ERC20, Ownable {
+    constructor(
+        string memory name,
+        string memory symbol,
+        uint256 initialSupply,
+        address creator
+    ) ERC20(name, symbol) Ownable(msg.sender) {
+        _mint(creator, initialSupply);
+    }
 }
 
 contract ArcLauncher {
-    address public constant USDC = 0x3600000000000000000000000000000000000000; // Arc Testnet USDC ERC-20 Interface
-    address public treasury;
+    address public constant USDC_ADDRESS = 0x3600000000000000000000000000000000000000;
+    uint256 public constant LAUNCH_FEE = 4 * 10**6; // 4 USDC
     
-    uint256 public constant LAUNCH_FEE = 4 * 10**6; // 4 USDC (assuming 6 decimals)
-    uint256 public constant LP_ALLOCATION = 3 * 10**6; // 3 USDC
-    uint256 public constant TREASURY_ALLOCATION = 1 * 10**6; // 1 USDC
-    
-    uint256 public totalTokensCreated;
-    uint256 public totalMarketVolume;
-
     event TokenLaunched(address indexed creator, address indexed tokenAddress, string name, string ticker, uint256 supply);
     event Swap(address indexed user, address indexed tokenAddress, uint256 usdcAmount, uint256 tokenAmount, bool isBuy);
 
-    constructor(address _treasury) {
-        treasury = _treasury;
+    struct TokenInfo {
+        address creator;
+        string name;
+        string ticker;
+        uint256 supply;
     }
 
-    /**
-     * @dev Launches a new token.
-     * Requires 4 USDC fee to be approved beforehand.
-     * Splits fee: 3 USDC to LP, 1 USDC to Treasury.
-     * Note: In a real implementation, this function would deploy a new ERC20 token contract,
-     * initialize the AMM pool with the LP_ALLOCATION and 99% of the token supply.
-     */
+    mapping(address => TokenInfo) public tokens;
+
     function launchToken(string memory name, string memory ticker, uint256 supply) external {
-        // Transfer 4 USDC from user
-        IERC20(USDC).transferFrom(msg.sender, address(this), LAUNCH_FEE);
+        // In a real scenario, we would transfer USDC fee here
+        // For testnet, we just deploy
         
-        // Split the fee
-        IERC20(USDC).transfer(treasury, TREASURY_ALLOCATION);
+        ArcToken newToken = new ArcToken(name, ticker, supply * 10**18, msg.sender);
+        address tokenAddress = address(newToken);
         
-        // The remaining 3 USDC stays in this contract or is sent to the specific token's LP pool.
-        
-        // Mocking token deployment address
-        address mockTokenAddress = address(uint160(uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, name)))));
+        tokens[tokenAddress] = TokenInfo({
+            creator: msg.sender,
+            name: name,
+            ticker: ticker,
+            supply: supply
+        });
 
-        totalTokensCreated += 1;
-        totalMarketVolume += LAUNCH_FEE;
-
-        emit TokenLaunched(msg.sender, mockTokenAddress, name, ticker, supply);
+        emit TokenLaunched(msg.sender, tokenAddress, name, ticker, supply);
     }
-    
-    /**
-     * @dev Emits a swap event to be picked up by Supabase indexer.
-     */
+
     function swap(address tokenAddress, uint256 usdcAmount, uint256 tokenAmount, bool isBuy) external {
-        if (isBuy) {
-            IERC20(USDC).transferFrom(msg.sender, address(this), usdcAmount);
-        } else {
-            IERC20(USDC).transfer(msg.sender, usdcAmount);
-        }
-        
-        totalMarketVolume += usdcAmount;
+        // This is a simplified swap logic for the testnet launchpad
+        // In reality, it would interact with a bonding curve or liquidity pool
         emit Swap(msg.sender, tokenAddress, usdcAmount, tokenAmount, isBuy);
     }
 }
