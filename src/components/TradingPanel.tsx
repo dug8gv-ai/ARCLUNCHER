@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { parseUnits, erc20Abi } from 'viem';
 import { supabase } from '@/lib/supabase';
-import { Loader2, ArrowUpDown, Wallet } from 'lucide-react';
+import { TrendingUp, ArrowUpDown, Info, Wallet } from 'lucide-react';
 
 interface TradingPanelProps {
   token: any;
@@ -183,9 +183,28 @@ export function TradingPanel({ token }: TradingPanelProps) {
       }
 
       alert(`SUCCESS!\nTokens: ${tokenAmountForDB.toLocaleString()}\nTransaction confirmed on blockchain and recorded in DB.`);
-      setStatus('success');
       
-      // Trigger a page refresh
+      // Step 4: Prompt to add token to MetaMask
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC20',
+              options: {
+                address: token.token_address,
+                symbol: token.ticker,
+                decimals: 18,
+                image: token.image_url,
+              },
+            },
+          });
+        } catch (e) {
+          console.error("User rejected adding token to wallet");
+        }
+      }
+
+      setStatus('success');
       window.location.reload(); 
 
     } catch (error: any) {
@@ -246,6 +265,29 @@ export function TradingPanel({ token }: TradingPanelProps) {
           {status === 'swapping' && <><Loader2 className="animate-spin" /> Swapping...</>}
           {status === 'success' && 'Trade Success!'}
           {status === 'idle' && (isBuy ? `Buy ${token.ticker}` : `Sell ${token.ticker}`)}
+        </button>
+
+        <button
+          onClick={async () => {
+            if (window.ethereum) {
+              await window.ethereum.request({
+                method: 'wallet_watchAsset',
+                params: {
+                  type: 'ERC20',
+                  options: {
+                    address: token.token_address,
+                    symbol: token.ticker,
+                    decimals: 18,
+                    image: token.image_url,
+                  },
+                },
+              });
+            }
+          }}
+          className="w-full py-2 rounded-lg border border-gray-800 text-gray-400 text-xs hover:text-white hover:border-gray-600 transition-all flex items-center justify-center gap-2"
+        >
+          <Wallet size={14} />
+          Add {token.ticker} to Wallet
         </button>
 
         <div className="bg-cyan-500/5 border border-cyan-500/10 rounded-lg p-3 text-[10px] text-gray-500">
