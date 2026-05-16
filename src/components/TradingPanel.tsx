@@ -53,9 +53,13 @@ export function TradingPanel({ token }: TradingPanelProps) {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchBalance();
-  });
+    
+    // Refresh balance every 10 seconds or when user changes
+    const interval = setInterval(fetchBalance, 10000);
+    return () => clearInterval(interval);
+  }, [userAddress, publicClient]);
 
   if (!token) return null;
 

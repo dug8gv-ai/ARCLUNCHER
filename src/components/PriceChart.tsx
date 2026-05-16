@@ -65,24 +65,46 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         return;
       }
 
-      // Convert swaps to OHLC candles (Simplified for now)
-      const candles = swaps.map((swap, index) => ({
-        time: Math.floor(new Date(swap.created_at).getTime() / 1000) as any,
-        open: index === 0 ? 1.0 : Number(swaps[index-1].usdc_amount / swaps[index-1].token_amount) * 1000,
-        high: Number(swap.usdc_amount / swap.token_amount) * 1000 * 1.01,
-        low: Number(swap.usdc_amount / swap.token_amount) * 1000 * 0.99,
-        close: Number(swap.usdc_amount / swap.token_amount) * 1000
-      }));
+      // Convert swaps to OHLC candles (Safe version)
+      const candles = swaps.map((swap, index) => {
+        const time = Math.floor(new Date(swap.created_at).getTime() / 1000);
+        if (isNaN(time)) return null;
 
-      candleSeries.setData(candles);
+        return {
+          time: time as any,
+          open: index === 0 ? 1.0 : Number(swaps[index-1].usdc_amount / swaps[index-1].token_amount) * 1000,
+          high: Number(swap.usdc_amount / swap.token_amount) * 1000 * 1.01,
+          low: Number(swap.usdc_amount / swap.token_amount) * 1000 * 0.99,
+          close: Number(swap.usdc_amount / swap.token_amount) * 1000
+        };
+      }).filter(c => c !== null);
+
+      if (candles.length > 0) {
+        candleSeries.setData(candles as any);
+      }
     }
 
-    fetchChartData();
-    
-    // Subscribe to new trades for live chart updates
-    const channel = supabase.channel('chart_updates')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'token_swaps', filter: `token_address=eq.${selectedToken?.token_address}` }, fetchChartData)
-      .subscribe();
+    if (selectedToken) {
+      fetchChartData();
+      
+      const channel = supabase.channel(`chart_${selectedToken.token_address}`)
+        .on('postgres_changes', { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'token_swaps', 
+          filter: `token_address=eq.${selectedToken.token_address}` 
+        }, fetchChartData)
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+        chart.remove();
+      };
+    }
+
+    return () => {
+      chart.remove();
+    };
     seriesRef.current = candleSeries;
     chartRef.current = chart;
 
