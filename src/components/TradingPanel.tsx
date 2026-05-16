@@ -26,7 +26,7 @@ const ARC_LAUNCHER_ABI = [
 ];
 
 const ARC_LAUNCHER_ADDRESS = process.env.NEXT_PUBLIC_LAUNCHER_ADDRESS || '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3'; 
-const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3'; 
+const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x3600000000000000000000000000000000000000'; 
 
 export function TradingPanel({ token }: TradingPanelProps) {
   const { isConnected, address: userAddress } = useAccount();
@@ -47,7 +47,9 @@ export function TradingPanel({ token }: TradingPanelProps) {
         functionName: 'balanceOf',
         args: [userAddress as `0x${string}`],
       });
-      setBalance((Number(bal) / 1000000).toFixed(2));
+      const decimals = USDC_ADDRESS.toLowerCase() === '0x3600000000000000000000000000000000000000' ? 18 : 6;
+      const divisor = Math.pow(10, decimals);
+      setBalance((Number(bal) / divisor).toFixed(2));
     } catch (e) {
       console.error(e);
     }
@@ -141,7 +143,10 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
     try {
       setStatus('approving');
-      const usdcAmount = parseUnits(amount, 6);
+      
+      // Arc Testnet Native USDC uses 18 decimals, standard ERC20 uses 6
+      const decimals = USDC_ADDRESS.toLowerCase() === '0x3600000000000000000000000000000000000000' ? 18 : 6;
+      const usdcAmount = parseUnits(amount, decimals);
       const tokenAmountWei = parseUnits(tokenAmountForDB.toString(), 18);
 
       if (isBuy) {

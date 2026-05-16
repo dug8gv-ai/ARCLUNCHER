@@ -104,7 +104,8 @@ export function LaunchForm() {
 
       // Step 1: Approve 4 USDC
       setStatus('approving');
-      const feeAmount = parseUnits('4', 6); 
+      const decimals = USDC_ADDRESS.toLowerCase() === '0x3600000000000000000000000000000000000000' ? 18 : 6;
+      const feeAmount = parseUnits('4', decimals); 
       console.log("Approving USDC Amount:", feeAmount.toString());
       
       const approveHash = await writeContractAsync({
