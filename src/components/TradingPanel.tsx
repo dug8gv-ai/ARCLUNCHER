@@ -124,14 +124,19 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
       const dX = Number(val);
       if (isBuy) {
+        // Buy: Input is USDC (dX), Output is Tokens
         const newUSDC = currentUSDC + dX;
         const newTokens = k / newUSDC;
         const tokensOut = currentTokens - newTokens;
-        setEstimatedTokens(Math.floor(tokensOut).toString());
+        setEstimatedTokens(Math.floor(tokensOut).toLocaleString());
       } else {
-        const price = currentTokens / currentUSDC;
-        setEstimatedTokens(Math.floor(dX * price).toString());
+        // Sell: Input is Tokens (dX), Output is USDC
+        const newTokens = currentTokens + dX;
+        const newUSDC = k / newTokens;
+        const usdcOut = currentUSDC - newUSDC;
+        setEstimatedTokens(usdcOut.toFixed(4));
       }
+
     } catch (e) {
       console.error("Error calculating estimate:", e);
     }
@@ -349,9 +354,10 @@ export function TradingPanel({ token }: TradingPanelProps) {
             <span className="text-gray-300">{'< 0.1%'}</span>
           </p>
           <p className="flex justify-between">
-            <span>Estimated Received</span>
-            <span className="text-cyan-400 font-bold">{estimatedTokens} {token.ticker}</span>
+            <span>Estimated {isBuy ? 'Received' : 'Output'}</span>
+            <span className="text-cyan-400 font-bold">{estimatedTokens} {isBuy ? token.ticker : 'USDC'}</span>
           </p>
+
         </div>
       </div>
     </div>
