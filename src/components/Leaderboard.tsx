@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Trophy, TrendingUp, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-export function Leaderboard() {
+export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) => void }) {
   const [activeTab, setActiveTab] = useState<'gainers' | 'trending'>('gainers');
   const [tokens, setTokens] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +81,8 @@ export function Leaderboard() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1 }}
                 key={token.id} 
-                className="bg-black/20 border border-gray-800 rounded-lg p-4 flex items-center justify-between hover:border-cyan-500/30 transition-colors cursor-pointer"
+                onClick={() => onSelectToken?.(token)}
+                className="bg-black/20 border border-gray-800 rounded-lg p-4 flex items-center justify-between hover:border-cyan-500/30 transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-3">
                   {token.image_url ? (
