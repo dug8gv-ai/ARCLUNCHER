@@ -15,11 +15,11 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 
   const [metrics, setMetrics] = useState({
-    mcap: '12.4k',
-    fdv: '45.8k',
-    holders: '154',
-    volume: '2.1k',
-    price: '1.63'
+    mcap: '0',
+    fdv: '0',
+    holders: '0',
+    volume: '0',
+    price: '0'
   });
 
   useEffect(() => {
@@ -62,8 +62,23 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
       if (error || !swaps || swaps.length === 0) {
         candleSeries.setData([]);
+        setMetrics({ mcap: '0', fdv: '0', holders: '0', volume: '0', price: '0' });
         return;
       }
+
+      // Calculate Metrics
+      const latestPrice = Number(swaps[swaps.length - 1].usdc_amount / swaps[swaps.length - 1].token_amount) * 1000;
+      const totalVolume = swaps.reduce((acc, s) => acc + Number(s.usdc_amount), 0);
+      const uniqueHolders = new Set(swaps.map(s => s.user_address)).size;
+      const mcap = latestPrice * (selectedToken.initial_supply || 0);
+
+      setMetrics({
+        mcap: mcap.toLocaleString(undefined, { maximumFractionDigits: 2 }),
+        fdv: mcap.toLocaleString(undefined, { maximumFractionDigits: 2 }),
+        holders: uniqueHolders.toString(),
+        volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
+        price: latestPrice.toFixed(6)
+      });
 
       // Convert swaps to OHLC candles (Safe version)
       const candles = swaps.map((swap, index) => {
