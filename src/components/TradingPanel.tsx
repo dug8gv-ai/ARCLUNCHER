@@ -72,38 +72,47 @@ export function TradingPanel({ token }: TradingPanelProps) {
       return;
     }
 
-    // 1. Get all previous swaps to find current pool state
-    const { data: swaps } = await supabase
-      .from('token_swaps')
-      .select('usdc_amount, token_amount, is_buy')
-      .eq('token_address', token.token_address);
+    try {
+      const { data: swaps } = await supabase
+        .from('token_swaps')
+        .select('usdc_amount, token_amount, is_buy')
+        .eq('token_address', token.token_address);
 
-    const initialUSDC = 3; 
-    const initialTokens = Number(token.initial_supply) * 0.99; // 99% in pool
-    const k = initialUSDC * initialTokens;
-
-    let currentUSDC = initialUSDC;
-    let currentTokens = initialTokens;
-
-    swaps?.forEach(s => {
-      if (s.is_buy) {
-        currentUSDC += Number(s.usdc_amount);
-        currentTokens -= Number(s.token_amount);
-      } else {
-        currentUSDC -= Number(s.usdc_amount);
-        currentTokens += Number(s.token_amount);
+      const supply = Number(token.initial_supply || token.supply || 0);
+      if (supply === 0) {
+        console.error("Token supply is 0 or undefined");
+        return;
       }
-    });
 
-    const dX = Number(val);
-    if (isBuy) {
-      const newUSDC = currentUSDC + dX;
-      const newTokens = k / newUSDC;
-      const tokensOut = currentTokens - newTokens;
-      setEstimatedTokens(tokensOut.toLocaleString(undefined, { maximumFractionDigits: 0 }));
-    } else {
-      // Simple inverse for sell
-      setEstimatedTokens((dX * (currentTokens / currentUSDC)).toLocaleString());
+      const initialUSDC = 3; 
+      const initialTokens = supply * 0.99; 
+      const k = initialUSDC * initialTokens;
+
+      let currentUSDC = initialUSDC;
+      let currentTokens = initialTokens;
+
+      swaps?.forEach(s => {
+        if (s.is_buy) {
+          currentUSDC += Number(s.usdc_amount);
+          currentTokens -= Number(s.token_amount);
+        } else {
+          currentUSDC -= Number(s.usdc_amount);
+          currentTokens += Number(s.token_amount);
+        }
+      });
+
+      const dX = Number(val);
+      if (isBuy) {
+        const newUSDC = currentUSDC + dX;
+        const newTokens = k / newUSDC;
+        const tokensOut = currentTokens - newTokens;
+        setEstimatedTokens(Math.floor(tokensOut).toString());
+      } else {
+        const price = currentTokens / currentUSDC;
+        setEstimatedTokens(Math.floor(dX * price).toString());
+      }
+    } catch (e) {
+      console.error("Error calculating estimate:", e);
     }
   };
 
@@ -117,6 +126,12 @@ export function TradingPanel({ token }: TradingPanelProps) {
       return;
     }
     if (!amount || Number(amount) <= 0) return;
+    
+    const tokenAmountForDB = Number(estimatedTokens.replace(/,/g, ''));
+    if (tokenAmountForDB <= 0) {
+      alert("Calculation error: Estimated tokens cannot be 0. Please wait for the price to update or check the supply.");
+      return;
+    }
 
     try {
       setStatus('approving');

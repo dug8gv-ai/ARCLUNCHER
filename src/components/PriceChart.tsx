@@ -67,17 +67,17 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       }
 
       // Calculate Metrics
-      const latestPrice = Number(swaps[swaps.length - 1].usdc_amount / swaps[swaps.length - 1].token_amount) * 1000;
+      const latestPrice = Number(swaps[swaps.length - 1].usdc_amount / swaps[swaps.length - 1].token_amount);
       const totalVolume = swaps.reduce((acc, s) => acc + Number(s.usdc_amount), 0);
       const uniqueHolders = new Set(swaps.map(s => s.user_address)).size;
       const mcap = latestPrice * (selectedToken.initial_supply || 0);
 
       setMetrics({
-        mcap: mcap.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-        fdv: mcap.toLocaleString(undefined, { maximumFractionDigits: 2 }),
+        mcap: mcap.toLocaleString(undefined, { maximumFractionDigits: 6 }),
+        fdv: mcap.toLocaleString(undefined, { maximumFractionDigits: 6 }),
         holders: uniqueHolders.toString(),
         volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-        price: latestPrice.toFixed(6)
+        price: latestPrice.toFixed(10)
       });
 
       // Convert swaps to OHLC candles (Safe version)
@@ -85,12 +85,14 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         const time = Math.floor(new Date(swap.created_at).getTime() / 1000);
         if (isNaN(time)) return null;
 
+        const currentPrice = Number(swap.usdc_amount / swap.token_amount);
+
         return {
           time: time as any,
-          open: index === 0 ? 1.0 : Number(swaps[index-1].usdc_amount / swaps[index-1].token_amount) * 1000,
-          high: Number(swap.usdc_amount / swap.token_amount) * 1000 * 1.01,
-          low: Number(swap.usdc_amount / swap.token_amount) * 1000 * 0.99,
-          close: Number(swap.usdc_amount / swap.token_amount) * 1000
+          open: index === 0 ? (3 / (selectedToken.initial_supply || 1)) : Number(swaps[index-1].usdc_amount / swaps[index-1].token_amount),
+          high: currentPrice * 1.01,
+          low: currentPrice * 0.99,
+          close: currentPrice
         };
       }).filter(c => c !== null);
 
