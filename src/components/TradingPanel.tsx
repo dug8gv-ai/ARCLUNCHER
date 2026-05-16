@@ -168,11 +168,22 @@ export function TradingPanel({ token }: TradingPanelProps) {
     try {
       setStatus('approving');
       
-      // Arc Testnet USDC ERC-20 interface (0x3600...) uses 6 decimals
       const decimals = 6;
+      let usdcAmount: bigint;
+      let tokenAmountWei: bigint;
 
-      const usdcAmount = parseUnits(amount, decimals);
-      const tokenAmountWei = parseUnits(tokenAmountForDB.toString(), 18);
+      if (isBuy) {
+        // BUY: Input is USDC, Output is Tokens
+        usdcAmount = parseUnits(amount, decimals);
+        // Remove commas from formatted estimate string before parsing
+        const cleanEstimate = estimatedTokens.replace(/,/g, '');
+        tokenAmountWei = parseUnits(cleanEstimate, 18);
+      } else {
+        // SELL: Input is Tokens, Output is USDC
+        tokenAmountWei = parseUnits(amount, 18);
+        const cleanEstimate = estimatedTokens.replace(/,/g, '');
+        usdcAmount = parseUnits(cleanEstimate, decimals);
+      }
 
       if (isBuy) {
         // Approve USDC
@@ -202,17 +213,20 @@ export function TradingPanel({ token }: TradingPanelProps) {
         args: [token.token_address as `0x${string}`, usdcAmount, tokenAmountWei, isBuy],
       });
 
+
       await publicClient?.waitForTransactionReceipt({ hash: swapHash });
 
       // Sync with Supabase (Lowercase)
+      const cleanEstimate = Number(estimatedTokens.replace(/,/g, ''));
       const swapData = {
         user_address: userAddress?.toLowerCase(),
         token_address: token.token_address.toLowerCase(),
-        usdc_amount: Number(amount),
-        token_amount: tokenAmountForDB,
+        usdc_amount: isBuy ? Number(amount) : cleanEstimate,
+        token_amount: isBuy ? cleanEstimate : Number(amount),
         is_buy: isBuy,
         type: isBuy ? 'buy' : 'sell'
       };
+
 
       const { error: dbError } = await supabase.from('token_swaps').insert(swapData);
       if (dbError) alert("Database Sync Error: " + dbError.message);
