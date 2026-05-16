@@ -111,7 +111,8 @@ export function LaunchForm() {
 
       // Step 1: Approve 4 USDC
       setStatus('approving');
-      const decimals = USDC_ADDRESS.toLowerCase() === '0x3600000000000000000000000000000000000000' ? 18 : 6;
+      // Arc Testnet USDC ERC-20 interface (0x3600...) uses 6 decimals
+      const decimals = 6;
       const feeAmount = parseUnits('4', decimals); 
       console.log("Approving USDC Amount:", feeAmount.toString());
       

@@ -1,0 +1,19 @@
+◇ injected env (1) from .env // tip: ⌘ enable debugging { debug: true }
+
+An unexpected error occurred:
+
+C:\Users\dell\Desktop\ARCLUNCHER\hardhat\scripts\deploy.ts:1
+import { ethers } from "hardhat";
+         ^
+SyntaxError: The requested module 'hardhat' does not provide an export named 'ethers'
+    at #asyncInstantiate (node:internal/modules/esm/module_job:319:21)
+    at async ModuleJob.run (node:internal/modules/esm/module_job:422:5)
+    at async node:internal/modules/esm/loader:639:26
+    at async runScriptWithHardhat (C:\Users\dell\Desktop\ARCLUNCHER\hardhat\node_modules\hardhat\dist\src\internal\builtin-plugins\run\task-action.js:15:5)
+    at async next (C:\Users\dell\Desktop\ARCLUNCHER\hardhat\node_modules\hardhat\src\internal\core\tasks\resolved-task.ts:178:16)
+    at async ResolvedTask.run (C:\Users\dell\Desktop\ARCLUNCHER\hardhat\node_modules\hardhat\src\internal\core\tasks\resolved-task.ts:193:12)
+    at async Promise.all (index 0)
+    at async main (C:\Users\dell\Desktop\ARCLUNCHER\hardhat\node_modules\hardhat\src\internal\cli\main.ts:224:26)
+    at async file:///C:/Users/dell/Desktop/ARCLUNCHER/hardhat/node_modules/hardhat/dist/src/cli.js:21:1
+
+If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug

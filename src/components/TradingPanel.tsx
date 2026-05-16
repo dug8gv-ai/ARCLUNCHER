@@ -47,7 +47,8 @@ export function TradingPanel({ token }: TradingPanelProps) {
         functionName: 'balanceOf',
         args: [userAddress as `0x${string}`],
       });
-      const decimals = USDC_ADDRESS.toLowerCase() === '0x3600000000000000000000000000000000000000' ? 18 : 6;
+      const decimals = 6;
+
       const divisor = Math.pow(10, decimals);
       setBalance((Number(bal) / divisor).toFixed(2));
     } catch (e) {
@@ -144,8 +145,9 @@ export function TradingPanel({ token }: TradingPanelProps) {
     try {
       setStatus('approving');
       
-      // Arc Testnet Native USDC uses 18 decimals, standard ERC20 uses 6
-      const decimals = USDC_ADDRESS.toLowerCase() === '0x3600000000000000000000000000000000000000' ? 18 : 6;
+      // Arc Testnet USDC ERC-20 interface (0x3600...) uses 6 decimals
+      const decimals = 6;
+
       const usdcAmount = parseUnits(amount, decimals);
       const tokenAmountWei = parseUnits(tokenAmountForDB.toString(), 18);
 

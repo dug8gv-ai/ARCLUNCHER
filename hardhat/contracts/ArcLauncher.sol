@@ -36,9 +36,10 @@ contract ArcLauncher {
     event TokenSwapped(address indexed tokenAddress, address indexed user, uint256 usdcAmount, uint256 tokenAmount, bool isBuy);
 
     function launchToken(string memory name, string memory ticker, uint256 supply) external {
-        // Native USDC is 18 decimals, standard is 6. We use the fee as defined.
-        uint256 fee = 4 * 10**18; // Use 18 decimals for native USDC
+        // Native USDC ERC-20 interface on Arc Testnet uses 6 decimals
+        uint256 fee = 4 * 10**6; 
         IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), fee);
+
 
         uint256 totalMint = supply * 10**18;
         ArcToken newToken = new ArcToken(name, ticker, totalMint, address(this));

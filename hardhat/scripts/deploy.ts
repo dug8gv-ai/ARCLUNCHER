@@ -1,13 +1,16 @@
-import { ethers } from "hardhat";
+import hre from "hardhat";
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
+  // Ensure ethers is available from hre
+  if (!hre.ethers) {
+    throw new Error("Ethers plugin not found in HRE. Check your hardhat.config.ts");
+  }
+  
+  const [deployer] = await hre.ethers.getSigners();
   console.log("Deploying contracts with the account:", deployer.address);
 
-  // The treasury address will receive the 1 USDC fee
-  const TREASURY_ADDRESS = deployer.address; // Setting the deployer as the treasury for now
-
-  const ArcLauncher = await ethers.getContractFactory("ArcLauncher");
+  const ArcLauncher = await hre.ethers.getContractFactory("ArcLauncher");
+  console.log("Deploying ArcLauncher...");
   const launcher = await ArcLauncher.deploy();
 
   await launcher.waitForDeployment();
