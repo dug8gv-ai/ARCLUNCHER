@@ -76,18 +76,18 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       let totalVolume = 0;
       let uniqueHolders = 0;
       let mcap = 0;
+      const supply = Number(selectedToken.initial_supply || selectedToken.supply || 1000000000);
 
       if (swaps && swaps.length > 0) {
         latestPrice = Number(swaps[swaps.length - 1].usdc_amount / swaps[swaps.length - 1].token_amount);
         totalVolume = swaps.reduce((acc, s) => acc + Number(s.usdc_amount), 0);
         uniqueHolders = new Set(swaps.map(s => s.user_address)).size;
-        mcap = latestPrice * (selectedToken.initial_supply || selectedToken.supply || 0);
-      } else {
-        // Initial state from launch (3 USDC for 99% of supply)
-        const supply = Number(selectedToken.initial_supply || selectedToken.supply || 1);
-        latestPrice = 3 / (supply * 0.99);
         mcap = latestPrice * supply;
-        uniqueHolders = 1; // The creator
+      } else {
+        // User requested fixed starting price of 0.01
+        latestPrice = 0.01;
+        mcap = latestPrice * supply;
+        uniqueHolders = 1; 
         totalVolume = 0;
       }
 
@@ -96,12 +96,11 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         fdv: mcap.toLocaleString(undefined, { maximumFractionDigits: 2 }),
         holders: uniqueHolders.toString(),
         volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-        price: latestPrice.toFixed(12)
+        price: latestPrice.toFixed(4)
       });
 
-
-      // Convert swaps to OHLC candles (Safe version)
-      const candles = swaps.map((swap, index) => {
+      // Convert swaps to OHLC candles
+      let candles = swaps.map((swap, index) => {
         const time = Math.floor(new Date(swap.created_at).getTime() / 1000);
         if (isNaN(time)) return null;
 
@@ -109,16 +108,29 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
         return {
           time: time as any,
-          open: index === 0 ? (3 / (selectedToken.initial_supply || 1)) : Number(swaps[index-1].usdc_amount / swaps[index-1].token_amount),
-          high: currentPrice * 1.01,
-          low: currentPrice * 0.99,
+          open: index === 0 ? 0.01 : Number(swaps[index-1].usdc_amount / swaps[index-1].token_amount),
+          high: currentPrice * 1.001,
+          low: currentPrice * 0.999,
           close: currentPrice
         };
       }).filter(c => c !== null);
 
+      // If no candles, add a placeholder "Launch Candle" at 0.01
+      if (candles.length === 0) {
+        const launchTime = Math.floor(new Date(selectedToken.created_at || Date.now()).getTime() / 1000);
+        candles = [{
+          time: launchTime as any,
+          open: 0.01,
+          high: 0.01,
+          low: 0.01,
+          close: 0.01
+        }];
+      }
+
       if (candles.length > 0) {
         candleSeries.setData(candles as any);
       }
+
     }
 
     if (selectedToken) {
