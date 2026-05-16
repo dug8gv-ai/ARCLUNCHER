@@ -12,7 +12,8 @@ export function TransactionHistory({ tokenAddress }: { tokenAddress?: string }) 
       let query = supabase
         .from('token_swaps')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('timestamp', { ascending: false })
+
         .limit(10);
       
       if (tokenAddress) {
@@ -76,7 +77,8 @@ export function TransactionHistory({ tokenAddress }: { tokenAddress?: string }) 
                     {Number(swap.token_amount).toLocaleString()}
                   </td>
                   <td className="py-3 text-right text-gray-500 text-xs">
-                    {new Date(swap.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(swap.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
                   </td>
                 </tr>
               ))

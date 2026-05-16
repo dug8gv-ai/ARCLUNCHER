@@ -58,7 +58,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         .from('token_swaps')
         .select('*')
         .eq('token_address', selectedToken.token_address.toLowerCase())
-        .order('created_at', { ascending: true });
+        .order('timestamp', { ascending: true });
 
       if (error) {
         console.error("Error fetching swaps:", error);
@@ -77,7 +77,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         const groupedByMinute: { [key: number]: any[] } = {};
         
         swaps.forEach(swap => {
-          const time = Math.floor(new Date(swap.created_at).getTime() / 60000) * 60;
+          const time = Math.floor(new Date(swap.timestamp).getTime() / 60000) * 60;
           if (!groupedByMinute[time]) groupedByMinute[time] = [];
           groupedByMinute[time].push(swap);
         });
