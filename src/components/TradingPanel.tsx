@@ -70,7 +70,12 @@ export function TradingPanel({ token }: TradingPanelProps) {
     try {
       setStatus('approving');
       const usdcAmount = parseUnits(amount, 6);
-      const tokenAmount = parseUnits((Number(amount) * 1000).toString(), 18); // Mock price: 1 USDC = 1000 Tokens for now
+      
+      // Real Price Formula: Initial Price = 3 USDC / Total Supply
+      // Tokens per 1 USDC = Total Supply / 3
+      const tokensPerUsdc = Number(token.initial_supply) / 3;
+      const tokenAmountInTokens = Number(amount) * tokensPerUsdc;
+      const tokenAmountWei = parseUnits(tokenAmountInTokens.toFixed(0), 18);
 
       if (isBuy) {
         // Approve USDC for Buying
@@ -88,23 +93,28 @@ export function TradingPanel({ token }: TradingPanelProps) {
         address: ARC_LAUNCHER_ADDRESS as `0x${string}`,
         abi: ARC_LAUNCHER_ABI,
         functionName: 'swap',
-        args: [token.token_address as `0x${string}`, usdcAmount, tokenAmount, isBuy],
+        args: [token.token_address as `0x${string}`, usdcAmount, tokenAmountWei, isBuy],
       });
 
       await publicClient?.waitForTransactionReceipt({ hash: swapHash });
 
-      // Sync with Supabase
-      await supabase.from('token_swaps').insert({
+      // Step 3: Sync with Supabase (CRITICAL)
+      console.log("Recording swap in DB...");
+      const { error: dbError } = await supabase.from('token_swaps').insert({
         user_address: userAddress,
         token_address: token.token_address,
         usdc_amount: Number(amount),
-        token_amount: Number(amount) * 1000,
+        token_amount: tokenAmountInTokens,
         is_buy: isBuy
       });
 
+      if (dbError) throw dbError;
+
+      alert(`Success! You bought ${tokenAmountInTokens.toLocaleString()} ${token.ticker}`);
       setStatus('success');
-      setTimeout(() => setStatus('idle'), 3000);
-      setAmount('');
+      
+      // Trigger a page refresh or state update
+      window.location.reload(); 
 
     } catch (error: any) {
       console.error(error);
