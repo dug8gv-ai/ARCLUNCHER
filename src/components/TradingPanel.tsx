@@ -63,19 +63,69 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
   if (!token) return null;
 
+  const [estimatedTokens, setEstimatedTokens] = useState('0');
+
+  // Fetch current pool state to calculate price
+  const calculateEstimate = async (val: string) => {
+    if (!val || Number(val) <= 0 || !token) {
+      setEstimatedTokens('0');
+      return;
+    }
+
+    // 1. Get all previous swaps to find current pool state
+    const { data: swaps } = await supabase
+      .from('token_swaps')
+      .select('usdc_amount, token_amount, is_buy')
+      .eq('token_address', token.token_address);
+
+    const initialUSDC = 3; 
+    const initialTokens = Number(token.initial_supply) * 0.99; // 99% in pool
+    const k = initialUSDC * initialTokens;
+
+    let currentUSDC = initialUSDC;
+    let currentTokens = initialTokens;
+
+    swaps?.forEach(s => {
+      if (s.is_buy) {
+        currentUSDC += Number(s.usdc_amount);
+        currentTokens -= Number(s.token_amount);
+      } else {
+        currentUSDC -= Number(s.usdc_amount);
+        currentTokens += Number(s.token_amount);
+      }
+    });
+
+    const dX = Number(val);
+    if (isBuy) {
+      const newUSDC = currentUSDC + dX;
+      const newTokens = k / newUSDC;
+      const tokensOut = currentTokens - newTokens;
+      setEstimatedTokens(tokensOut.toLocaleString(undefined, { maximumFractionDigits: 0 }));
+    } else {
+      // Simple inverse for sell
+      setEstimatedTokens((dX * (currentTokens / currentUSDC)).toLocaleString());
+    }
+  };
+
+  useEffect(() => {
+    calculateEstimate(amount);
+  }, [amount, isBuy, token]);
+
   const handleTrade = async () => {
-    if (!isConnected) return alert("Please connect wallet");
-    if (!amount || isNaN(Number(amount))) return alert("Enter valid amount");
+    if (!isConnected) {
+      alert('Please connect your wallet first!');
+      return;
+    }
+    if (!amount || Number(amount) <= 0) return;
 
     try {
       setStatus('approving');
       const usdcAmount = parseUnits(amount, 6);
       
-      // Real Price Formula: Initial Price = 3 USDC / Total Supply
-      // Tokens per 1 USDC = Total Supply / 3
-      const tokensPerUsdc = Number(token.initial_supply) / 3;
-      const tokenAmountInTokens = Number(amount) * tokensPerUsdc;
-      const tokenAmountWei = parseUnits(tokenAmountInTokens.toFixed(0), 18);
+      // Use the same estimate logic for the real transaction
+      const tokensPerUsdc = Number(estimatedTokens.replace(/,/g, '')) / Number(amount);
+      const tokenAmountWei = parseUnits(Number(estimatedTokens.replace(/,/g, '')).toFixed(0), 18);
+      const tokenAmountForDB = Number(estimatedTokens.replace(/,/g, ''));
 
       if (isBuy) {
         // Approve USDC for Buying
@@ -184,7 +234,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
           </p>
           <p className="flex justify-between">
             <span>Estimated Received</span>
-            <span className="text-cyan-400 font-bold">{Number(amount) * 1000} {token.ticker}</span>
+            <span className="text-cyan-400 font-bold">{estimatedTokens} {token.ticker}</span>
           </p>
         </div>
       </div>
