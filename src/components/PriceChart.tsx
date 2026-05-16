@@ -105,28 +105,31 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
         const sortedMinutes = Object.keys(groupedByMinute).map(Number).sort((a, b) => a - b);
         
-        candles = sortedMinutes.map((time, i) => {
+        for (let i = 0; i < sortedMinutes.length; i++) {
+          const time = sortedMinutes[i];
           const minuteSwaps = groupedByMinute[time];
+          
           // STRICT 0.01 FLOOR
           const prices = minuteSwaps.map(s => {
             const p = Number(s.usdc_amount / s.token_amount);
             return p < 0.01 ? 0.01 : p;
           }).filter(p => !isNaN(p) && p > 0);
           
-          if (prices.length === 0) return null;
+          if (prices.length === 0) continue;
 
-          const openPrice = i === 0 ? 0.01 : candles[i-1].close;
+          const openPrice = candles.length === 0 ? 0.01 : candles[candles.length - 1].close;
           const closePrice = Math.max(0.01, prices[prices.length - 1]);
 
-          return {
+          candles.push({
             time: time as any,
             open: openPrice,
             high: Math.max(openPrice, closePrice, ...prices),
             low: Math.min(openPrice, closePrice, ...prices),
             close: closePrice
-          };
-        }).filter(c => c !== null);
+          });
+        }
       }
+
 
       // If no candles, add a placeholder "Launch Green Candle" at 0.01
       if (candles.length === 0) {
