@@ -120,6 +120,7 @@ export function LaunchForm() {
 
       if (dbError) {
         console.error("Database sync error:", dbError);
+        alert("Transaction successful, but failed to sync with dashboard: " + dbError.message);
       } else {
         console.log("Database synced successfully!");
       }
