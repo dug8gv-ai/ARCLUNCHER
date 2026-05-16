@@ -15,29 +15,22 @@ export function DashboardStats() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        // Fetch total market volume
-        const { data: volumeData, error: volumeError } = await supabase.rpc('get_global_market_volume');
+        // Fetch total market volume from RPC or fallback to manual calculation
+        const { data: volumeData } = await supabase.rpc('get_global_market_volume');
         
-        // Fetch daily new launches
-        const { data: dailyData, error: dailyError } = await supabase.rpc('get_daily_new_launches');
+        // Manual Fallback if RPC returns 0
+        const { data: launches } = await supabase.from('token_launches').select('id');
+        const { data: swaps } = await supabase.from('token_swaps').select('usdc_amount');
+        
+        const launchFeesInUSDC = (launches?.length || 0) * 4;
+        const swapVolumeInUSDC = swaps?.reduce((acc, curr) => acc + Number(curr.usdc_amount), 0) || 0;
+        const manualVolume = (launchFeesInUSDC + swapVolumeInUSDC).toLocaleString();
 
-        // Fetch total tokens created
-        const { count, error: tokensError } = await supabase
-          .from('token_launches')
-          .select('*', { count: 'exact', head: true });
-
-        if (volumeError || dailyError || tokensError) {
-          console.error("Error fetching stats from Supabase", volumeError, dailyError, tokensError);
-          return;
-        }
-
-        // Format volume (e.g. 1000000 becomes 1,000,000)
-        // Since get_global_market_volume might return large integers representing 6 decimals (USDC),
-        // we divide by 10^6 to get actual USDC amount.
-        const actualVolume = volumeData ? (Number(volumeData) / 1000000).toLocaleString() : "0";
+        const { data: dailyData } = await supabase.rpc('get_daily_new_launches');
+        const { count } = await supabase.from('token_launches').select('*', { count: 'exact', head: true });
 
         setStats({
-          volume: actualVolume,
+          volume: volumeData && Number(volumeData) > 0 ? (Number(volumeData) / 1000000).toLocaleString() : manualVolume,
           tokens: count || 0,
           newToday: dailyData || 0
         });

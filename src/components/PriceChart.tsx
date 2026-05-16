@@ -49,25 +49,39 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       wickDownColor: '#ef4444',
     });
 
-    // Generate random realistic data
-    const data = [];
-    let time = Math.floor(Date.now() / 1000) - 100 * 60;
-    let price = 1.0;
-    for (let i = 0; i < 100; i++) {
-      const open = price;
-      const close = open + (Math.random() - 0.45) * 0.1;
-      data.push({
-        time: time as any,
-        open,
-        high: Math.max(open, close) + Math.random() * 0.05,
-        low: Math.min(open, close) - Math.random() * 0.05,
-        close
-      });
-      price = close;
-      time += 60;
+    // Fetch real data from Supabase instead of mock data
+    async function fetchChartData() {
+      if (!selectedToken) return;
+      
+      const { data: swaps, error } = await supabase
+        .from('token_swaps')
+        .select('*')
+        .eq('token_address', selectedToken.token_address)
+        .order('created_at', { ascending: true });
+
+      if (error || !swaps || swaps.length === 0) {
+        candleSeries.setData([]);
+        return;
+      }
+
+      // Convert swaps to OHLC candles (Simplified for now)
+      const candles = swaps.map((swap, index) => ({
+        time: Math.floor(new Date(swap.created_at).getTime() / 1000) as any,
+        open: index === 0 ? 1.0 : Number(swaps[index-1].usdc_amount / swaps[index-1].token_amount) * 1000,
+        high: Number(swap.usdc_amount / swap.token_amount) * 1000 * 1.01,
+        low: Number(swap.usdc_amount / swap.token_amount) * 1000 * 0.99,
+        close: Number(swap.usdc_amount / swap.token_amount) * 1000
+      }));
+
+      candleSeries.setData(candles);
     }
 
-    candleSeries.setData(data);
+    fetchChartData();
+    
+    // Subscribe to new trades for live chart updates
+    const channel = supabase.channel('chart_updates')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'token_swaps', filter: `token_address=eq.${selectedToken?.token_address}` }, fetchChartData)
+      .subscribe();
     seriesRef.current = candleSeries;
     chartRef.current = chart;
 

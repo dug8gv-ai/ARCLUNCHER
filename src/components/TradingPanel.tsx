@@ -34,8 +34,28 @@ export function TradingPanel({ token }: TradingPanelProps) {
   const { writeContractAsync } = useWriteContract();
 
   const [amount, setAmount] = useState('');
+  const [balance, setBalance] = useState('0');
   const [isBuy, setIsBuy] = useState(true);
   const [status, setStatus] = useState<'idle' | 'approving' | 'swapping' | 'success'>('idle');
+
+  const fetchBalance = async () => {
+    if (!userAddress || !publicClient) return;
+    try {
+      const bal = await publicClient.readContract({
+        address: USDC_ADDRESS as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [userAddress as `0x${string}`],
+      });
+      setBalance((Number(bal) / 1000000).toFixed(2));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useState(() => {
+    fetchBalance();
+  });
 
   if (!token) return null;
 
@@ -116,7 +136,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
         <div className="bg-black/20 border border-gray-800 rounded-xl p-4">
           <div className="flex justify-between text-xs text-gray-500 mb-2">
             <span>Amount in USDC</span>
-            <span className="flex items-center gap-1"><Wallet size={12}/> Balance: --</span>
+            <span className="flex items-center gap-1"><Wallet size={12}/> Balance: {balance} USDC</span>
           </div>
           <input 
             type="number" 
