@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts';
 import { Activity, BarChart3, Users, DollarSign, TrendingUp } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface PriceChartProps {
   selectedToken?: any;
