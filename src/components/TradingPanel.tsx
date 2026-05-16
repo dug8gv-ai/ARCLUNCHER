@@ -154,7 +154,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
         user_address: userAddress,
         token_address: token.token_address,
         usdc_amount: Number(amount),
-        token_amount: tokenAmountInTokens,
+        token_amount: tokenAmountForDB,
         is_buy: isBuy,
         type: isBuy ? 'buy' : 'sell' // Added this for DB compatibility
       });
