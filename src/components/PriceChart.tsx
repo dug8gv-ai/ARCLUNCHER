@@ -27,18 +27,38 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#94a3b8',
+        background: { color: 'transparent' },
+        textColor: '#9ca3af',
+        fontSize: 10,
       },
       grid: {
-        vertLines: { color: 'rgba(30, 41, 59, 0.2)' },
-        horzLines: { color: 'rgba(30, 41, 59, 0.2)' },
+        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
       },
-      width: chartContainerRef.current.clientWidth,
-      height: 400,
+      crosshair: {
+        mode: CrosshairMode.Normal,
+        vertLine: {
+          width: 1,
+          color: '#22d3ee',
+          style: 3,
+        },
+        horzLine: {
+          width: 1,
+          color: '#22d3ee',
+          style: 3,
+        },
+      },
+      rightPriceScale: {
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        scaleMargins: { top: 0.1, bottom: 0.1 },
+      },
       timeScale: {
-        borderColor: 'rgba(30, 41, 59, 0.5)',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
         timeVisible: true,
+        secondsVisible: false,
+      },
+      handleScale: {
+        axisPressedMouseMove: { time: true, price: true },
       },
     });
 
@@ -50,14 +70,16 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       wickDownColor: '#ef4444',
     });
 
-    // Fetch real data from Supabase instead of mock data
-    async function fetchChartData() {
+    const fetchChartData = async () => {
       if (!selectedToken) return;
       
+      const addr = selectedToken.token_address.toLowerCase();
+      console.log("Fetching Chart Data for:", addr);
+
       const { data: swaps, error } = await supabase
         .from('token_swaps')
         .select('*')
-        .eq('token_address', selectedToken.token_address.toLowerCase())
+        .eq('token_address', addr)
         .order('timestamp', { ascending: true });
 
       if (error) {
@@ -65,11 +87,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         return;
       }
 
-      if (!swaps || swaps.length === 0) {
-        candleSeries.setData([]);
-        // Don't return yet, we want to calculate initial metrics below
-      }
-
+      console.log("Total Swaps Found:", swaps?.length || 0);
 
       // Convert swaps to 1-minute OHLC candles
       let candles: any[] = [];
@@ -89,7 +107,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         
         candles = sortedMinutes.map((time, i) => {
           const minuteSwaps = groupedByMinute[time];
-          // Ensure price never dips below 0.01
+          // STRICT 0.01 FLOOR
           const prices = minuteSwaps.map(s => {
             const p = Number(s.usdc_amount / s.token_amount);
             return p < 0.01 ? 0.01 : p;
@@ -98,12 +116,11 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
           if (prices.length === 0) return null;
 
           const openPrice = i === 0 ? 0.01 : candles[i-1].close;
-          const closePrice = prices[prices.length - 1];
+          const closePrice = Math.max(0.01, prices[prices.length - 1]);
 
           return {
             time: time as any,
             open: openPrice,
-            // Force first candle to be green if it's the launch candle
             high: Math.max(openPrice, closePrice, ...prices),
             low: Math.min(openPrice, closePrice, ...prices),
             close: closePrice
@@ -116,16 +133,15 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         const launchTime = Math.floor(new Date(selectedToken.timestamp || selectedToken.created_at || Date.now()).getTime() / 60000) * 60;
         candles = [{
           time: (isNaN(launchTime) ? Math.floor(Date.now() / 60000) * 60 : launchTime) as any,
-          open: 0.01, high: 0.011, low: 0.01, close: 0.011 // Slightly green
+          open: 0.01, high: 0.011, low: 0.01, close: 0.011 
         }];
       }
 
 
-      if (candles.length > 0) {
-        candleSeries.setData(candles);
-      }
+      candleSeries.setData(candles);
+      chart.timeScale().fitContent();
 
-      // 3. Update Metrics
+      // Update Metrics
       const supply = Number(selectedToken.initial_supply || selectedToken.supply || 1000000000);
       const latestPrice = candles.length > 0 ? candles[candles.length - 1].close : 0.01;
       const totalVolume = swaps?.reduce((acc, s) => acc + Number(s.usdc_amount), 0) || 0;
@@ -139,38 +155,28 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
         price: latestPrice < 0.0001 ? latestPrice.toExponential(4) : latestPrice.toFixed(6)
       });
-
-
-
     }
 
-    if (selectedToken) {
-      fetchChartData();
-      
-      const channel = supabase.channel(`chart_${selectedToken.token_address}`)
-        .on('postgres_changes', { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'token_swaps', 
-          filter: `token_address=eq.${selectedToken.token_address}` 
-        }, fetchChartData)
-        .subscribe();
+    fetchChartData();
 
-      return () => {
-        supabase.removeChannel(channel);
-        chart.remove();
-      };
-    }
-
-    return () => {
-      chart.remove();
-    };
-    seriesRef.current = candleSeries;
-    chartRef.current = chart;
+    // Subscribe to new swaps
+    const channel = supabase.channel(`chart_swaps_${selectedToken?.token_address}`)
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'token_swaps',
+        filter: `token_address=eq.${selectedToken?.token_address?.toLowerCase()}`
+      }, () => {
+        fetchChartData();
+      })
+      .subscribe();
 
     const handleResize = () => {
       if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+        chart.applyOptions({
+          width: chartContainerRef.current.clientWidth,
+          height: chartContainerRef.current.clientHeight,
+        });
       }
     };
 
@@ -179,6 +185,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
     return () => {
       window.removeEventListener('resize', handleResize);
       chart.remove();
+      supabase.removeChannel(channel);
     };
   }, [selectedToken]);
 
