@@ -77,7 +77,10 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         const groupedByMinute: { [key: number]: any[] } = {};
         
         swaps.forEach(swap => {
-          const time = Math.floor(new Date(swap.timestamp).getTime() / 60000) * 60;
+          const ts = swap.timestamp || swap.created_at;
+          const time = Math.floor(new Date(ts).getTime() / 60000) * 60;
+          if (isNaN(time)) return;
+          
           if (!groupedByMinute[time]) groupedByMinute[time] = [];
           groupedByMinute[time].push(swap);
         });
@@ -86,8 +89,10 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         
         candles = sortedMinutes.map((time, i) => {
           const minuteSwaps = groupedByMinute[time];
-          const prices = minuteSwaps.map(s => Number(s.usdc_amount / s.token_amount));
+          const prices = minuteSwaps.map(s => Number(s.usdc_amount / s.token_amount)).filter(p => !isNaN(p) && p > 0);
           
+          if (prices.length === 0) return null;
+
           return {
             time: time as any,
             open: i === 0 ? 0.01 : candles[i-1].close,
@@ -95,14 +100,14 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
             low: Math.min(...prices),
             close: prices[prices.length - 1]
           };
-        });
+        }).filter(c => c !== null);
       }
 
       // If no candles, add a placeholder "Launch Candle" at 0.01
       if (candles.length === 0) {
-        const launchTime = Math.floor(new Date(selectedToken.created_at || Date.now()).getTime() / 60000) * 60;
+        const launchTime = Math.floor(new Date(selectedToken.timestamp || selectedToken.created_at || Date.now()).getTime() / 60000) * 60;
         candles = [{
-          time: launchTime as any,
+          time: (isNaN(launchTime) ? Math.floor(Date.now() / 60000) * 60 : launchTime) as any,
           open: 0.01, high: 0.01, low: 0.01, close: 0.01
         }];
       }
@@ -119,12 +124,13 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       const mcap = latestPrice * supply;
 
       setMetrics({
-        mcap: mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
-        fdv: mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        mcap: mcap < 1 ? mcap.toFixed(2) : mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        fdv: mcap < 1 ? mcap.toFixed(2) : mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
         holders: uniqueHolders.toString(),
         volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-        price: latestPrice.toFixed(6)
+        price: latestPrice < 0.0001 ? latestPrice.toExponential(4) : latestPrice.toFixed(6)
       });
+
 
 
     }
