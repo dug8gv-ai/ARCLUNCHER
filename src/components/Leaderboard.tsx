@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, TrendingUp, Users, Copy } from 'lucide-react';
+import { Trophy, TrendingUp, Users, Copy, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useAccount } from 'wagmi';
 
 export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) => void }) {
+  const { address: userAddress } = useAccount();
   const [activeTab, setActiveTab] = useState<'gainers' | 'trending'>('gainers');
   const [tokens, setTokens] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,24 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const handleDelete = async (e: React.MouseEvent, tokenId: string) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this token permanently?')) return;
+
+    const { error } = await supabase
+      .from('token_launches')
+      .delete()
+      .eq('id', tokenId);
+
+    if (error) {
+      alert('Error deleting token: ' + error.message);
+    } else {
+      alert('Token deleted successfully!');
+      // Refresh tokens list locally
+      setTokens(prev => prev.filter(t => t.id !== tokenId));
+    }
+  };
 
   return (
     <div className="glass-panel p-6 h-full flex flex-col">
@@ -138,6 +158,17 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                     >
                       <Copy size={12} />
                     </button>
+
+                    {/* Delete Button - Only for Creator */}
+                    {userAddress?.toLowerCase() === token.creator_address?.toLowerCase() && (
+                      <button 
+                        onClick={(e) => handleDelete(e, token.id)}
+                        className="p-1 hover:bg-red-900/30 rounded transition-colors text-gray-500 hover:text-red-400"
+                        title="Delete Token"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
