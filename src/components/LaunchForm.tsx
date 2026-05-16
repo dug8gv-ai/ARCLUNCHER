@@ -56,8 +56,37 @@ export function LaunchForm() {
   const { writeContractAsync } = useWriteContract();
   
   const [formData, setFormData] = useState({ name: '', ticker: '', supply: '', image: '' });
-  
+  const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'approving' | 'launching' | 'success'>('idle');
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('token-images')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('token-images')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image: publicUrl });
+    } catch (error: any) {
+      console.error('Error uploading image:', error.message);
+      alert('Error uploading image: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleLaunch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +143,7 @@ export function LaunchForm() {
           token_address: `0x${Math.random().toString(16).slice(2, 42).padStart(40, '0')}`, // Temporary mock address until real deployment
           name: formData.name,
           ticker: formData.ticker,
-          supply: Number(formData.supply),
+          supply: Number(formData.supply), // Ensure this matches your Supabase column name
           image_url: formData.image || null
         });
 
@@ -191,15 +220,38 @@ export function LaunchForm() {
         </div>
         
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Image URL</label>
-          <input 
-            type="url" 
-            placeholder="https://..."
-            className="w-full cyber-input rounded-lg p-3"
-            value={formData.image}
-            onChange={(e) => setFormData({...formData, image: e.target.value})}
-            disabled={status !== 'idle'}
-          />
+          <label className="block text-sm text-gray-400 mb-1 text-left">Token Logo</label>
+          <div className="flex items-center gap-4">
+            <input 
+              type="file" 
+              accept="image/*"
+              className="hidden"
+              id="image-upload"
+              onChange={handleImageUpload}
+              disabled={status !== 'idle' || uploading}
+            />
+            <label 
+              htmlFor="image-upload"
+              className={`flex-1 cyber-input rounded-lg p-3 cursor-pointer text-center border-dashed border-2 ${
+                uploading ? 'opacity-50' : 'hover:border-cyan-500'
+              } flex items-center justify-center gap-2`}
+            >
+              {uploading ? (
+                <Loader2 className="animate-spin size-4 text-cyan-400" />
+              ) : formData.image ? (
+                <span className="text-green-400 flex items-center gap-2">
+                  <CheckCircle2 size={16} /> Image Selected
+                </span>
+              ) : (
+                <span className="text-gray-500">Click to upload logo</span>
+              )}
+            </label>
+            {formData.image && (
+              <div className="w-12 h-12 rounded-lg border border-gray-700 overflow-hidden bg-black/40">
+                <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="bg-black/30 p-4 rounded-lg border border-gray-800 my-4 text-sm">
