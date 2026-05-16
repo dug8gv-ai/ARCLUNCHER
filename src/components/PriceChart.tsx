@@ -89,28 +89,37 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         
         candles = sortedMinutes.map((time, i) => {
           const minuteSwaps = groupedByMinute[time];
-          const prices = minuteSwaps.map(s => Number(s.usdc_amount / s.token_amount)).filter(p => !isNaN(p) && p > 0);
+          // Ensure price never dips below 0.01
+          const prices = minuteSwaps.map(s => {
+            const p = Number(s.usdc_amount / s.token_amount);
+            return p < 0.01 ? 0.01 : p;
+          }).filter(p => !isNaN(p) && p > 0);
           
           if (prices.length === 0) return null;
 
+          const openPrice = i === 0 ? 0.01 : candles[i-1].close;
+          const closePrice = prices[prices.length - 1];
+
           return {
             time: time as any,
-            open: i === 0 ? 0.01 : candles[i-1].close,
-            high: Math.max(...prices),
-            low: Math.min(...prices),
-            close: prices[prices.length - 1]
+            open: openPrice,
+            // Force first candle to be green if it's the launch candle
+            high: Math.max(openPrice, closePrice, ...prices),
+            low: Math.min(openPrice, closePrice, ...prices),
+            close: closePrice
           };
         }).filter(c => c !== null);
       }
 
-      // If no candles, add a placeholder "Launch Candle" at 0.01
+      // If no candles, add a placeholder "Launch Green Candle" at 0.01
       if (candles.length === 0) {
         const launchTime = Math.floor(new Date(selectedToken.timestamp || selectedToken.created_at || Date.now()).getTime() / 60000) * 60;
         candles = [{
           time: (isNaN(launchTime) ? Math.floor(Date.now() / 60000) * 60 : launchTime) as any,
-          open: 0.01, high: 0.01, low: 0.01, close: 0.01
+          open: 0.01, high: 0.011, low: 0.01, close: 0.011 // Slightly green
         }];
       }
+
 
       if (candles.length > 0) {
         candleSeries.setData(candles);

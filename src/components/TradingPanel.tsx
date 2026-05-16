@@ -105,8 +105,9 @@ export function TradingPanel({ token }: TradingPanelProps) {
         return;
       }
 
-      const initialTokens = supply * 0.99; 
-      const initialUSDC = 3; 
+      const supply = Number(token.initial_supply || token.supply || 1000000000);
+      const initialTokens = supply; 
+      const initialUSDC = supply * 0.01; // Start price at 0.01
       const k = initialUSDC * initialTokens;
 
       let currentUSDC = initialUSDC;
@@ -122,6 +123,10 @@ export function TradingPanel({ token }: TradingPanelProps) {
         }
       });
 
+      // Ensure currentUSDC never goes below initialUSDC (Price Floor)
+      if (currentUSDC < initialUSDC) currentUSDC = initialUSDC;
+      if (currentTokens > initialTokens) currentTokens = initialTokens;
+
       const dX = Number(val);
       if (isBuy) {
         // Buy: Input is USDC (dX), Output is Tokens
@@ -133,9 +138,16 @@ export function TradingPanel({ token }: TradingPanelProps) {
         // Sell: Input is Tokens (dX), Output is USDC
         const newTokens = currentTokens + dX;
         const newUSDC = k / newTokens;
-        const usdcOut = currentUSDC - newUSDC;
-        setEstimatedTokens(usdcOut.toFixed(4));
+        let usdcOut = currentUSDC - newUSDC;
+        
+        // Floor protection
+        if (currentUSDC - usdcOut < initialUSDC) {
+          usdcOut = currentUSDC - initialUSDC;
+        }
+        
+        setEstimatedTokens(Math.max(0, usdcOut).toFixed(6));
       }
+
 
     } catch (e) {
       console.error("Error calculating estimate:", e);
