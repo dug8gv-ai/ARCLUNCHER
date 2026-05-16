@@ -35,12 +35,14 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
   const [amount, setAmount] = useState('');
   const [balance, setBalance] = useState('0');
+  const [tokenBalance, setTokenBalance] = useState('0');
   const [isBuy, setIsBuy] = useState(true);
   const [status, setStatus] = useState<'idle' | 'approving' | 'swapping' | 'success'>('idle');
 
   const fetchBalance = async () => {
-    if (!userAddress || !publicClient) return;
+    if (!userAddress || !publicClient || !token) return;
     try {
+      // 1. Fetch USDC Balance
       const bal = await publicClient.readContract({
         address: USDC_ADDRESS as `0x${string}`,
         abi: erc20Abi,
@@ -48,21 +50,37 @@ export function TradingPanel({ token }: TradingPanelProps) {
         args: [userAddress as `0x${string}`],
       });
       const decimals = 6;
-
       const divisor = Math.pow(10, decimals);
       setBalance((Number(bal) / divisor).toFixed(2));
+
+      // 2. Fetch Token Balance
+      const tBal = await publicClient.readContract({
+        address: token.token_address as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [userAddress as `0x${string}`],
+      });
+      setTokenBalance((Number(tBal) / 1e18).toFixed(2));
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleMax = () => {
+    if (isBuy) {
+      setAmount(balance);
+    } else {
+      setAmount(tokenBalance);
     }
   };
 
   useEffect(() => {
     fetchBalance();
     
-    // Refresh balance every 10 seconds or when user changes
+    // Refresh balances every 10 seconds or when user changes
     const interval = setInterval(fetchBalance, 10000);
     return () => clearInterval(interval);
-  }, [userAddress, publicClient]);
+  }, [userAddress, publicClient, token]);
 
   if (!token) return null;
 
@@ -251,9 +269,18 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
       <div className="space-y-4">
         <div className="bg-black/20 border border-gray-800 rounded-xl p-4">
-          <div className="flex justify-between text-xs text-gray-500 mb-2">
-            <span>Amount in USDC</span>
-            <span className="flex items-center gap-1"><Wallet size={12}/> Balance: {balance} USDC</span>
+          <div className="flex justify-between text-[10px] text-gray-500 mb-2">
+            <span>{isBuy ? 'Amount in USDC' : `Amount in ${token.ticker}`}</span>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1"><Wallet size={10}/> {balance} USDC</span>
+              <span className="flex items-center gap-1 text-cyan-400"><TrendingUp size={10}/> {tokenBalance} {token.ticker}</span>
+              <button 
+                onClick={handleMax}
+                className="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20 font-black hover:bg-cyan-500 hover:text-black transition-all"
+              >
+                MAX
+              </button>
+            </div>
           </div>
           <input 
             type="number" 
