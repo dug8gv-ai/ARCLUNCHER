@@ -32,11 +32,16 @@ contract ArcLauncher {
     mapping(address => TokenInfo) public tokens;
 
     function launchToken(string memory name, string memory ticker, uint256 supply) external {
-        // In a real scenario, we would transfer USDC fee here
-        // For testnet, we just deploy
+        uint256 totalMint = supply * 10**18;
+        uint256 creatorAmount = totalMint / 100; // 1%
+        uint256 poolAmount = totalMint - creatorAmount; // 99%
         
-        ArcToken newToken = new ArcToken(name, ticker, supply * 10**18, msg.sender);
+        ArcToken newToken = new ArcToken(name, ticker, totalMint, address(this));
         address tokenAddress = address(newToken);
+        
+        // Mint 1% to creator
+        newToken.transfer(msg.sender, creatorAmount);
+        // 99% remains in this contract for swaps
         
         tokens[tokenAddress] = TokenInfo({
             creator: msg.sender,
@@ -49,8 +54,14 @@ contract ArcLauncher {
     }
 
     function swap(address tokenAddress, uint256 usdcAmount, uint256 tokenAmount, bool isBuy) external {
-        // This is a simplified swap logic for the testnet launchpad
-        // In reality, it would interact with a bonding curve or liquidity pool
+        if (isBuy) {
+            // In a real pool, USDC would be taken here
+            // We transfer tokens from our pool to the user
+            ArcToken(tokenAddress).transfer(msg.sender, tokenAmount);
+        } else {
+            // User sells tokens back to pool
+            // ArcToken(tokenAddress).transferFrom(msg.sender, address(this), tokenAmount);
+        }
         emit Swap(msg.sender, tokenAddress, usdcAmount, tokenAmount, isBuy);
     }
 }

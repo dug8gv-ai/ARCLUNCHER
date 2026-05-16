@@ -8,6 +8,7 @@ import { LaunchForm } from '@/components/LaunchForm';
 import { TradingPanel } from '@/components/TradingPanel';
 import { Leaderboard } from '@/components/Leaderboard';
 import { PriceChart } from '@/components/PriceChart';
+import { TransactionHistory } from '@/components/TransactionHistory';
 
 export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
@@ -35,6 +36,7 @@ export default function Home() {
             {/* Right Column - Trading & Analytics */}
             <div className="lg:col-span-2 space-y-8">
               <PriceChart selectedToken={selectedToken} />
+              <TransactionHistory tokenAddress={selectedToken?.token_address} />
               <div className="h-[500px]">
                 <Leaderboard onSelectToken={setSelectedToken} />
               </div>
