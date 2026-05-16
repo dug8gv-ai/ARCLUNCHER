@@ -155,8 +155,8 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
             <h2 className="text-2xl font-bold text-white flex items-center gap-2 leading-none mb-1">
               {selectedToken ? `${selectedToken.ticker}/USDC` : 'Select a Token'}
               {selectedToken && (
-                <span className="text-green-400 text-xs font-medium bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">
-                  +4.2%
+                <span className="text-cyan-400 text-[10px] font-black bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 uppercase tracking-tighter">
+                  Live
                 </span>
               )}
             </h2>

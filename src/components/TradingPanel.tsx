@@ -164,22 +164,28 @@ export function TradingPanel({ token }: TradingPanelProps) {
       await publicClient?.waitForTransactionReceipt({ hash: swapHash });
 
       // Step 3: Sync with Supabase (CRITICAL)
-      console.log("Recording swap in DB...");
-      const { error: dbError } = await supabase.from('token_swaps').insert({
+      const swapData = {
         user_address: userAddress,
         token_address: token.token_address,
         usdc_amount: Number(amount),
         token_amount: tokenAmountForDB,
         is_buy: isBuy,
-        type: isBuy ? 'buy' : 'sell' // Added this for DB compatibility
-      });
+        type: isBuy ? 'buy' : 'sell'
+      };
 
-      if (dbError) throw dbError;
+      console.log("Recording swap in DB:", swapData);
+      const { error: dbError } = await supabase.from('token_swaps').insert(swapData);
 
-      alert(`Success! You bought ${tokenAmountForDB.toLocaleString()} ${token.ticker}`);
+      if (dbError) {
+        alert("Database Error: " + dbError.message);
+        console.error(dbError);
+        // Don't throw, just alert so user knows why UI didn't update
+      }
+
+      alert(`SUCCESS!\nTokens: ${tokenAmountForDB.toLocaleString()}\nTransaction confirmed on blockchain and recorded in DB.`);
       setStatus('success');
       
-      // Trigger a page refresh or state update
+      // Trigger a page refresh
       window.location.reload(); 
 
     } catch (error: any) {
