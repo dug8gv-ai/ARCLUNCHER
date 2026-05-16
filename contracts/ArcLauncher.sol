@@ -7,8 +7,9 @@ pragma solidity ^0.8.20;
  */
 
 interface IERC20 {
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-    function transfer(address recipient, uint256 amount) external returns (bool);
+    // Note: We remove "returns (bool)" because the Arc system contract might return nothing (0x)
+    function transferFrom(address sender, address recipient, uint256 amount) external;
+    function transfer(address recipient, uint256 amount) external;
 }
 
 contract ArcLauncher {
@@ -38,16 +39,10 @@ contract ArcLauncher {
      */
     function launchToken(string memory name, string memory ticker, uint256 supply) external {
         // Transfer 4 USDC from user
-        require(
-            IERC20(USDC).transferFrom(msg.sender, address(this), LAUNCH_FEE),
-            "USDC transfer failed"
-        );
+        IERC20(USDC).transferFrom(msg.sender, address(this), LAUNCH_FEE);
         
         // Split the fee
-        require(
-            IERC20(USDC).transfer(treasury, TREASURY_ALLOCATION),
-            "Treasury transfer failed"
-        );
+        IERC20(USDC).transfer(treasury, TREASURY_ALLOCATION);
         
         // The remaining 3 USDC stays in this contract or is sent to the specific token's LP pool.
         
@@ -65,9 +60,9 @@ contract ArcLauncher {
      */
     function swap(address tokenAddress, uint256 usdcAmount, uint256 tokenAmount, bool isBuy) external {
         if (isBuy) {
-            require(IERC20(USDC).transferFrom(msg.sender, address(this), usdcAmount), "USDC transfer failed");
+            IERC20(USDC).transferFrom(msg.sender, address(this), usdcAmount);
         } else {
-            require(IERC20(USDC).transfer(msg.sender, usdcAmount), "USDC transfer failed");
+            IERC20(USDC).transfer(msg.sender, usdcAmount);
         }
         
         totalMarketVolume += usdcAmount;

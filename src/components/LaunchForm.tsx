@@ -20,6 +20,29 @@ const ARC_LAUNCHER_ABI = [
   }
 ];
 
+// Standard ERC20 ABI but with more permissive return types for system contracts
+const USDC_ABI = [
+  {
+    "inputs": [
+      {"internalType": "address", "name": "spender", "type": "address"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "approve",
+    "outputs": [], // Changed from bool to void to handle Arc Testnet system contract
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "account", "type": "address"}
+    ],
+    "name": "balanceOf",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
+
 // Mock contract address for ArcLauncher and USDC
 const ARC_LAUNCHER_ADDRESS = process.env.NEXT_PUBLIC_LAUNCHER_ADDRESS || '0x0000000000000000000000000000000000000000';
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x0000000000000000000000000000000000000000';
@@ -50,7 +73,7 @@ export function LaunchForm() {
       
       const approveHash = await writeContractAsync({
         address: USDC_ADDRESS as `0x${string}`,
-        abi: erc20Abi,
+        abi: USDC_ABI,
         functionName: 'approve',
         args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, feeAmount],
       });
