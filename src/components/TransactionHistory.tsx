@@ -16,7 +16,7 @@ export function TransactionHistory({ tokenAddress }: { tokenAddress?: string }) 
         .limit(10);
       
       if (tokenAddress) {
-        query = query.eq('token_address', tokenAddress);
+        query = query.eq('token_address', tokenAddress.toLowerCase());
       }
 
       const { data } = await query;

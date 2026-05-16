@@ -21,10 +21,9 @@ export function DashboardStats() {
         // 2. Fetch all swaps to count trading volume
         const { data: swaps } = await supabase.from('token_swaps').select('usdc_amount');
         
-        const totalLiquidity = (launches?.length || 0) * 3;
-        const totalTradingVolume = swaps?.reduce((acc, curr) => acc + Number(curr.usdc_amount), 0) || 0;
-        
-        const grandTotal = (totalLiquidity + totalTradingVolume).toLocaleString(undefined, { maximumFractionDigits: 2 });
+        const totalSwapsVolume = swaps?.reduce((acc, s) => acc + Number(s.usdc_amount), 0) || 0;
+        const initialLiquidity = (launches?.length || 0) * 3;
+        const grandTotal = (totalSwapsVolume + initialLiquidity).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
         const { data: dailyData } = await supabase.rpc('get_daily_new_launches');
 
