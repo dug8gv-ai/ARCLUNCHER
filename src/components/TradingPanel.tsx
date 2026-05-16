@@ -161,7 +161,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
       if (dbError) throw dbError;
 
-      alert(`Success! You bought ${tokenAmountInTokens.toLocaleString()} ${token.ticker}`);
+      alert(`Success! You bought ${tokenAmountForDB.toLocaleString()} ${token.ticker}`);
       setStatus('success');
       
       // Trigger a page refresh or state update
