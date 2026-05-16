@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { parseUnits, erc20Abi } from 'viem';
 import { supabase } from '@/lib/supabase';
-import { TrendingUp, ArrowUpDown, Info, Wallet } from 'lucide-react';
+import { TrendingUp, ArrowUpDown, Info, Wallet, Loader2 } from 'lucide-react';
 
 interface TradingPanelProps {
   token: any;
