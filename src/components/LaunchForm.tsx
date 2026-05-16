@@ -143,7 +143,8 @@ export function LaunchForm() {
           token_address: `0x${Math.random().toString(16).slice(2, 42).padStart(40, '0')}`, // Temporary mock address until real deployment
           name: formData.name,
           ticker: formData.ticker,
-          supply: Number(formData.supply), // Ensure this matches your Supabase column name
+          supply: Number(formData.supply), 
+          initial_supply: Number(formData.supply), // Added this to match your DB schema
           image_url: formData.image || null
         });
 
