@@ -15,23 +15,22 @@ export function DashboardStats() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        // Fetch total market volume from RPC or fallback to manual calculation
-        const { data: volumeData } = await supabase.rpc('get_global_market_volume');
-        
-        // Manual Fallback if RPC returns 0
+        // 1. Fetch all launches to count liquidity (3 USDC per launch)
         const { data: launches } = await supabase.from('token_launches').select('id');
+        
+        // 2. Fetch all swaps to count trading volume
         const { data: swaps } = await supabase.from('token_swaps').select('usdc_amount');
         
-        const launchFeesInUSDC = (launches?.length || 0) * 4;
-        const swapVolumeInUSDC = swaps?.reduce((acc, curr) => acc + Number(curr.usdc_amount), 0) || 0;
-        const manualVolume = (launchFeesInUSDC + swapVolumeInUSDC).toLocaleString();
+        const totalLiquidity = (launches?.length || 0) * 3;
+        const totalTradingVolume = swaps?.reduce((acc, curr) => acc + Number(curr.usdc_amount), 0) || 0;
+        
+        const grandTotal = (totalLiquidity + totalTradingVolume).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
         const { data: dailyData } = await supabase.rpc('get_daily_new_launches');
-        const { count } = await supabase.from('token_launches').select('*', { count: 'exact', head: true });
 
         setStats({
-          volume: volumeData && Number(volumeData) > 0 ? (Number(volumeData) / 1000000).toLocaleString() : manualVolume,
-          tokens: count || 0,
+          volume: grandTotal,
+          tokens: launches?.length || 0,
           newToday: dailyData || 0
         });
 
