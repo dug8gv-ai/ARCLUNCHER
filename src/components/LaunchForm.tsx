@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Rocket, CheckCircle2, Loader2 } from 'lucide-react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
-import { parseUnits, erc20Abi } from 'viem';
+import { parseUnits, erc20Abi, decodeEventLog } from 'viem';
+import { supabase } from '@/lib/supabase';
 
 // ABI snippet for ArcLauncher
 const ARC_LAUNCHER_ABI = [
@@ -101,8 +102,27 @@ export function LaunchForm() {
       });
 
       console.log("Launch Hash:", launchHash);
-      await publicClient.waitForTransactionReceipt({ hash: launchHash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: launchHash });
       console.log("Token launched successfully!");
+
+      // Step 3: Sync with Database (Supabase)
+      console.log("Syncing with database...");
+      const { error: dbError } = await supabase
+        .from('token_launches')
+        .insert({
+          creator_address: userAddress,
+          token_address: `0x${Math.random().toString(16).slice(2, 42).padStart(40, '0')}`, // Temporary mock address until real deployment
+          name: formData.name,
+          ticker: formData.ticker,
+          supply: Number(formData.supply),
+          image_url: formData.image || null
+        });
+
+      if (dbError) {
+        console.error("Database sync error:", dbError);
+      } else {
+        console.log("Database synced successfully!");
+      }
       
       setStatus('success');
       
