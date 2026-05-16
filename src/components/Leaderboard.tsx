@@ -14,14 +14,41 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
     async function fetchTokens() {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        // 1. Fetch Tokens
+        const { data: tokensData, error } = await supabase
           .from('token_launches')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(10);
 
         if (error) throw error;
-        setTokens(data || []);
+
+        // 2. Fetch Swaps for all these tokens to calculate metrics
+        const tokenAddresses = tokensData?.map(t => t.token_address) || [];
+        const { data: allSwaps } = await supabase
+          .from('token_swaps')
+          .select('token_address, user_address, usdc_amount, token_amount')
+          .in('token_address', tokenAddresses);
+
+        const enrichedTokens = (tokensData || []).map(token => {
+          const tokenSwaps = allSwaps?.filter(s => s.token_address === token.token_address) || [];
+          const holders = new Set(tokenSwaps.map(s => s.user_address)).size;
+          
+          let priceChange = 0;
+          if (tokenSwaps.length >= 2) {
+            const initialPrice = Number(tokenSwaps[0].usdc_amount / tokenSwaps[0].token_amount);
+            const latestPrice = Number(tokenSwaps[tokenSwaps.length - 1].usdc_amount / tokenSwaps[tokenSwaps.length - 1].token_amount);
+            priceChange = ((latestPrice - initialPrice) / (initialPrice || 1)) * 100;
+          }
+
+          return {
+            ...token,
+            holders,
+            priceChange: priceChange.toFixed(2)
+          };
+        });
+
+        setTokens(enrichedTokens);
       } catch (e) {
         console.error("Error fetching tokens:", e);
       } finally {
@@ -118,12 +145,11 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                 <div className="flex items-center gap-2 justify-end mb-1">
                   <Users size={14} className="text-purple-400" />
                   <span className="text-sm font-bold text-white">
-                    {/* Simplified holders count for leaderboard */}
-                    {Math.floor(Math.random() * 10) + 1} Holders
+                    {token.holders} Holders
                   </span>
                 </div>
-                <div className="text-xs font-bold text-green-400">
-                  +4.20%
+                <div className={`text-xs font-bold ${Number(token.priceChange) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {Number(token.priceChange) >= 0 ? '+' : ''}{token.priceChange}%
                 </div>
               </div>
             </div>
