@@ -7,7 +7,11 @@ import { DashboardStats } from '@/components/DashboardStats';
 import { LaunchForm } from '@/components/LaunchForm';
 import { TradingPanel } from '@/components/TradingPanel';
 import { Leaderboard } from '@/components/Leaderboard';
-import { PriceChart } from '@/components/PriceChart';
+import dynamic from 'next/dynamic';
+
+const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => mod.PriceChart), {
+  ssr: false,
+});
 import { TransactionHistory } from '@/components/TransactionHistory';
 
 export default function Home() {

@@ -90,6 +90,9 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         type: 'volume',
       },
       priceScaleId: '', // overlay
+    });
+
+    chart.priceScale('').applyOptions({
       scaleMargins: {
         top: 0.8,
         bottom: 0,
