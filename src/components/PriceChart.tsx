@@ -12,7 +12,10 @@ interface PriceChartProps {
 export function PriceChart({ selectedToken }: PriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+
+  const [timeframe, setTimeframe] = useState<'1m' | '15m' | '1h' | '1D'>('1m');
 
   const [metrics, setMetrics] = useState({
     mcap: '0',
@@ -27,9 +30,8 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { color: 'transparent' },
+        background: { type: ColorType.Solid, color: 'transparent' },
         textColor: '#9ca3af',
-        fontSize: 10,
       },
       grid: {
         vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
@@ -50,7 +52,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       },
       rightPriceScale: {
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        scaleMargins: { top: 0.1, bottom: 0.1 },
+        scaleMargins: { top: 0.1, bottom: 0.3 }, // leave space for volume
       },
       timeScale: {
         borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -62,6 +64,8 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       },
     });
 
+    chartRef.current = chart;
+
     const candleSeries = chart.addCandlestickSeries({
       upColor: '#22c55e',
       downColor: '#ef4444',
@@ -69,12 +73,34 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       wickUpColor: '#22c55e',
       wickDownColor: '#ef4444',
     });
+    candleSeriesRef.current = candleSeries;
+
+    candleSeries.createPriceLine({
+      price: 0.01,
+      color: '#ffffff',
+      lineWidth: 2,
+      lineStyle: 2, // Dashed
+      axisLabelVisible: true,
+      title: 'Floor Price',
+    });
+
+    const volumeSeries = chart.addHistogramSeries({
+      color: '#26a69a',
+      priceFormat: {
+        type: 'volume',
+      },
+      priceScaleId: '', // overlay
+      scaleMargins: {
+        top: 0.8,
+        bottom: 0,
+      },
+    });
+    volumeSeriesRef.current = volumeSeries;
 
     const fetchChartData = async () => {
       if (!selectedToken) return;
       
       const addr = selectedToken.token_address.toLowerCase();
-      console.log("Fetching Chart Data for:", addr);
 
       const { data: swaps, error } = await supabase
         .from('token_swaps')
@@ -87,61 +113,94 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         return;
       }
 
-      console.log("Total Swaps Found:", swaps?.length || 0);
+      // 1. THE PRICE IMPACT LOGIC (AMM STYLE)
+      let currentPrice = 0.01;
+      const POOL_LIQUIDITY = 100; // Constant liquidity pool size for impact
 
-      // Convert swaps to 1-minute OHLC candles
-      let candles: any[] = [];
-      if (swaps && swaps.length > 0) {
-        const groupedByMinute: { [key: number]: any[] } = {};
+      const swapsWithSpotPrice = swaps?.map(s => {
+        const usdcAmount = Number(s.usdc_amount);
+        if (s.is_buy) {
+          currentPrice = currentPrice * (1 + (usdcAmount / POOL_LIQUIDITY));
+        } else {
+          currentPrice = currentPrice * (1 - (usdcAmount / POOL_LIQUIDITY));
+        }
         
-        swaps.forEach(swap => {
+        if (currentPrice < 0.01) currentPrice = 0.01;
+        
+        return { ...s, spotPrice: currentPrice };
+      }) || [];
+
+      let candles: any[] = [];
+      let volumes: any[] = [];
+
+      if (swapsWithSpotPrice.length > 0) {
+        let bucketMs = 60000;
+        if (timeframe === '1m') bucketMs = 60000;
+        else if (timeframe === '15m') bucketMs = 15 * 60000;
+        else if (timeframe === '1h') bucketMs = 60 * 60000;
+        else if (timeframe === '1D') bucketMs = 24 * 60 * 60000;
+
+        const groupedByBucket: { [key: number]: any[] } = {};
+        
+        swapsWithSpotPrice.forEach(swap => {
           const ts = swap.timestamp || swap.created_at;
-          const time = Math.floor(new Date(ts).getTime() / 60000) * 60;
+          const time = Math.floor(new Date(ts).getTime() / bucketMs) * (bucketMs / 1000);
           if (isNaN(time)) return;
           
-          if (!groupedByMinute[time]) groupedByMinute[time] = [];
-          groupedByMinute[time].push(swap);
+          if (!groupedByBucket[time]) groupedByBucket[time] = [];
+          groupedByBucket[time].push(swap);
         });
 
-        const sortedMinutes = Object.keys(groupedByMinute).map(Number).sort((a, b) => a - b);
+        const sortedBuckets = Object.keys(groupedByBucket).map(Number).sort((a, b) => a - b);
         
-        for (let i = 0; i < sortedMinutes.length; i++) {
-          const time = sortedMinutes[i];
-          const minuteSwaps = groupedByMinute[time];
+        for (let i = 0; i < sortedBuckets.length; i++) {
+          const time = sortedBuckets[i];
+          const bucketSwaps = groupedByBucket[time];
           
-          // STRICT 0.01 FLOOR
-          const prices = minuteSwaps.map(s => {
-            const p = Number(s.usdc_amount / s.token_amount);
-            return p < 0.01 ? 0.01 : p;
-          }).filter(p => !isNaN(p) && p > 0);
-          
+          const prices = bucketSwaps.map(s => s.spotPrice);
           if (prices.length === 0) continue;
 
           const openPrice = candles.length === 0 ? 0.01 : candles[candles.length - 1].close;
-          const closePrice = Math.max(0.01, prices[prices.length - 1]);
+          const closePrice = prices[prices.length - 1];
+          
+          let high = Math.max(openPrice, closePrice, ...prices);
+          let low = Math.min(openPrice, closePrice, ...prices);
+
+          const bucketVolume = bucketSwaps.reduce((acc, s) => acc + Number(s.usdc_amount), 0);
+          const isGreen = closePrice >= openPrice;
 
           candles.push({
             time: time as any,
             open: openPrice,
-            high: Math.max(openPrice, closePrice, ...prices),
-            low: Math.min(openPrice, closePrice, ...prices),
+            high: high,
+            low: low,
             close: closePrice
+          });
+
+          volumes.push({
+            time: time as any,
+            value: bucketVolume,
+            color: isGreen ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)',
           });
         }
       }
 
-
-      // If no candles, add a placeholder "Launch Green Candle" at 0.01
       if (candles.length === 0) {
         const launchTime = Math.floor(new Date(selectedToken.timestamp || selectedToken.created_at || Date.now()).getTime() / 60000) * 60;
+        const fallbackTime = (isNaN(launchTime) ? Math.floor(Date.now() / 60000) * 60 : launchTime) as any;
         candles = [{
-          time: (isNaN(launchTime) ? Math.floor(Date.now() / 60000) * 60 : launchTime) as any,
+          time: fallbackTime,
           open: 0.01, high: 0.011, low: 0.01, close: 0.011 
+        }];
+        volumes = [{
+          time: fallbackTime,
+          value: 0,
+          color: 'rgba(34, 197, 94, 0.4)',
         }];
       }
 
-
       candleSeries.setData(candles);
+      volumeSeries.setData(volumes);
       chart.timeScale().fitContent();
 
       // Update Metrics
@@ -162,7 +221,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
     fetchChartData();
 
-    // Subscribe to new swaps
+    // 3. REAL-TIME CHART UPDATES
     const channel = supabase.channel(`chart_swaps_${selectedToken?.token_address}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
@@ -190,16 +249,16 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       chart.remove();
       supabase.removeChannel(channel);
     };
-  }, [selectedToken]);
+  }, [selectedToken, timeframe]); // Re-run when timeframe changes
 
   return (
     <div className="glass-panel p-6">
       {/* Header & Metrics */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 border-b border-gray-800 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4 border-b border-gray-800 pb-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center overflow-hidden">
             {selectedToken?.image_url ? (
-              <img src={selectedToken.image_url} alt="" className="w-full h-full rounded-full object-cover" />
+              <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
             ) : (
               <TrendingUp className="text-cyan-400" />
             )}
@@ -223,6 +282,18 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
           <MetricCard icon={<Users size={12} />} label="HOLDERS" value={metrics.holders} color="text-yellow-400" />
           <MetricCard icon={<DollarSign size={12} />} label="VOLUME" value={`$${metrics.volume}`} color="text-green-400" />
         </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-4">
+        {['1m', '15m', '1h', '1D'].map(tf => (
+          <button
+            key={tf}
+            onClick={() => setTimeframe(tf as any)}
+            className={`px-3 py-1 rounded text-xs font-bold transition-all ${timeframe === tf ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-gray-800/50 text-gray-500 hover:text-gray-300'}`}
+          >
+            {tf}
+          </button>
+        ))}
       </div>
 
       {/* Chart Area */}
