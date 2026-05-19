@@ -233,11 +233,11 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
     if (!confirm('Are you sure you want to permanently delete this token and all its swap history? This action is irreversible.')) return;
 
     try {
-      // 1. Delete dependent swaps first to prevent foreign key violation!
+      // 1. Delete dependent swaps first (Defensive casing wipes)
       const { error: swapError } = await supabase
         .from('token_swaps')
         .delete()
-        .eq('token_address', tokenAddress);
+        .in('token_address', [tokenAddress, tokenAddress.toLowerCase(), tokenAddress.toUpperCase()]);
       if (swapError) throw swapError;
 
       // 2. Delete the token launch record!
