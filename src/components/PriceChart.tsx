@@ -116,21 +116,33 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         return;
       }
 
-      // 1. THE PRICE IMPACT LOGIC (AMM STYLE)
-      let currentPrice = 0.01;
-      const POOL_LIQUIDITY = 100; // Constant liquidity pool size for impact
+      // 1. THE SYMMETRIC AMM BONDING CURVE LOGIC (MATCHING TRADING PANEL)
+      const VIRTUAL_USDC = 100;
+      const VIRTUAL_TOKENS = VIRTUAL_USDC / 0.01; // 10,000 tokens virtual supply
+      const k = VIRTUAL_USDC * VIRTUAL_TOKENS;
+
+      let currentUSDC = VIRTUAL_USDC;
+      let currentTokens = VIRTUAL_TOKENS;
 
       const swapsWithSpotPrice = swaps?.map(s => {
         const usdcAmount = Number(s.usdc_amount);
+        const tokenAmount = Number(s.token_amount);
+
         if (s.is_buy) {
-          currentPrice = currentPrice * (1 + (usdcAmount / POOL_LIQUIDITY));
+          currentUSDC += usdcAmount;
+          currentTokens -= tokenAmount;
         } else {
-          currentPrice = currentPrice * (1 - (usdcAmount / POOL_LIQUIDITY));
+          currentUSDC -= usdcAmount;
+          currentTokens += tokenAmount;
         }
-        
-        if (currentPrice < 0.01) currentPrice = 0.01;
-        
-        return { ...s, spotPrice: currentPrice };
+
+        // Strict Floor Protection (Price never below 0.01)
+        if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
+        if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
+
+        const spotPrice = currentTokens > 0 ? (currentUSDC / currentTokens) : 0.01;
+
+        return { ...s, spotPrice: Math.max(0.01, spotPrice) };
       }) || [];
 
       let candles: any[] = [];
