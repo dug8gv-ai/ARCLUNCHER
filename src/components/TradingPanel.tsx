@@ -246,34 +246,51 @@ export function TradingPanel({ token }: TradingPanelProps) {
           const pointsEarned = swapUsdcAmount / 10;
           const walletLower = userAddress.toLowerCase();
 
-          const { data: currentStats, error: statsFetchError } = await supabase
+          const { data: existingStats, error: fetchErr } = await supabase
             .from('user_stats')
             .select('*')
-            .eq('wallet', walletLower)
-            .single();
+            .eq('wallet', walletLower);
 
-          if (currentStats && !statsFetchError) {
+          if (fetchErr) {
+            console.error("Fetch Stats Error:", fetchErr.message);
+            alert("Points Fetch Error: " + fetchErr.message);
+          }
+
+          const currentStats = existingStats && existingStats.length > 0 ? existingStats[0] : null;
+
+          if (currentStats) {
             const newVolume = Number(currentStats.total_volume || 0) + swapUsdcAmount;
             const newPoints = Number(currentStats.points || 0) + pointsEarned;
-            await supabase
+            const { error: updateErr } = await supabase
               .from('user_stats')
               .update({
                 total_volume: newVolume,
                 points: newPoints
               })
               .eq('wallet', walletLower);
+            
+            if (updateErr) {
+              console.error("Update Stats Error:", updateErr.message);
+              alert("Points Update Error: " + updateErr.message);
+            }
           } else {
-            await supabase
+            const { error: insertErr } = await supabase
               .from('user_stats')
               .insert({
                 wallet: walletLower,
                 total_volume: swapUsdcAmount,
                 points: pointsEarned
               });
+            
+            if (insertErr) {
+              console.error("Insert Stats Error:", insertErr.message);
+              alert("Points Insert Error: " + insertErr.message);
+            }
           }
         }
-      } catch (statsErr) {
+      } catch (statsErr: any) {
         console.error("Error updating user stats:", statsErr);
+        alert("Stats Catch Error: " + statsErr.message);
       }
 
       alert(`SUCCESS! Transaction confirmed.`);

@@ -82,14 +82,13 @@ export function Header() {
       }
 
       // 2. Fetch Airdrop points
-      const { data: statsData, error: statsError } = await supabase
+      const { data: statsData } = await supabase
         .from('user_stats')
         .select('points')
-        .eq('wallet', walletLower)
-        .single();
+        .eq('wallet', walletLower);
 
-      if (statsData && !statsError) {
-        setPoints(Number(statsData.points) || 0);
+      if (statsData && statsData.length > 0) {
+        setPoints(Number(statsData[0].points) || 0);
       } else {
         setPoints(0);
       }
@@ -102,23 +101,25 @@ export function Header() {
     if (isConnected && userAddress) {
       fetchProfileAndStats();
 
-      // Realtime listener for stats updates
+      // Realtime listener for stats & profile updates - Bulletproof JS filtered
       const channel = supabase.channel(`header_updates_${userAddress}`)
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
-          table: 'profiles',
-          filter: `wallet=eq.${userAddress.toLowerCase()}`
-        }, () => {
-          fetchProfileAndStats();
+          table: 'profiles'
+        }, (payload: any) => {
+          if (payload.new && payload.new.wallet?.toLowerCase() === userAddress.toLowerCase()) {
+            fetchProfileAndStats();
+          }
         })
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
-          table: 'user_stats',
-          filter: `wallet=eq.${userAddress.toLowerCase()}`
-        }, () => {
-          fetchProfileAndStats();
+          table: 'user_stats'
+        }, (payload: any) => {
+          if (payload.new && payload.new.wallet?.toLowerCase() === userAddress.toLowerCase()) {
+            fetchProfileAndStats();
+          }
         })
         .subscribe();
 
@@ -318,16 +319,34 @@ export function Header() {
                   ))}
                 </div>
                 
-                {/* Custom Avatar URL Field */}
-                <div className="space-y-1.5 mt-2">
-                  <span className="text-[10px] text-slate-400 font-bold block">Or paste custom Avatar URL</span>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/avatar.jpg"
-                    value={formAvatar.startsWith('https://api.dicebear.com') ? '' : formAvatar}
-                    onChange={(e) => e.target.value && setFormAvatar(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-xs font-mono"
-                  />
+                {/* Upload custom picture */}
+                <div className="space-y-1.5 mt-3">
+                  <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">Or upload custom profile picture</span>
+                  <label className="w-full flex flex-col items-center justify-center py-4 bg-slate-50 border border-dashed border-slate-300 rounded-2xl cursor-pointer hover:bg-slate-100/50 hover:border-blue-400 transition-all">
+                    <svg className="w-6 h-6 text-slate-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      {formAvatar.startsWith('data:image') ? '✓ Photo Selected' : 'Upload Image (Max 200KB)'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 200 * 1024) {
+                            alert("Image is too large! Please upload a photo under 200KB.");
+                            return;
+                          }
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setFormAvatar(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
               </div>
 
