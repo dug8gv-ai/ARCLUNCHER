@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #050511; /* Very dark blue/black */
-  --foreground: #e0e7ff;
-  --color-primary: #00f0ff; /* Neon cyan */
-  --color-secondary: #ffd700; /* Gold */
-  --color-panel: rgba(10, 15, 30, 0.7);
-  --color-border: rgba(0, 240, 255, 0.2);
+  --background: #f4f7fc; /* Radius premium clean light background */
+  --foreground: #0f172a; /* Deep slate text */
+  --color-primary: #0052ff; /* Calm blue (Coinbase/Radius style) */
+  --color-secondary: #3b82f6; /* Secondary calm blue */
+  --color-panel: #ffffff; /* Pure white cards */
+  --color-border: #e2e8f0; /* Subtle light gray border */
 }
 
 @theme inline {
@@ -22,51 +22,87 @@ body {
   color: var(--foreground);
   font-family: 'Inter', sans-serif;
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.08), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(255, 215, 0, 0.05), transparent 25%);
+    radial-gradient(circle at 10% 20%, rgba(0, 82, 255, 0.04), transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.03), transparent 40%);
   background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Premium Radius Card Styling with Soft Spacing and Elegant Shadows */
 .glass-panel {
   background: var(--color-panel);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--color-border);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 240, 255, 0.05);
-  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 82, 255, 0.04), 0 8px 10px -6px rgba(0, 82, 255, 0.04), 0 1px 3px rgba(0, 0, 0, 0.01);
+  border-radius: 24px; /* rounded-3xl / 2xl style */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel:hover {
+  box-shadow: 0 20px 30px -10px rgba(0, 82, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* Premium Social app styled glassmorphism modal overlay */
+.glass-modal {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.15);
+  border-radius: 28px;
 }
 
 .neon-text-cyan {
-  text-shadow: 0 0 5px rgba(0, 240, 255, 0.5), 0 0 10px rgba(0, 240, 255, 0.3);
   color: var(--color-primary);
+  font-weight: 800;
 }
 
 .neon-text-gold {
-  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 215, 0, 0.3);
-  color: var(--color-secondary);
+  color: #d97706; /* Deep gold for light theme */
 }
 
+/* Premium Light Blue and Calm Blue Buttons */
 .cyber-button {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2), inset 0 0 10px rgba(0, 240, 255, 0.1);
-  transition: all 0.3s ease;
+  background: var(--color-primary);
+  color: #ffffff !important;
+  border: none;
+  box-shadow: 0 4px 14px 0 rgba(0, 82, 255, 0.2);
+  transition: all 0.2s ease-in-out;
+  border-radius: 14px;
 }
 
 .cyber-button:hover {
-  background: rgba(0, 240, 255, 0.1);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 0 15px rgba(0, 240, 255, 0.2);
+  background: #0045d8;
+  box-shadow: 0 6px 20px 0 rgba(0, 82, 255, 0.3);
+  transform: translateY(-1px);
 }
 
 .cyber-input {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--color-border);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   color: var(--foreground);
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
 .cyber-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(0, 82, 255, 0.1);
+}
+
+/* Custom Scrollbar for sleek premium look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

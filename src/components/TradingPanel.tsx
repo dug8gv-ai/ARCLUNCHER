@@ -236,31 +236,47 @@ export function TradingPanel({ token }: TradingPanelProps) {
         type: isBuy ? 'buy' : 'sell'
       };
 
-
       const { error: dbError } = await supabase.from('token_swaps').insert(swapData);
       if (dbError) alert("Database Sync Error: " + dbError.message);
 
-      alert(`SUCCESS! Transaction confirmed.`);
-      
-      // Step 4: Prompt to add token to MetaMask
-      if (window.ethereum) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_watchAsset',
-            params: {
-              type: 'ERC20',
-              options: {
-                address: token.token_address,
-                symbol: token.ticker,
-                decimals: 18,
-                image: token.image_url,
-              },
-            },
-          });
-        } catch (e) {
-          console.error("User rejected adding token to wallet");
+      // Track user volume & points: 10 USDC Volume = 1 ARCL Point. Store in user_stats.
+      try {
+        if (userAddress) {
+          const swapUsdcAmount = Number(isBuy ? amount : cleanEstimate);
+          const pointsEarned = swapUsdcAmount / 10;
+          const walletLower = userAddress.toLowerCase();
+
+          const { data: currentStats, error: statsFetchError } = await supabase
+            .from('user_stats')
+            .select('*')
+            .eq('wallet', walletLower)
+            .single();
+
+          if (currentStats && !statsFetchError) {
+            const newVolume = Number(currentStats.total_volume || 0) + swapUsdcAmount;
+            const newPoints = Number(currentStats.points || 0) + pointsEarned;
+            await supabase
+              .from('user_stats')
+              .update({
+                total_volume: newVolume,
+                points: newPoints
+              })
+              .eq('wallet', walletLower);
+          } else {
+            await supabase
+              .from('user_stats')
+              .insert({
+                wallet: walletLower,
+                total_volume: swapUsdcAmount,
+                points: pointsEarned
+              });
+          }
         }
+      } catch (statsErr) {
+        console.error("Error updating user stats:", statsErr);
       }
+
+      alert(`SUCCESS! Transaction confirmed.`);
 
       setStatus('success');
       window.location.reload(); 
@@ -273,49 +289,49 @@ export function TradingPanel({ token }: TradingPanelProps) {
   };
 
   return (
-    <div className="glass-panel p-6 border-cyan-500/20">
+    <div className="glass-panel p-6 bg-white border border-slate-200/80">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="font-bold text-white flex items-center gap-2">
-          <ArrowUpDown size={18} className="text-cyan-400" />
+        <h3 className="font-extrabold text-slate-800 flex items-center gap-2 text-base">
+          <ArrowUpDown size={18} className="text-blue-600" />
           Trade {token.ticker}
         </h3>
-        <div className="flex bg-black/40 rounded-lg p-1 text-xs">
+        <div className="flex bg-slate-100 rounded-xl p-1 text-xs">
           <button 
             onClick={() => setIsBuy(true)}
-            className={`px-4 py-1.5 rounded-md transition-all ${isBuy ? 'bg-green-500/20 text-green-400 font-bold' : 'text-gray-500'}`}
+            className={`px-4.5 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${isBuy ? 'bg-green-100 text-green-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
             BUY
           </button>
           <button 
             onClick={() => setIsBuy(false)}
-            className={`px-4 py-1.5 rounded-md transition-all ${!isBuy ? 'bg-red-500/20 text-red-400 font-bold' : 'text-gray-500'}`}
+            className={`px-4.5 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${!isBuy ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
             SELL
           </button>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="bg-black/20 border border-gray-800 rounded-xl p-4">
-          <div className="flex justify-between text-[10px] text-gray-500 mb-2">
+      <div className="space-y-5">
+        <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4">
+          <div className="flex justify-between text-[11px] text-slate-500 font-bold mb-2.5">
             <span>{isBuy ? 'Amount in USDC' : `Amount in ${token.ticker}`}</span>
             <div className="flex items-center gap-3">
               {isBuy ? (
                 <>
-                  <span className="flex items-center gap-1"><Wallet size={10}/> {balance} USDC</span>
+                  <span className="flex items-center gap-1 font-medium"><Wallet size={11} className="text-slate-400" /> {balance} USDC</span>
                   <button 
                     onClick={() => setAmount(balance)}
-                    className="bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20 font-black hover:bg-green-500 hover:text-black transition-all"
+                    className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md border border-blue-100 hover:bg-blue-600 hover:text-white transition-all text-[10px] font-black cursor-pointer"
                   >
                     MAX BUY
                   </button>
                 </>
               ) : (
                 <>
-                  <span className="flex items-center gap-1 text-cyan-400"><TrendingUp size={10}/> {tokenBalance} {token.ticker}</span>
+                  <span className="flex items-center gap-1 font-medium"><TrendingUp size={11} className="text-slate-400" /> {tokenBalance} {token.ticker}</span>
                   <button 
                     onClick={() => setAmount(tokenBalance)}
-                    className="bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20 font-black hover:bg-red-500 hover:text-black transition-all"
+                    className="bg-red-50 text-red-600 px-2 py-0.5 rounded-md border border-red-100 hover:bg-red-600 hover:text-white transition-all text-[10px] font-black cursor-pointer"
                   >
                     MAX SELL
                   </button>
@@ -328,18 +344,17 @@ export function TradingPanel({ token }: TradingPanelProps) {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="w-full bg-transparent text-2xl font-mono text-white outline-none"
+            className="w-full bg-transparent text-3xl font-bold font-mono text-slate-800 outline-none placeholder:text-slate-300"
           />
         </div>
-
 
         <button 
           onClick={handleTrade}
           disabled={status !== 'idle'}
-          className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
+          className={`w-full py-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
             isBuy 
-              ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20' 
-              : 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20'
+              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20' 
+              : 'bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/20'
           } disabled:opacity-50`}
         >
           {status === 'approving' && <><Loader2 className="animate-spin" /> Approving...</>}
@@ -365,22 +380,21 @@ export function TradingPanel({ token }: TradingPanelProps) {
               });
             }
           }}
-          className="w-full py-2 rounded-lg border border-gray-800 text-gray-400 text-xs hover:text-white hover:border-gray-600 transition-all flex items-center justify-center gap-2"
+          className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 text-xs hover:text-slate-800 hover:bg-slate-50 font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
-          <Wallet size={14} />
+          <Wallet size={14} className="text-slate-400" />
           Add {token.ticker} to Wallet
         </button>
 
-        <div className="bg-cyan-500/5 border border-cyan-500/10 rounded-lg p-3 text-[10px] text-gray-500">
-          <p className="flex justify-between mb-1">
+        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-xs text-slate-500 space-y-1.5 font-medium">
+          <p className="flex justify-between">
             <span>Price Impact</span>
-            <span className="text-gray-300">{'< 0.1%'}</span>
+            <span className="text-slate-800">{'< 0.1%'}</span>
           </p>
           <p className="flex justify-between">
             <span>Estimated {isBuy ? 'Received' : 'Output'}</span>
-            <span className="text-cyan-400 font-bold">{estimatedTokens} {isBuy ? token.ticker : 'USDC'}</span>
+            <span className="text-blue-600 font-extrabold">{estimatedTokens} {isBuy ? token.ticker : 'USDC'}</span>
           </p>
-
         </div>
       </div>
     </div>

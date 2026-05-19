@@ -36,49 +36,48 @@ export function TransactionHistory({ tokenAddress }: { tokenAddress?: string }) 
   }, [tokenAddress]);
 
   return (
-    <div className="glass-panel p-6 overflow-hidden">
+    <div className="glass-panel p-6 bg-white border border-slate-200/80 overflow-hidden">
       <div className="flex items-center gap-2 mb-6">
-        <History className="text-cyan-400" size={20} />
-        <h3 className="font-bold text-white">Live Transactions</h3>
+        <History className="text-blue-500" size={20} />
+        <h3 className="font-extrabold text-slate-800 text-base">Live Transactions</h3>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="w-full text-left text-xs font-semibold">
           <thead>
-            <tr className="text-gray-500 border-b border-gray-800">
-              <th className="pb-3 font-medium">Type</th>
-              <th className="pb-3 font-medium">Wallet</th>
-              <th className="pb-3 font-medium text-right">USDC</th>
-              <th className="pb-3 font-medium text-right">Tokens</th>
-              <th className="pb-3 font-medium text-right">Time</th>
+            <tr className="text-slate-400 border-b border-slate-100">
+              <th className="pb-3 font-bold uppercase tracking-wider">Type</th>
+              <th className="pb-3 font-bold uppercase tracking-wider">Wallet</th>
+              <th className="pb-3 font-bold uppercase tracking-wider text-right">USDC</th>
+              <th className="pb-3 font-bold uppercase tracking-wider text-right">Tokens</th>
+              <th className="pb-3 font-bold uppercase tracking-wider text-right">Time</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/50">
+          <tbody className="divide-y divide-slate-100 text-slate-600">
             {swaps.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-gray-600 italic">No transactions yet</td>
+                <td colSpan={5} className="py-8 text-center text-slate-400 italic">No transactions yet</td>
               </tr>
             ) : (
               swaps.map((swap) => (
-                <tr key={swap.id} className="group hover:bg-white/5 transition-colors">
+                <tr key={swap.id} className="group hover:bg-slate-50 transition-colors">
                   <td className="py-3">
-                    <span className={`flex items-center gap-1 font-bold ${swap.is_buy ? 'text-green-400' : 'text-red-400'}`}>
+                    <span className={`flex items-center gap-1 font-bold ${swap.is_buy ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {swap.is_buy ? <ArrowUpRight size={14}/> : <ArrowDownLeft size={14}/>}
                       {swap.is_buy ? 'BUY' : 'SELL'}
                     </span>
                   </td>
-                  <td className="py-3 font-mono text-gray-400">
+                  <td className="py-3 font-mono text-slate-400">
                     {swap.user_address.slice(0, 6)}...{swap.user_address.slice(-4)}
                   </td>
-                  <td className="py-3 text-right font-mono text-white">
+                  <td className="py-3 text-right font-mono text-slate-800">
                     {Number(swap.usdc_amount).toFixed(2)}
                   </td>
-                  <td className="py-3 text-right font-mono text-cyan-400">
+                  <td className="py-3 text-right font-mono text-blue-600">
                     {Number(swap.token_amount).toLocaleString()}
                   </td>
-                  <td className="py-3 text-right text-gray-500 text-xs">
+                  <td className="py-3 text-right text-slate-400 text-xs font-medium">
                     {new Date(swap.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-
                   </td>
                 </tr>
               ))

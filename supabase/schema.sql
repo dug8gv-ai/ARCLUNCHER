@@ -57,3 +57,27 @@ $$ LANGUAGE plpgsql;
 -- Supabase real-time is enabled on these tables
 ALTER PUBLICATION supabase_realtime ADD TABLE token_launches;
 ALTER PUBLICATION supabase_realtime ADD TABLE token_swaps;
+
+-- Table for Persistent Social Profiles
+CREATE TABLE IF NOT EXISTS profiles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    wallet TEXT NOT NULL UNIQUE,
+    name TEXT,
+    avatar TEXT,
+    discord TEXT,
+    twitter TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Table for User Stats (ARCL Points & Leaderboard)
+CREATE TABLE IF NOT EXISTS user_stats (
+    wallet TEXT PRIMARY KEY,
+    points NUMERIC DEFAULT 0,
+    total_volume NUMERIC DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Supabase real-time on new tables
+ALTER PUBLICATION supabase_realtime ADD TABLE profiles;
+ALTER PUBLICATION supabase_realtime ADD TABLE user_stats;
+

@@ -31,31 +31,31 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#9ca3af',
+        textColor: '#64748b', // Slate-500 for high-end readability
       },
       grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        vertLines: { color: '#e2e8f0' }, // Slate-200 grid lines
+        horzLines: { color: '#e2e8f0' }, // Slate-200 grid lines
       },
       crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
           width: 1,
-          color: '#22d3ee',
+          color: '#3b82f6', // Calm blue crosshair
           style: 3,
         },
         horzLine: {
           width: 1,
-          color: '#22d3ee',
+          color: '#3b82f6', // Calm blue crosshair
           style: 3,
         },
       },
       rightPriceScale: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: '#e2e8f0',
         scaleMargins: { top: 0.1, bottom: 0.3 }, // leave space for volume
       },
       timeScale: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: '#e2e8f0',
         timeVisible: true,
         secondsVisible: false,
       },
@@ -67,17 +67,17 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
     chartRef.current = chart;
 
     const candleSeries = chart.addCandlestickSeries({
-      upColor: '#22c55e',
-      downColor: '#ef4444',
+      upColor: '#10b981', // Premium green
+      downColor: '#ef4444', // Premium red
       borderVisible: false,
-      wickUpColor: '#22c55e',
+      wickUpColor: '#10b981',
       wickDownColor: '#ef4444',
     });
     candleSeriesRef.current = candleSeries;
 
     candleSeries.createPriceLine({
       price: 0.01,
-      color: '#ffffff',
+      color: '#94a3b8',
       lineWidth: 2,
       lineStyle: 2, // Dashed
       axisLabelVisible: true,
@@ -85,7 +85,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
     });
 
     const volumeSeries = chart.addHistogramSeries({
-      color: '#26a69a',
+      color: '#3b82f6',
       priceFormat: {
         type: 'volume',
       },
@@ -255,35 +255,35 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
   }, [selectedToken, timeframe]); // Re-run when timeframe changes
 
   return (
-    <div className="glass-panel p-6">
+    <div className="glass-panel p-6 bg-white border border-slate-200/80">
       {/* Header & Metrics */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4 border-b border-gray-800 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4 border-b border-slate-100 pb-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center overflow-hidden">
+          <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden">
             {selectedToken?.image_url ? (
               <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              <TrendingUp className="text-cyan-400" />
+              <TrendingUp className="text-blue-500" />
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2 leading-none mb-1">
+            <h2 className="text-xl font-extrabold text-slate-800 flex items-center gap-2 leading-none mb-1">
               {selectedToken ? `${selectedToken.ticker}/USDC` : 'Select a Token'}
               {selectedToken && (
-                <span className="text-cyan-400 text-[10px] font-black bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 uppercase tracking-tighter">
+                <span className="text-blue-600 text-[10px] font-black bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase tracking-tighter">
                   Live
                 </span>
               )}
             </h2>
-            <p className="text-gray-500 text-sm">{selectedToken?.name || 'Launchpad Market View'}</p>
+            <p className="text-slate-400 text-xs font-semibold">{selectedToken?.name || 'Launchpad Market View'}</p>
           </div>
         </div>
         
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <MetricCard icon={<Activity size={12} />} label="MCAP" value={`$${metrics.mcap}`} color="text-cyan-400" />
-          <MetricCard icon={<BarChart3 size={12} />} label="FDV" value={`$${metrics.fdv}`} color="text-purple-400" />
-          <MetricCard icon={<Users size={12} />} label="HOLDERS" value={metrics.holders} color="text-yellow-400" />
-          <MetricCard icon={<DollarSign size={12} />} label="VOLUME" value={`$${metrics.volume}`} color="text-green-400" />
+          <MetricCard icon={<Activity size={12} />} label="MCAP" value={`$${metrics.mcap}`} color="text-blue-600" />
+          <MetricCard icon={<BarChart3 size={12} />} label="FDV" value={`$${metrics.fdv}`} color="text-indigo-600" />
+          <MetricCard icon={<Users size={12} />} label="HOLDERS" value={metrics.holders} color="text-amber-600" />
+          <MetricCard icon={<DollarSign size={12} />} label="VOLUME" value={`$${metrics.volume}`} color="text-emerald-600" />
         </div>
       </div>
 
@@ -292,7 +292,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
           <button
             key={tf}
             onClick={() => setTimeframe(tf as any)}
-            className={`px-3 py-1 rounded text-xs font-bold transition-all ${timeframe === tf ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-gray-800/50 text-gray-500 hover:text-gray-300'}`}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${timeframe === tf ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-slate-100/80 text-slate-500 hover:text-slate-800 hover:bg-slate-200/80'}`}
           >
             {tf}
           </button>
@@ -302,18 +302,19 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       {/* Chart Area */}
       <div ref={chartContainerRef} className="w-full relative min-h-[400px]">
         {!selectedToken && (
-          <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-[2px] flex items-center justify-center rounded-xl border border-dashed border-gray-800">
-            <div className="text-center">
-              <BarChart3 className="text-gray-700 mx-auto mb-3" size={40} />
-              <p className="text-gray-500 font-medium">Select a token from the leaderboard to view chart</p>
+          <div className="absolute inset-0 z-10 bg-slate-50/95 backdrop-blur-[2px] flex items-center justify-center rounded-2xl border border-dashed border-slate-200">
+            <div className="text-center p-6 space-y-2">
+              <BarChart3 className="text-slate-300 mx-auto mb-2" size={42} />
+              <p className="text-slate-500 font-bold text-sm">No token selected</p>
+              <p className="text-slate-400 text-xs font-medium max-w-xs mx-auto">Select a live market from the leaderboard on the right to load trading history</p>
             </div>
           </div>
         )}
       </div>
 
-      <div className="mt-4 flex gap-4 text-[10px] text-gray-600 font-mono">
-        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500" /> Live Data</span>
-        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-cyan-500" /> Arc Testnet</span>
+      <div className="mt-4 flex gap-4 text-[10px] text-slate-400 font-mono font-bold">
+        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Live Data</span>
+        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500" /> Arc Testnet</span>
       </div>
     </div>
   );
@@ -321,11 +322,11 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
 function MetricCard({ icon, label, value, color }: { icon: any, label: string, value: string, color: string }) {
   return (
-    <div className="bg-black/30 border border-gray-800/50 rounded-lg p-2.5 px-4 min-w-[100px]">
-      <div className="flex items-center gap-1.5 text-[9px] text-gray-500 font-black uppercase mb-1 tracking-wider">
+    <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-2.5 px-4 min-w-[100px] shadow-sm">
+      <div className="flex items-center gap-1.5 text-[9px] text-slate-400 font-black uppercase mb-1 tracking-wider">
         {icon} {label}
       </div>
-      <div className={`text-sm font-mono font-bold ${color}`}>{value}</div>
+      <div className={`text-xs font-mono font-bold ${color}`}>{value}</div>
     </div>
   );
 }

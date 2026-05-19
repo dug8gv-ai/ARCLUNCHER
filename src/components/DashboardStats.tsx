@@ -52,19 +52,19 @@ export function DashboardStats() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="glass-panel p-6 flex items-center justify-between"
+        className="glass-panel p-6 flex items-center justify-between bg-white border border-slate-200/80"
       >
         <div>
-          <p className="text-sm text-gray-400 mb-1">Total Market Volume (USDC)</p>
-          <h3 className="text-3xl font-bold neon-text-cyan">${stats.volume}</h3>
+          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider mb-1">Total Market Volume (USDC)</p>
+          <h3 className="text-2xl font-black text-blue-600 tracking-tight">${stats.volume}</h3>
         </div>
-        <div className="h-12 w-12 rounded-full bg-cyan-900/30 flex items-center justify-center border border-cyan-500/30">
-          <Activity className="text-cyan-400" />
+        <div className="h-11 w-11 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 flex-shrink-0">
+          <Activity className="text-blue-600" size={20} />
         </div>
       </motion.div>
 
@@ -72,14 +72,14 @@ export function DashboardStats() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="glass-panel p-6 flex items-center justify-between"
+        className="glass-panel p-6 flex items-center justify-between bg-white border border-slate-200/80"
       >
         <div>
-          <p className="text-sm text-gray-400 mb-1">Total Tokens Created</p>
-          <h3 className="text-3xl font-bold neon-text-gold">{stats.tokens}</h3>
+          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider mb-1">Total Tokens Created</p>
+          <h3 className="text-2xl font-black text-amber-600 tracking-tight">{stats.tokens}</h3>
         </div>
-        <div className="h-12 w-12 rounded-full bg-yellow-900/30 flex items-center justify-center border border-yellow-500/30">
-          <Coins className="text-yellow-400" />
+        <div className="h-11 w-11 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100 flex-shrink-0">
+          <Coins className="text-amber-600" size={20} />
         </div>
       </motion.div>
 
@@ -87,14 +87,14 @@ export function DashboardStats() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="glass-panel p-6 flex items-center justify-between"
+        className="glass-panel p-6 flex items-center justify-between bg-white border border-slate-200/80"
       >
         <div>
-          <p className="text-sm text-gray-400 mb-1">Daily New Launches</p>
-          <h3 className="text-3xl font-bold text-white">{stats.newToday}</h3>
+          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider mb-1">Daily New Launches</p>
+          <h3 className="text-2xl font-black text-slate-800 tracking-tight">{stats.newToday}</h3>
         </div>
-        <div className="h-12 w-12 rounded-full bg-purple-900/30 flex items-center justify-center border border-purple-500/30">
-          <TrendingUp className="text-purple-400" />
+        <div className="h-11 w-11 rounded-xl bg-indigo-50 flex items-center justify-center border border-indigo-100 flex-shrink-0">
+          <TrendingUp className="text-indigo-600" size={20} />
         </div>
       </motion.div>
     </div>
