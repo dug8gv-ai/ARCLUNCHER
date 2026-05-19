@@ -19,13 +19,30 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
   // Fetch Live Tokens (Markets)
   const fetchTokens = async () => {
     try {
-      // 1. Fetch Tokens ordered by Pinned status first
-      const { data: tokensData, error } = await supabase
-        .from('token_launches')
-        .select('*')
-        .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(20);
+      // 1. Fetch Tokens (Defensive check for is_pinned column existence)
+      let tokensData: any[] | null = null;
+      let error: any = null;
+
+      try {
+        const res = await supabase
+          .from('token_launches')
+          .select('*')
+          .order('is_pinned', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(20);
+        
+        if (res.error) throw res.error;
+        tokensData = res.data;
+      } catch (fallbackErr: any) {
+        // Fallback to default sorting if is_pinned column doesn't exist in user's Supabase yet
+        const res = await supabase
+          .from('token_launches')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(20);
+        tokensData = res.data;
+        error = res.error;
+      }
 
       if (error) throw error;
 
