@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS token_launches (
     name TEXT NOT NULL,
     ticker TEXT NOT NULL,
     supply NUMERIC NOT NULL,
+    image_url TEXT,
+    is_pinned BOOLEAN DEFAULT FALSE,
+    badge_type TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

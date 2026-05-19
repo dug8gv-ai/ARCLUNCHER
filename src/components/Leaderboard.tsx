@@ -19,10 +19,11 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
   // Fetch Live Tokens (Markets)
   const fetchTokens = async () => {
     try {
-      // 1. Fetch Tokens
+      // 1. Fetch Tokens ordered by Pinned status first
       const { data: tokensData, error } = await supabase
         .from('token_launches')
         .select('*')
+        .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -165,20 +166,74 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
     };
   }, []);
 
-  const handleDelete = async (e: React.MouseEvent, tokenId: string) => {
+  const handleTogglePin = async (e: React.MouseEvent, tokenId: string, currentPinned: boolean) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this token permanently?')) return;
+    try {
+      const { error } = await supabase
+        .from('token_launches')
+        .update({ is_pinned: !currentPinned })
+        .eq('id', tokenId);
+      if (error) throw error;
+      alert(`Token pin status updated successfully!`);
+      fetchTokens();
+    } catch (err: any) {
+      console.error("Error toggling pin:", err);
+      alert("Error toggling pin: " + err.message);
+    }
+  };
 
-    const { error } = await supabase
-      .from('token_launches')
-      .delete()
-      .eq('id', tokenId);
+  const handleCycleBadge = async (e: React.MouseEvent, tokenId: string, currentBadge: string | null) => {
+    e.stopPropagation();
+    try {
+      let nextBadge: string | null = null;
+      if (!currentBadge) {
+        nextBadge = 'official';
+      } else if (currentBadge === 'official') {
+        nextBadge = 'partner';
+      } else {
+        nextBadge = null;
+      }
 
-    if (error) {
-      alert('Error deleting token: ' + error.message);
-    } else {
-      alert('Token deleted successfully!');
+      const { error } = await supabase
+        .from('token_launches')
+        .update({ badge_type: nextBadge })
+        .eq('id', tokenId);
+      if (error) throw error;
+      alert(`Token badge set to: ${nextBadge || 'None'}`);
+      fetchTokens();
+    } catch (err: any) {
+      console.error("Error setting badge:", err);
+      alert("Error setting badge: " + err.message);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, tokenId: string, tokenAddress: string) => {
+    e.stopPropagation();
+    if (!isAdmin) {
+      alert("Only the Admin is authorized to delete tokens!");
+      return;
+    }
+    if (!confirm('Are you sure you want to permanently delete this token and all its swap history? This action is irreversible.')) return;
+
+    try {
+      // 1. Delete dependent swaps first to prevent foreign key violation!
+      const { error: swapError } = await supabase
+        .from('token_swaps')
+        .delete()
+        .eq('token_address', tokenAddress);
+      if (swapError) throw swapError;
+
+      // 2. Delete the token launch record!
+      const { error: launchError } = await supabase
+        .from('token_launches')
+        .delete()
+        .eq('id', tokenId);
+      if (launchError) throw launchError;
+
+      alert('Token and all its swap history permanently deleted!');
       setTokens(prev => prev.filter(t => t.id !== tokenId));
+    } catch (error: any) {
+      alert('Error deleting token: ' + error.message);
     }
   };
 
@@ -245,11 +300,26 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                       )}
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors text-sm flex items-center gap-1.5">
+                      <h3 className="font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors text-sm flex items-center gap-1.5 flex-wrap">
+                        {token.is_pinned && (
+                          <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black flex items-center gap-0.5 border border-amber-600/20">
+                            📌 Pinned
+                          </span>
+                        )}
                         {token.name}
                         <span className="text-[10px] bg-slate-200/80 text-slate-600 px-1.5 py-0.5 rounded font-black uppercase">
                           {token.ticker}
                         </span>
+                        {token.badge_type === 'official' && (
+                          <span className="text-[8px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-blue-400/20">
+                            👑 Official
+                          </span>
+                        )}
+                        {token.badge_type === 'partner' && (
+                          <span className="text-[8px] bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-emerald-400/20">
+                            🤝 Partner
+                          </span>
+                        )}
                       </h3>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <p className="text-[10px] text-slate-400 font-mono">
@@ -266,15 +336,44 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                           <Copy size={10} />
                         </button>
 
-                        {/* Owner delete check */}
-                        {userAddress?.toLowerCase() === token.creator_address?.toLowerCase() && (
-                          <button 
-                            onClick={(e) => handleDelete(e, token.id)}
-                            className="p-1 hover:bg-red-50 rounded transition-colors text-slate-400 hover:text-red-500 cursor-pointer"
-                            title="Delete Token"
-                          >
-                            <Trash2 size={10} />
-                          </button>
+                        {/* Admin Action Buttons */}
+                        {isAdmin && (
+                          <div className="flex items-center gap-1 bg-slate-100 border border-slate-200/60 p-0.5 rounded-lg ml-2">
+                            {/* Pin Toggle */}
+                            <button
+                              onClick={(e) => handleTogglePin(e, token.id, !!token.is_pinned)}
+                              className={`p-0.5 rounded cursor-pointer transition-colors ${
+                                token.is_pinned 
+                                  ? 'bg-amber-100 text-amber-600' 
+                                  : 'text-slate-400 hover:text-amber-500 hover:bg-slate-200'
+                              }`}
+                              title={token.is_pinned ? "Unpin Token" : "Pin to Top"}
+                            >
+                              <span className="text-[9px]">📌</span>
+                            </button>
+
+                            {/* Badge Cycle */}
+                            <button
+                              onClick={(e) => handleCycleBadge(e, token.id, token.badge_type)}
+                              className={`p-0.5 rounded cursor-pointer transition-colors ${
+                                token.badge_type 
+                                  ? 'bg-blue-100 text-blue-600' 
+                                  : 'text-slate-400 hover:text-blue-500 hover:bg-slate-200'
+                              }`}
+                              title={`Set Badge: ${token.badge_type || 'None'} (Click to cycle)`}
+                            >
+                              <span className="text-[9px]">👑</span>
+                            </button>
+
+                            {/* Delete Trash */}
+                            <button 
+                              onClick={(e) => handleDelete(e, token.id, token.token_address)}
+                              className="p-0.5 hover:bg-red-50 rounded transition-colors text-slate-400 hover:text-red-500 cursor-pointer"
+                              title="Delete Token permanently"
+                            >
+                              <Trash2 size={10} />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
