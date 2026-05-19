@@ -10,7 +10,7 @@ import { Leaderboard } from '@/components/Leaderboard';
 import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient } from 'wagmi';
-import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet } from 'lucide-react';
+import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => mod.PriceChart), {
@@ -20,6 +20,25 @@ import { TransactionHistory } from '@/components/TransactionHistory';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
+  
+  // Premium Alert State
+  const [premiumAlert, setPremiumAlert] = useState<{
+    title: string;
+    details: Array<{ label: string; value: string }>;
+    type: 'config' | 'info' | 'success' | 'error';
+    onClose: () => void;
+  } | null>(null);
+
+  const triggerAlert = (title: string, message: string, type: 'success' | 'error' | 'info' = 'info'): Promise<void> => {
+    return new Promise((resolve) => {
+      setPremiumAlert({
+        title,
+        details: [{ label: "Notification", value: message }],
+        type,
+        onClose: () => resolve()
+      });
+    });
+  };
   
   // Navigation & Token States
   const [selectedToken, setSelectedToken] = useState<any>(null);
@@ -65,7 +84,7 @@ export default function Home() {
 
   const handleDailyCheckin = async () => {
     if (!isConnected || !userAddress) {
-      alert("Please connect your wallet first!");
+      await triggerAlert("CONNECT WALLET", "Please connect your wallet first!", "info");
       return;
     }
     
@@ -73,7 +92,7 @@ export default function Home() {
       const lastCheckinDate = new Date(checkinStats.last_checkin).toDateString();
       const todayDate = new Date().toDateString();
       if (lastCheckinDate === todayDate) {
-        alert("You have already checked-in today! Come back tomorrow.");
+        await triggerAlert("ALREADY CHECKED-IN", "You have already checked-in today! Come back tomorrow.", "info");
         return;
       }
     }
@@ -145,11 +164,11 @@ export default function Home() {
           });
       }
 
-      alert(`Check-in Successful! Streak: ${newStreak} days!`);
+      await triggerAlert("CHECK-IN SUCCESSFUL", `Check-in Successful! Streak: ${newStreak} days!`, "success");
       fetchCheckinStats();
     } catch (err: any) {
       console.error("Checkin Transaction failed:", err);
-      alert("Check-in Transaction failed: " + (err.shortMessage || err.message));
+      await triggerAlert("CHECK-IN FAILED", err.shortMessage || err.message, "error");
     } finally {
       setCheckinLoading(false);
     }
@@ -515,6 +534,56 @@ export default function Home() {
               className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer transition-all flex items-center justify-center gap-1.5"
             >
               Start Trading Now <ArrowRight size={13} />
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Premium Styled Dialog Alert Overlay */}
+      {premiumAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
+          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+            {/* Header Icon & Title */}
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${
+                premiumAlert.type === 'success' 
+                  ? 'bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10' 
+                  : premiumAlert.type === 'error'
+                  ? 'bg-rose-500/10 text-rose-600 shadow-rose-500/10'
+                  : 'bg-blue-600/10 text-blue-600 shadow-blue-500/10'
+              }`}>
+                {premiumAlert.type === 'success' ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                ) : premiumAlert.type === 'error' ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                ) : (
+                  <Info className="w-5 h-5" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumAlert.title}</h3>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Arc Launcher Alert</p>
+              </div>
+            </div>
+
+            {/* Details List */}
+            <div className="space-y-3 bg-slate-50 border border-slate-100 rounded-2xl p-4 font-mono text-[10px] text-slate-600">
+              {premiumAlert.details.map((item, idx) => (
+                <div key={idx} className="flex flex-col gap-0.5">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
+                  <span className="text-[10px] font-bold text-slate-700 break-all select-all">{item.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Action Button */}
+            <button
+              onClick={() => {
+                premiumAlert.onClose();
+                setPremiumAlert(null);
+              }}
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer active:scale-[0.98] duration-150 flex items-center justify-center animate-in zoom-in-90"
+            >
+              OK
             </button>
           </div>
         </div>

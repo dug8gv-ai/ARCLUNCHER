@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, TrendingUp, Users, Copy, Trash2, Award, ArrowUpRight, DollarSign } from 'lucide-react';
+import { Trophy, TrendingUp, Users, Copy, Trash2, Award, ArrowUpRight, DollarSign, Info } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAccount } from 'wagmi';
 
@@ -15,6 +15,50 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
   const [tokens, setTokens] = useState<any[]>([]);
   const [earners, setEarners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Premium Alert State
+  const [premiumAlert, setPremiumAlert] = useState<{
+    title: string;
+    details: Array<{ label: string; value: string }>;
+    type: 'config' | 'info' | 'success' | 'error';
+    onClose: () => void;
+  } | null>(null);
+
+  // Premium Confirm State
+  const [premiumConfirm, setPremiumConfirm] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+  } | null>(null);
+
+  const triggerAlert = (title: string, message: string, type: 'success' | 'error' | 'info' = 'info'): Promise<void> => {
+    return new Promise((resolve) => {
+      setPremiumAlert({
+        title,
+        details: [{ label: "Notification", value: message }],
+        type,
+        onClose: () => resolve()
+      });
+    });
+  };
+
+  const triggerConfirm = (title: string, message: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      setPremiumConfirm({
+        title,
+        message,
+        onConfirm: () => {
+          setPremiumConfirm(null);
+          resolve(true);
+        },
+        onCancel: () => {
+          setPremiumConfirm(null);
+          resolve(false);
+        }
+      });
+    });
+  };
 
   // Fetch Live Tokens (Markets)
   const fetchTokens = async () => {
@@ -149,11 +193,11 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
         if (error) throw error;
       }
 
-      alert(`Affiliate badge status updated successfully!`);
+      await triggerAlert("AFFILIATE UPDATED", "Affiliate badge status updated successfully!", "success");
       fetchEarners();
     } catch (err: any) {
       console.error("Error toggling affiliate status:", err);
-      alert("Error toggling affiliate status: " + err.message);
+      await triggerAlert("AFFILIATE ERROR", err.message, "error");
     }
   };
 
@@ -191,11 +235,11 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
         .update({ is_pinned: !currentPinned })
         .eq('id', tokenId);
       if (error) throw error;
-      alert(`Token pin status updated successfully!`);
+      await triggerAlert("PIN UPDATED", "Token pin status updated successfully!", "success");
       fetchTokens();
     } catch (err: any) {
       console.error("Error toggling pin:", err);
-      alert("Error toggling pin: " + err.message);
+      await triggerAlert("PIN ERROR", err.message, "error");
     }
   };
 
@@ -216,21 +260,22 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
         .update({ badge_type: nextBadge })
         .eq('id', tokenId);
       if (error) throw error;
-      alert(`Token badge set to: ${nextBadge || 'None'}`);
+      await triggerAlert("BADGE UPDATED", `Token badge successfully set to: ${nextBadge || 'None'}`, "success");
       fetchTokens();
     } catch (err: any) {
       console.error("Error setting badge:", err);
-      alert("Error setting badge: " + err.message);
+      await triggerAlert("BADGE ERROR", err.message, "error");
     }
   };
 
   const handleDelete = async (e: React.MouseEvent, tokenId: string, tokenAddress: string) => {
     e.stopPropagation();
     if (!isAdmin) {
-      alert("Only the Admin is authorized to delete tokens!");
+      await triggerAlert("UNAUTHORIZED", "Only the Admin is authorized to delete tokens!", "error");
       return;
     }
-    if (!confirm('Are you sure you want to permanently delete this token and all its swap history? This action is irreversible.')) return;
+    const confirmed = await triggerConfirm("CONFIRM DELETE", "Are you sure you want to permanently delete this token and all its swap history? This action is irreversible.");
+    if (!confirmed) return;
 
     try {
       // 1. Delete dependent swaps first (Defensive casing wipes)
@@ -247,10 +292,10 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
         .eq('id', tokenId);
       if (launchError) throw launchError;
 
-      alert('Token and all its swap history permanently deleted!');
+      await triggerAlert("TOKEN DELETED", "Token and all its swap history have been permanently deleted!", "success");
       setTokens(prev => prev.filter(t => t.id !== tokenId));
     } catch (error: any) {
-      alert('Error deleting token: ' + error.message);
+      await triggerAlert("DELETION ERROR", error.message, "error");
     }
   };
 
@@ -343,10 +388,10 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                           {token.token_address.slice(0, 6)}...{token.token_address.slice(-4)}
                         </p>
                         <button 
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
                             navigator.clipboard.writeText(token.token_address);
-                            alert('Address copied!');
+                            await triggerAlert("ADDRESS COPIED", "The token contract address has been copied to your clipboard successfully.", "success");
                           }}
                           className="p-1 hover:bg-slate-200 rounded transition-colors text-slate-400 hover:text-blue-600 cursor-pointer"
                         >
@@ -510,6 +555,96 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
           </div>
         )}
       </div>
+
+      {/* Premium Styled Dialog Alert Overlay */}
+      {premiumAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
+          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+            {/* Header Icon & Title */}
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${
+                premiumAlert.type === 'success' 
+                  ? 'bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10' 
+                  : premiumAlert.type === 'error'
+                  ? 'bg-rose-500/10 text-rose-600 shadow-rose-500/10'
+                  : 'bg-blue-600/10 text-blue-600 shadow-blue-500/10'
+              }`}>
+                {premiumAlert.type === 'success' ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                ) : premiumAlert.type === 'error' ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                ) : (
+                  <Info className="w-5 h-5" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumAlert.title}</h3>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Arc Launcher Alert</p>
+              </div>
+            </div>
+
+            {/* Details List */}
+            <div className="space-y-3 bg-slate-50 border border-slate-100 rounded-2xl p-4 font-mono text-[10px] text-slate-600">
+              {premiumAlert.details.map((item, idx) => (
+                <div key={idx} className="flex flex-col gap-0.5">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
+                  <span className="text-[10px] font-bold text-slate-700 break-all select-all">{item.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Action Button */}
+            <button
+              onClick={() => {
+                premiumAlert.onClose();
+                setPremiumAlert(null);
+              }}
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer active:scale-[0.98] duration-150 flex items-center justify-center animate-in zoom-in-90"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Styled Dialog Confirm Overlay */}
+      {premiumConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
+          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+            {/* Header Icon & Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg bg-blue-600/10 text-blue-600 shadow-blue-500/10">
+                <Info className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumConfirm.title}</h3>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Confirm Action</p>
+              </div>
+            </div>
+
+            {/* Message Body */}
+            <p className="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              {premiumConfirm.message}
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={premiumConfirm.onCancel}
+                className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-2xl font-bold text-xs tracking-wider uppercase transition-all cursor-pointer active:scale-[0.98] duration-150 flex items-center justify-center"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={premiumConfirm.onConfirm}
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer active:scale-[0.98] duration-150 flex items-center justify-center"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
