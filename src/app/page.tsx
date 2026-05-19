@@ -114,8 +114,8 @@ export default function Home() {
               <Layers className="text-white" size={20} />
             </div>
             <div>
-              <span className="text-lg font-black tracking-tight text-slate-900 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Radius</span>
-              <span className="text-[10px] block font-extrabold text-slate-400 tracking-wider uppercase mt-[-2px]">Arc Launcher</span>
+              <span className="text-sm font-black tracking-wide text-slate-900 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block">ARC LAUNCHER</span>
+              <span className="text-[9px] block font-extrabold text-slate-400 tracking-widest mt-[-2px] uppercase">BETA</span>
             </div>
           </div>
 
