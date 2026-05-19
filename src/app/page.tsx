@@ -9,7 +9,8 @@ import { TradingPanel } from '@/components/TradingPanel';
 import { Leaderboard } from '@/components/Leaderboard';
 import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
-import { useAccount, useSendTransaction, usePublicClient } from 'wagmi';
+import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
+import { parseUnits, erc20Abi } from 'viem';
 import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -78,7 +79,15 @@ export default function Home() {
       
       // Calculate total locked USD (Real locked values only, no base!)
       const activeLocks = locksData.filter((l: any) => !l.is_withdrawn);
-      const totalAmount = activeLocks.reduce((acc: number, l: any) => acc + Number(l.amount), 0);
+      const totalAmount = activeLocks.reduce((acc: number, l: any) => {
+        let worth = Number(l.amount);
+        if (l.usdc_worth != null) {
+           worth = Number(l.usdc_worth);
+        } else if (l.asset_type === 'TOKEN') {
+           worth = Number(l.amount) * 0.01; // fallback
+        }
+        return acc + worth;
+      }, 0);
       setTotalLockedUSD(totalAmount);
     } catch (e) {
       console.error("Error fetching locks:", e);
@@ -115,7 +124,63 @@ export default function Home() {
 
   const handleCreateLock = async () => {
     if (!isConnected || !userAddress) return;
+    if (!lockAmount || Number(lockAmount) <= 0) {
+      await triggerAlert("INVALID AMOUNT", "Please enter a valid amount to lock.", "error");
+      return;
+    }
+
     try {
+      // 1. Calculate USDC Worth dynamically if it's a TOKEN
+      let usdcWorth = Number(lockAmount);
+      
+      if (lockAssetType === 'TOKEN' && lockAddress) {
+        const VIRTUAL_USDC = 100;
+        const VIRTUAL_TOKENS = VIRTUAL_USDC / 0.01;
+        let currentUSDC = VIRTUAL_USDC;
+        let currentTokens = VIRTUAL_TOKENS;
+
+        const { data: swaps } = await supabase
+          .from('token_swaps')
+          .select('usdc_amount, token_amount, is_buy')
+          .eq('token_address', lockAddress.toLowerCase());
+
+        swaps?.forEach(s => {
+          if (s.is_buy) {
+            currentUSDC += Number(s.usdc_amount);
+            currentTokens -= Number(s.token_amount);
+          } else {
+            currentUSDC -= Number(s.usdc_amount);
+            currentTokens += Number(s.token_amount);
+          }
+        });
+
+        if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
+        if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
+
+        const price = currentUSDC / currentTokens;
+        usdcWorth = Number(lockAmount) * price;
+      }
+
+      // 2. Perform on-chain proper transaction (transfer to Admin / Locker Address)
+      const adminAddress = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
+      const decimals = lockAssetType === 'USDC' ? 6 : 18;
+      const amountWei = parseUnits(lockAmount, decimals);
+      const tokenContractAddress = lockAssetType === 'USDC' ? '0x3600000000000000000000000000000000000000' : lockAddress;
+
+      await triggerAlert("INITIATING LOCK", "Please confirm the transaction in your wallet to lock assets.", "info");
+
+      const txHash = await writeContractAsync({
+        address: tokenContractAddress as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [adminAddress as `0x${string}`, amountWei],
+      });
+
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: txHash });
+      }
+
+      // 3. Save Lock record
       const now = new Date();
       const unlockDate = new Date();
       unlockDate.setMonth(unlockDate.getMonth() + 1); // 1 Month locking!
@@ -127,6 +192,7 @@ export default function Home() {
         token_address: lockAssetType === 'TOKEN' ? lockAddress : null,
         token_ticker: lockAssetType === 'TOKEN' ? (lockTicker || 'TOKEN').toUpperCase() : 'USDC',
         amount: Number(lockAmount),
+        usdc_worth: usdcWorth,
         locked_at: now.toISOString(),
         unlock_at: unlockDate.toISOString(),
         is_withdrawn: false
@@ -154,7 +220,8 @@ export default function Home() {
       fetchLocks();
       setLockerTab('my_locks');
     } catch (err: any) {
-      await triggerAlert("LOCK ERROR", err.message, "error");
+      console.error(err);
+      await triggerAlert("LOCK ERROR", err.shortMessage || err.message, "error");
     }
   };
 
@@ -188,6 +255,7 @@ export default function Home() {
 
   const publicClient = usePublicClient();
   const { sendTransactionAsync } = useSendTransaction();
+  const { writeContractAsync } = useWriteContract();
 
   // Daily Checkin states
   const [checkinLoading, setCheckinLoading] = useState(false);
