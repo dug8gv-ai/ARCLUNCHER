@@ -38,6 +38,30 @@ export function TradingPanel({ token }: TradingPanelProps) {
   const [tokenBalance, setTokenBalance] = useState('0');
   const [isBuy, setIsBuy] = useState(true);
   const [status, setStatus] = useState<'idle' | 'approving' | 'swapping' | 'success'>('idle');
+  const [premiumAlert, setPremiumAlert] = useState<{
+    title: string;
+    details: Array<{ label: string; value: string }>;
+    type: 'config' | 'info' | 'success' | 'error';
+    onClose: () => void;
+  } | null>(null);
+
+  // Helper to trigger custom styled alerts synchronously using Promises
+  const triggerPremiumAlert = (
+    title: string, 
+    details: Array<{ label: string; value: string }>, 
+    type: 'config' | 'info' | 'success' | 'error'
+  ): Promise<void> => {
+    return new Promise((resolve) => {
+      setPremiumAlert({
+        title,
+        details,
+        type,
+        onClose: () => {
+          resolve();
+        }
+      });
+    });
+  };
 
   const fetchBalance = async () => {
     if (!userAddress || !publicClient || !token) return;
@@ -157,22 +181,34 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
   const handleTrade = async () => {
     if (!isConnected) {
-      alert('Please connect your wallet first!');
+      await triggerPremiumAlert("WALLET REQUIRED", [
+        { label: "Status", value: "Please connect your wallet first!" }
+      ], "error");
       return;
     }
     if (!amount || Number(amount) <= 0) return;
     
     const tokenAmountForDB = Number(estimatedTokens.replace(/,/g, ''));
     if (tokenAmountForDB <= 0) {
-      alert("Error: Estimated tokens is 0. Wait for calculation.");
+      await triggerPremiumAlert("ESTIMATION ERROR", [
+        { label: "Message", value: "Estimated tokens is 0. Wait for calculation." }
+      ], "error");
       return;
     }
 
-    // CONFIG DEBUG
-    alert(`SYSTEM CONFIG:\nLauncher: ${ARC_LAUNCHER_ADDRESS}\nUSDC: ${USDC_ADDRESS}\nNetwork: Arc Testnet`);
+    // CONFIG DEBUG - Premium Modal
+    await triggerPremiumAlert("SYSTEM CONFIG", [
+      { label: "Launcher", value: ARC_LAUNCHER_ADDRESS },
+      { label: "USDC", value: USDC_ADDRESS },
+      { label: "Network", value: "Arc Testnet" }
+    ], "config");
 
-    // DEBUG ALERT
-    alert(`TRADE INFO:\nToken: ${token.token_address}\nUSDC: ${amount}\nTokens: ${tokenAmountForDB.toLocaleString()}`);
+    // DEBUG ALERT - Premium Modal
+    await triggerPremiumAlert("TRADE INFO", [
+      { label: "Token Address", value: token.token_address },
+      { label: "USDC input", value: amount },
+      { label: "Estimated Tokens", value: tokenAmountForDB.toLocaleString() }
+    ], "info");
 
     try {
       setStatus('approving');
@@ -237,7 +273,12 @@ export function TradingPanel({ token }: TradingPanelProps) {
       };
 
       const { error: dbError } = await supabase.from('token_swaps').insert(swapData);
-      if (dbError) alert("Database Sync Error: " + dbError.message);
+      if (dbError) {
+        await triggerPremiumAlert("DATABASE ERROR", [
+          { label: "Status", value: "Database Sync Error" },
+          { label: "Error Detail", value: dbError.message }
+        ], "error");
+      }
 
       // Track user volume & points: 10 USDC Volume = 1 ARCL Point. Store in user_stats.
       try {
@@ -253,7 +294,9 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
           if (fetchErr) {
             console.error("Fetch Stats Error:", fetchErr.message);
-            alert("Points Fetch Error: " + fetchErr.message);
+            await triggerPremiumAlert("POINTS FETCH ERROR", [
+              { label: "Error Message", value: fetchErr.message }
+            ], "error");
           }
 
           const currentStats = existingStats && existingStats.length > 0 ? existingStats[0] : null;
@@ -271,7 +314,9 @@ export function TradingPanel({ token }: TradingPanelProps) {
             
             if (updateErr) {
               console.error("Update Stats Error:", updateErr.message);
-              alert("Points Update Error: " + updateErr.message);
+              await triggerPremiumAlert("POINTS UPDATE ERROR", [
+                { label: "Error Message", value: updateErr.message }
+              ], "error");
             }
           } else {
             const { error: insertErr } = await supabase
@@ -284,23 +329,32 @@ export function TradingPanel({ token }: TradingPanelProps) {
             
             if (insertErr) {
               console.error("Insert Stats Error:", insertErr.message);
-              alert("Points Insert Error: " + insertErr.message);
+              await triggerPremiumAlert("POINTS INSERT ERROR", [
+                { label: "Error Message", value: insertErr.message }
+              ], "error");
             }
           }
         }
       } catch (statsErr: any) {
         console.error("Error updating user stats:", statsErr);
-        alert("Stats Catch Error: " + statsErr.message);
+        await triggerPremiumAlert("STATS CATCH ERROR", [
+          { label: "Error Message", value: statsErr.message }
+        ], "error");
       }
 
-      alert(`SUCCESS! Transaction confirmed.`);
+      await triggerPremiumAlert("SWAP SUCCESS", [
+        { label: "Status", value: "SUCCESS! Transaction confirmed." },
+        { label: "Notification", value: "Tokens swapped successfully!" }
+      ], "success");
 
       setStatus('success');
       window.location.reload(); 
 
     } catch (error: any) {
       console.error(error);
-      alert(error.shortMessage || error.message);
+      await triggerPremiumAlert("TRANSACTION REJECTED / FAILED", [
+        { label: "Error Message", value: error.shortMessage || error.message }
+      ], "error");
       setStatus('idle');
     }
   };
@@ -414,6 +468,58 @@ export function TradingPanel({ token }: TradingPanelProps) {
           </p>
         </div>
       </div>
+
+      {/* Premium Styled Dialog Alert Overlay */}
+      {premiumAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
+          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+            {/* Header Icon & Title */}
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${
+                premiumAlert.type === 'success' 
+                  ? 'bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10' 
+                  : premiumAlert.type === 'error'
+                  ? 'bg-rose-500/10 text-rose-600 shadow-rose-500/10'
+                  : 'bg-blue-600/10 text-blue-600 shadow-blue-500/10'
+              }`}>
+                {premiumAlert.type === 'success' ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                ) : premiumAlert.type === 'error' ? (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                ) : (
+                  <Info className="w-5 h-5" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumAlert.title}</h3>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Arc Launcher Alert</p>
+              </div>
+            </div>
+
+            {/* Details List */}
+            <div className="space-y-3 bg-slate-50 border border-slate-100 rounded-2xl p-4 font-mono text-[10px] text-slate-600">
+              {premiumAlert.details.map((item, idx) => (
+                <div key={idx} className="flex flex-col gap-0.5">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
+                  <span className="text-[10px] font-bold text-slate-700 break-all select-all">{item.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Action Button */}
+            <button
+              onClick={() => {
+                premiumAlert.onClose();
+                setPremiumAlert(null);
+              }}
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer active:scale-[0.98] duration-150 flex items-center justify-center"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
