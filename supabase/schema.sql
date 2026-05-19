@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     avatar TEXT,
     discord TEXT,
     twitter TEXT,
+    is_affiliate BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

@@ -8,6 +8,9 @@ import { useAccount } from 'wagmi';
 
 export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) => void }) {
   const { address: userAddress } = useAccount();
+  const ADMIN_WALLET = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
+  const isAdmin = userAddress?.toLowerCase() === ADMIN_WALLET.toLowerCase();
+
   const [activeTab, setActiveTab] = useState<'tokens' | 'earners'>('tokens');
   const [tokens, setTokens] = useState<any[]>([]);
   const [earners, setEarners] = useState<any[]>([]);
@@ -83,7 +86,8 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
             name: profile?.name || 'Anonymous',
             avatar: profile?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${stat.wallet}`,
             twitter: profile?.twitter || '',
-            discord: profile?.discord || ''
+            discord: profile?.discord || '',
+            is_affiliate: profile?.is_affiliate || false
           };
         });
 
@@ -93,6 +97,43 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
       }
     } catch (e) {
       console.error("Error fetching airdrop leaderboard:", e);
+    }
+  };
+
+  const handleToggleAffiliate = async (wallet: string, currentStatus: boolean) => {
+    try {
+      const walletLower = wallet.toLowerCase();
+      const newStatus = !currentStatus;
+
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('wallet', walletLower);
+
+      if (existingProfile && existingProfile.length > 0) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ is_affiliate: newStatus })
+          .eq('wallet', walletLower);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            wallet: walletLower,
+            is_affiliate: newStatus,
+            name: 'Anonymous',
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${walletLower}`
+          });
+        if (error) throw error;
+      }
+
+      alert(`Affiliate badge status updated successfully!`);
+      fetchEarners();
+    } catch (err: any) {
+      console.error("Error toggling affiliate status:", err);
+      alert("Error toggling affiliate status: " + err.message);
     }
   };
 
@@ -287,6 +328,11 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                       {/* Name */}
                       <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
                         {earner.name}
+                        {earner.is_affiliate && (
+                          <span className="text-[9px] bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                            ⭐ Affiliate
+                          </span>
+                        )}
                         {userAddress?.toLowerCase() === earner.wallet.toLowerCase() && (
                           <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase">
                             You
@@ -306,15 +352,31 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                     </div>
                   </div>
 
-                  {/* Volume & Points */}
-                  <div className="text-right">
-                    <div className="flex items-center gap-1 justify-end text-[10px] text-slate-500 font-bold mb-0.5">
-                      <DollarSign size={11} className="text-slate-400" />
-                      <span>{Number(earner.total_volume || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Vol</span>
-                    </div>
-                    <div className="bg-blue-100/80 text-blue-700 font-black text-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm border border-blue-200/20">
-                      <Award size={12} className="text-blue-600" />
-                      <span>{Number(earner.points || 0).toFixed(2)} pts</span>
+                  {/* Volume & Points / Admin actions */}
+                  <div className="flex items-center gap-4">
+                    {/* Admin Actions */}
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleToggleAffiliate(earner.wallet, !!earner.is_affiliate)}
+                        className={`px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer ${
+                          earner.is_affiliate 
+                            ? 'bg-rose-500/10 text-rose-600 hover:bg-rose-500/20' 
+                            : 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
+                        }`}
+                      >
+                        {earner.is_affiliate ? 'Revoke Affiliate' : 'Grant Affiliate'}
+                      </button>
+                    )}
+
+                    <div className="text-right">
+                      <div className="flex items-center gap-1 justify-end text-[10px] text-slate-500 font-bold mb-0.5">
+                        <DollarSign size={11} className="text-slate-400" />
+                        <span>{Number(earner.total_volume || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Vol</span>
+                      </div>
+                      <div className="bg-blue-100/80 text-blue-700 font-black text-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm border border-blue-200/20">
+                        <Award size={12} className="text-blue-600" />
+                        <span>{Number(earner.points || 0).toFixed(2)} pts</span>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
