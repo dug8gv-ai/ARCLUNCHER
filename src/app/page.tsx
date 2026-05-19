@@ -10,7 +10,7 @@ import { Leaderboard } from '@/components/Leaderboard';
 import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient } from 'wagmi';
-import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users } from 'lucide-react';
+import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => mod.PriceChart), {
@@ -291,6 +291,17 @@ export default function Home() {
               <Users size={16} className={currentView === 'affiliates' ? 'text-blue-600' : 'text-slate-400'} />
               Affiliates
             </button>
+
+            {/* USDC Faucet Link */}
+            <a 
+              href="https://faucet.circle.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-800 hover:scale-[1.01]"
+            >
+              <Droplet size={16} className="text-slate-400" />
+              USDC Faucet
+            </a>
 
             {/* Earn coming soon glow badge */}
             <div className="relative group">
