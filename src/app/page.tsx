@@ -54,7 +54,8 @@ export default function Home() {
   const [lockTicker, setLockTicker] = useState('');
   const [lockAmount, setLockAmount] = useState('');
   const [myLocks, setMyLocks] = useState<any[]>([]);
-  const [totalLockedUSD, setTotalLockedUSD] = useState(2368.77);
+  const [totalLockedUSD, setTotalLockedUSD] = useState(0); // Real locked value only (no base!)
+  const [tokensList, setTokensList] = useState<any[]>([]);
 
   // Fetch locks
   const fetchLocks = async () => {
@@ -75,17 +76,41 @@ export default function Home() {
 
       setMyLocks(locksData.filter((l: any) => l.wallet.toLowerCase() === userAddress?.toLowerCase()));
       
-      // Calculate total locked USD
+      // Calculate total locked USD (Real locked values only, no base!)
       const activeLocks = locksData.filter((l: any) => !l.is_withdrawn);
       const totalAmount = activeLocks.reduce((acc: number, l: any) => acc + Number(l.amount), 0);
-      setTotalLockedUSD(2368.77 + totalAmount);
+      setTotalLockedUSD(totalAmount);
     } catch (e) {
       console.error("Error fetching locks:", e);
     }
   };
 
+  const fetchTokensList = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('token_launches')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && data) {
+        setTokensList(data);
+      }
+    } catch (e) {
+      console.error("Error fetching tokens list for locker:", e);
+    }
+  };
+
   useEffect(() => {
     fetchLocks();
+    fetchTokensList();
+
+    const handleOpenLocker = () => {
+      setIsLockerOpen(true);
+    };
+
+    window.addEventListener('open-locker', handleOpenLocker);
+    return () => {
+      window.removeEventListener('open-locker', handleOpenLocker);
+    };
   }, [isConnected, userAddress]);
 
   const handleCreateLock = async () => {
@@ -370,7 +395,7 @@ export default function Home() {
     <div className="min-h-screen flex bg-[#f4f7fc] text-slate-800 antialiased selection:bg-blue-100">
       
       {/* 1. Desktop Sidebar Navigation (Radius inspired layout) */}
-      <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-slate-200/80 p-6 space-y-8 sticky top-0 h-screen justify-between shadow-sm z-30">
+      <aside className="hidden lg:flex w-72 flex-col bg-slate-950 border-r border-slate-900 p-6 space-y-8 sticky top-0 h-screen justify-between shadow-xl z-30">
         <div className="space-y-8">
           {/* Brand header */}
           <div className="flex items-center gap-3 px-2">
@@ -378,8 +403,8 @@ export default function Home() {
               <Layers className="text-white" size={20} />
             </div>
             <div>
-              <span className="text-sm font-black tracking-wide text-slate-900 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block">ARC LAUNCHER</span>
-              <span className="text-[9px] block font-extrabold text-slate-400 tracking-widest mt-[-2px] uppercase">BETA</span>
+              <span className="text-sm font-black tracking-wide text-white block">ARC LAUNCHER</span>
+              <span className="text-[9px] block font-extrabold text-slate-500 tracking-widest mt-[-2px] uppercase">BETA</span>
             </div>
           </div>
 
@@ -392,11 +417,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'dashboard'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-white bg-blue-600/20 border border-blue-500/30'
+                  : 'text-slate-400 hover:bg-slate-900/60 border border-transparent hover:text-slate-200'
               }`}
             >
-              <HomeIcon size={16} className={currentView === 'dashboard' ? 'text-blue-600' : 'text-slate-400'} />
+              <HomeIcon size={16} className={currentView === 'dashboard' ? 'text-blue-400' : 'text-slate-500'} />
               Home Dashboard
             </button>
 
@@ -405,11 +430,11 @@ export default function Home() {
               onClick={() => setCurrentView('leaderboard')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'leaderboard'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-white bg-blue-600/20 border border-blue-500/30'
+                  : 'text-slate-400 hover:bg-slate-900/60 border border-transparent hover:text-slate-200'
               }`}
             >
-              <Trophy size={16} className={currentView === 'leaderboard' ? 'text-blue-600' : 'text-slate-400'} />
+              <Trophy size={16} className={currentView === 'leaderboard' ? 'text-blue-400' : 'text-slate-500'} />
               Leaderboard
             </button>
 
@@ -418,11 +443,11 @@ export default function Home() {
               onClick={() => setCurrentView('affiliates')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'affiliates'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-white bg-blue-600/20 border border-blue-500/30'
+                  : 'text-slate-400 hover:bg-slate-900/60 border border-transparent hover:text-slate-200'
               }`}
             >
-              <Users size={16} className={currentView === 'affiliates' ? 'text-blue-600' : 'text-slate-400'} />
+              <Users size={16} className={currentView === 'affiliates' ? 'text-blue-400' : 'text-slate-500'} />
               Affiliates
             </button>
 
@@ -431,9 +456,9 @@ export default function Home() {
               href="https://faucet.circle.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-800 hover:scale-[1.01]"
+              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all text-slate-400 hover:bg-slate-900/60 hover:text-slate-200 hover:scale-[1.01]"
             >
-              <Droplet size={16} className="text-slate-400" />
+              <Droplet size={16} className="text-slate-500" />
               USDC Faucet
             </a>
 
@@ -441,14 +466,14 @@ export default function Home() {
             <div className="relative group">
               <button 
                 disabled
-                className="w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold text-slate-400 cursor-not-allowed hover:bg-slate-50 transition-all"
+                className="w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold text-slate-600 cursor-not-allowed transition-all"
               >
                 <div className="flex items-center gap-3.5">
-                  <Coins size={16} className="text-slate-300" />
+                  <Coins size={16} className="text-slate-600" />
                   <span>Earn Points</span>
                 </div>
                 {/* Glowing Pill badge */}
-                <span className="text-[9px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-black animate-pulse shadow-sm border border-blue-200/20 uppercase tracking-tighter">
+                <span className="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-slate-700">
                   Soon
                 </span>
               </button>
@@ -457,9 +482,9 @@ export default function Home() {
             {/* Airdrop Rules modal opener */}
             <button 
               onClick={() => setIsRulesOpen(true)}
-              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all hover:text-slate-800"
+              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold text-slate-400 hover:bg-slate-900/60 transition-all hover:text-slate-200"
             >
-              <HelpCircle size={16} className="text-slate-400" />
+              <HelpCircle size={16} className="text-slate-500" />
               Airdrop Rules
             </button>
           </nav>
@@ -468,20 +493,20 @@ export default function Home() {
         {/* Bottom Sidebar Locked Liquidity card */}
         <div 
           onClick={() => setIsLockerOpen(true)}
-          className="bg-gradient-to-br from-slate-50 to-blue-50/30 border border-slate-100 hover:border-blue-300 rounded-3xl p-5 space-y-3.5 shadow-inner cursor-pointer group transition-all"
+          className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 hover:border-slate-700 rounded-3xl p-5 space-y-3.5 shadow-inner cursor-pointer group transition-all"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider group-hover:text-blue-500 transition-colors">Liquidity Locked</span>
-            <span className="bg-blue-100 text-blue-700 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider group-hover:text-blue-400 transition-colors">Liquidity Locked</span>
+            <span className="bg-blue-950 text-blue-400 border border-blue-900/50 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
               Manage 🔒
             </span>
           </div>
           <div>
-            <h4 className="text-2xl font-black text-slate-900 tracking-tight">
+            <h4 className="text-2xl font-black text-white tracking-tight">
               ${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h4>
-            <p className="text-[10px] text-slate-400 mt-1 font-semibold flex items-center gap-1">
-              USDC: <span className="text-blue-600 font-black">${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <p className="text-[10px] text-slate-500 mt-1 font-semibold flex items-center gap-1">
+              USDC: <span className="text-blue-400 font-black">${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </p>
           </div>
         </div>
@@ -661,21 +686,21 @@ export default function Home() {
       {/* Premium Liquidity Locker Modal */}
       {isLockerOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/40 transition-all duration-200 animate-in fade-in">
-          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[32px] p-6 max-w-lg w-full space-y-6 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+          <div className="bg-slate-950/95 border border-slate-800 shadow-2xl rounded-[32px] p-6 max-w-lg w-full space-y-6 transform transition-all scale-100 animate-in zoom-in-95 duration-200 text-slate-100">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-blue-600/10 text-blue-600 shadow-lg shadow-blue-500/10">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-blue-600/10 text-blue-400 shadow-lg shadow-blue-500/10 border border-blue-500/20">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black tracking-wider text-slate-800 uppercase">Liquidity Locker</h3>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Lock and claim USDC & Tokens</p>
+                  <h3 className="text-sm font-black tracking-wider text-white uppercase">Liquidity Locker</h3>
+                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Lock and claim USDC & Tokens</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsLockerOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-xs font-black cursor-pointer bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-all"
+                className="text-slate-500 hover:text-slate-200 text-xs font-black cursor-pointer bg-slate-900 hover:bg-slate-800 p-2 rounded-full transition-all"
               >
                 ✕
               </button>
@@ -696,13 +721,13 @@ export default function Home() {
             </div>
 
             {/* Form & List Tabs */}
-            <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl">
+            <div className="flex gap-2 p-1 bg-slate-900 rounded-2xl">
               <button
                 onClick={() => setLockerTab('lock')}
                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                   lockerTab === 'lock' 
-                    ? 'bg-white text-slate-800 shadow-sm' 
-                    : 'text-slate-400 hover:text-slate-600'
+                    ? 'bg-slate-850 text-white shadow-sm border border-slate-700/50' 
+                    : 'text-slate-500 hover:text-slate-350'
                 }`}
               >
                 Create Lock
@@ -711,13 +736,13 @@ export default function Home() {
                 onClick={() => setLockerTab('my_locks')}
                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   lockerTab === 'my_locks' 
-                    ? 'bg-white text-slate-800 shadow-sm' 
-                    : 'text-slate-400 hover:text-slate-600'
+                    ? 'bg-slate-850 text-white shadow-sm border border-slate-700/50' 
+                    : 'text-slate-500 hover:text-slate-350'
                 }`}
               >
                 My Active Locks
                 {myLocks.length > 0 && (
-                  <span className="bg-blue-600 text-white text-[8px] px-1.5 py-0.5 rounded-full font-black">
+                  <span className="bg-blue-600 text-white text-[8px] px-1.5 py-0.5 rounded-full font-black animate-pulse">
                     {myLocks.length}
                   </span>
                 )}
@@ -729,14 +754,14 @@ export default function Home() {
               <div className="space-y-4">
                 {/* Asset Type Selector */}
                 <div className="space-y-1.5">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Asset to Lock</span>
+                  <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Asset to Lock</span>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => setLockAssetType('USDC')}
                       className={`py-3 rounded-2xl font-bold text-xs transition-all border cursor-pointer ${
                         lockAssetType === 'USDC' 
-                          ? 'border-blue-600 bg-blue-50/50 text-blue-600' 
-                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                          ? 'border-blue-500 bg-blue-950/40 text-blue-400' 
+                          : 'border-slate-800 bg-slate-900/40 text-slate-400 hover:bg-slate-900'
                       }`}
                     >
                       USDC Liquidity
@@ -745,8 +770,8 @@ export default function Home() {
                       onClick={() => setLockAssetType('TOKEN')}
                       className={`py-3 rounded-2xl font-bold text-xs transition-all border cursor-pointer ${
                         lockAssetType === 'TOKEN' 
-                          ? 'border-blue-600 bg-blue-50/50 text-blue-600' 
-                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                          ? 'border-blue-500 bg-blue-950/40 text-blue-400' 
+                          : 'border-slate-800 bg-slate-900/40 text-slate-400 hover:bg-slate-900'
                       }`}
                     >
                       Meme Token
@@ -754,28 +779,58 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* Dynamic Selection for Launched Tokens (Wallet / platform mimic) */}
+                {lockAssetType === 'TOKEN' && (
+                  <div className="space-y-1.5">
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Select Platform Token to Lock</span>
+                    <div className="grid grid-cols-3 gap-2 max-h-[105px] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl p-2 pr-1">
+                      {tokensList.length === 0 ? (
+                        <p className="text-[9px] text-slate-500 col-span-3 text-center py-2">No active platform tokens found.</p>
+                      ) : (
+                        tokensList.map((tok: any) => (
+                          <button
+                            key={tok.id}
+                            onClick={() => {
+                              setLockAddress(tok.token_address);
+                              setLockTicker(tok.ticker);
+                            }}
+                            className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                              lockAddress.toLowerCase() === tok.token_address.toLowerCase()
+                                ? 'border-blue-500 bg-blue-950/60'
+                                : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                            }`}
+                          >
+                            <span className="text-[9px] font-black text-white truncate block">{tok.ticker}</span>
+                            <span className="text-[7px] text-slate-500 font-mono truncate block">{tok.name}</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Token details inputs if asset is TOKEN */}
                 <div className="space-y-3.5">
                   {lockAssetType === 'TOKEN' && (
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Token Address</span>
+                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Token Address</span>
                         <input
                           type="text"
                           value={lockAddress}
                           onChange={(e) => setLockAddress(e.target.value)}
                           placeholder="0x..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-mono outline-none focus:border-blue-500 focus:bg-white"
+                          className="w-full bg-slate-900 border border-slate-800 text-white placeholder-slate-600 rounded-2xl p-3.5 text-xs font-mono outline-none focus:border-blue-500 focus:bg-slate-950"
                         />
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Token Ticker</span>
+                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Token Ticker</span>
                         <input
                           type="text"
                           value={lockTicker}
                           onChange={(e) => setLockTicker(e.target.value)}
                           placeholder="e.g. BTC"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-bold outline-none focus:border-blue-500 focus:bg-white uppercase"
+                          className="w-full bg-slate-900 border border-slate-800 text-white placeholder-slate-600 rounded-2xl p-3.5 text-xs font-bold outline-none focus:border-blue-500 focus:bg-slate-950 uppercase"
                         />
                       </div>
                     </div>
@@ -783,7 +838,7 @@ export default function Home() {
 
                   {/* Amount to Lock */}
                   <div className="space-y-1">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">
                       {lockAssetType === 'USDC' ? 'USDC Amount' : 'Token Amount'}
                     </span>
                     <div className="relative">
@@ -792,9 +847,9 @@ export default function Home() {
                         value={lockAmount}
                         onChange={(e) => setLockAmount(e.target.value)}
                         placeholder="0.00"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 pr-12 text-xs font-extrabold outline-none focus:border-blue-500 focus:bg-white"
+                        className="w-full bg-slate-900 border border-slate-800 text-white placeholder-slate-600 rounded-2xl p-3.5 pr-12 text-xs font-extrabold outline-none focus:border-blue-500 focus:bg-slate-950"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-500">
                         {lockAssetType === 'USDC' ? 'USDC' : lockTicker || 'TOKENS'}
                       </span>
                     </div>
@@ -804,7 +859,7 @@ export default function Home() {
                 <button
                   onClick={handleCreateLock}
                   disabled={!lockAmount || Number(lockAmount) <= 0 || (lockAssetType === 'TOKEN' && !lockAddress)}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer disabled:opacity-50"
+                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer disabled:opacity-50 active:scale-[0.98]"
                 >
                   Confirm Lock for 30 Days 🔒
                 </button>
@@ -813,8 +868,8 @@ export default function Home() {
               /* MY LOCKS LIST */
               <div className="space-y-3 max-h-[280px] overflow-auto pr-1">
                 {myLocks.length === 0 ? (
-                  <div className="text-center py-10 text-slate-400 space-y-1">
-                    <p className="text-xs font-bold">No active locks found.</p>
+                  <div className="text-center py-10 text-slate-500 space-y-1">
+                    <p className="text-xs font-bold text-slate-400">No active locks found.</p>
                     <p className="text-[10px]">Create a lock first to secure your assets!</p>
                   </div>
                 ) : (
@@ -829,23 +884,23 @@ export default function Home() {
                     const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
 
                     return (
-                      <div key={lock.id} className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 flex items-center justify-between gap-4">
+                      <div key={lock.id} className="bg-slate-900 border border-slate-800/60 rounded-2xl p-4 flex items-center justify-between gap-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-black text-slate-800">
+                            <span className="text-xs font-black text-white">
                               {lock.amount} {lock.asset_type === 'USDC' ? 'USDC' : lock.token_ticker}
                             </span>
                             <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${
                               lock.is_withdrawn
-                                ? 'bg-slate-200 text-slate-500'
+                                ? 'bg-slate-800 text-slate-500'
                                 : isUnlockable
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-amber-100 text-amber-700'
+                                ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-900/30'
+                                : 'bg-amber-950/80 text-amber-400 border border-amber-900/30'
                             }`}>
                               {lock.is_withdrawn ? 'Withdrawn' : isUnlockable ? 'Unlockable' : `${remainingDays}d Left`}
                             </span>
                           </div>
-                          <p className="text-[8px] text-slate-400 font-mono">
+                          <p className="text-[8px] text-slate-500 font-mono">
                             Locked: {lockedDate.toLocaleDateString()} | Unlocks: {unlockDate.toLocaleDateString()}
                           </p>
                         </div>
@@ -857,7 +912,7 @@ export default function Home() {
                             className={`px-3 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
                               isUnlockable
                                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/20'
-                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                : 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700/40'
                             }`}
                           >
                             Unlock 🔓

@@ -366,18 +366,26 @@ export function TradingPanel({ token }: TradingPanelProps) {
           <ArrowUpDown size={18} className="text-blue-600" />
           Trade {token.ticker}
         </h3>
-        <div className="flex bg-slate-100 rounded-xl p-1 text-xs">
+        <div className="flex bg-slate-100 rounded-xl p-1 text-xs items-center gap-0.5">
           <button 
             onClick={() => setIsBuy(true)}
-            className={`px-4.5 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${isBuy ? 'bg-green-100 text-green-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${isBuy ? 'bg-green-100 text-green-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
             BUY
           </button>
           <button 
             onClick={() => setIsBuy(false)}
-            className={`px-4.5 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${!isBuy ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${!isBuy ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
             SELL
+          </button>
+          <button 
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open-locker'));
+            }}
+            className="px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold text-blue-600 hover:bg-blue-50/50 flex items-center gap-0.5"
+          >
+            🔒 LOCK
           </button>
         </div>
       </div>
