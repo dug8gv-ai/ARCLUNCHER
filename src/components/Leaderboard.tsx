@@ -87,7 +87,9 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
             avatar: profile?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${stat.wallet}`,
             twitter: profile?.twitter || '',
             discord: profile?.discord || '',
-            is_affiliate: profile?.is_affiliate || false
+            is_affiliate: profile?.is_affiliate || false,
+            checkin_count: profile?.checkin_count || 0,
+            missed_count: profile?.missed_count || 0
           };
         });
 
@@ -348,6 +350,13 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                         {earner.twitter && (
                           <span className="text-[#1DA1F2] font-semibold">{earner.twitter}</span>
                         )}
+                      </div>
+
+                      {/* Daily Check-in Stats Display */}
+                      <div className="flex items-center gap-2 mt-1.5 text-[9px] font-bold text-slate-500 bg-slate-100/60 border border-slate-200/20 px-2.5 py-1 rounded-xl w-fit">
+                        <span>📅 Check-ins: <span className="text-blue-600 font-black">{earner.checkin_count || 0}d</span></span>
+                        <span className="text-slate-300 font-normal">|</span>
+                        <span>⚠️ Missed: <span className="text-slate-400 font-extrabold">{earner.missed_count || 0}d</span></span>
                       </div>
                     </div>
                   </div>

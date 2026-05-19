@@ -9,7 +9,7 @@ import { TradingPanel } from '@/components/TradingPanel';
 import { Leaderboard } from '@/components/Leaderboard';
 import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
-import { useAccount } from 'wagmi';
+import { useAccount, useSendTransaction, usePublicClient } from 'wagmi';
 import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -26,6 +26,134 @@ export default function Home() {
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'dashboard' | 'leaderboard' | 'affiliates'>('dashboard');
+
+  const publicClient = usePublicClient();
+  const { sendTransactionAsync } = useSendTransaction();
+
+  // Daily Checkin states
+  const [checkinLoading, setCheckinLoading] = useState(false);
+  const [checkinStats, setCheckinStats] = useState<{
+    checkin_count: number;
+    streak_count: number;
+    missed_count: number;
+    last_checkin: string | null;
+  } | null>(null);
+
+  const fetchCheckinStats = async () => {
+    if (!isConnected || !userAddress) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('checkin_count, streak_count, missed_count, last_checkin')
+        .eq('wallet', userAddress.toLowerCase());
+      if (data && data.length > 0) {
+        setCheckinStats({
+          checkin_count: data[0].checkin_count || 0,
+          streak_count: data[0].streak_count || 0,
+          missed_count: data[0].missed_count || 0,
+          last_checkin: data[0].last_checkin || null
+        });
+      }
+    } catch (e) {
+      console.error("Error fetching checkin stats:", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchCheckinStats();
+  }, [isConnected, userAddress]);
+
+  const handleDailyCheckin = async () => {
+    if (!isConnected || !userAddress) {
+      alert("Please connect your wallet first!");
+      return;
+    }
+    
+    if (checkinStats?.last_checkin) {
+      const lastCheckinDate = new Date(checkinStats.last_checkin).toDateString();
+      const todayDate = new Date().toDateString();
+      if (lastCheckinDate === todayDate) {
+        alert("You have already checked-in today! Come back tomorrow.");
+        return;
+      }
+    }
+
+    try {
+      setCheckinLoading(true);
+
+      const tx = await sendTransactionAsync({
+        to: '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3', // Admin / Launcher Address
+        value: BigInt(0),
+      });
+
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: tx });
+      }
+
+      const now = new Date();
+      let newStreak = 1;
+      let newMissed = checkinStats?.missed_count || 0;
+
+      if (checkinStats?.last_checkin) {
+        const lastDate = new Date(checkinStats.last_checkin);
+        lastDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const diffTime = Math.abs(today.getTime() - lastDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          newStreak = (checkinStats.streak_count || 0) + 1;
+        } else if (diffDays > 1) {
+          newStreak = 1;
+          newMissed += (diffDays - 1);
+        }
+      }
+
+      const newCount = (checkinStats?.checkin_count || 0) + 1;
+
+      // Update in Supabase
+      const walletLower = userAddress.toLowerCase();
+      
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('wallet', walletLower);
+
+      if (existingProfile && existingProfile.length > 0) {
+        await supabase
+          .from('profiles')
+          .update({
+            checkin_count: newCount,
+            streak_count: newStreak,
+            missed_count: newMissed,
+            last_checkin: now.toISOString()
+          })
+          .eq('wallet', walletLower);
+      } else {
+        await supabase
+          .from('profiles')
+          .insert({
+            wallet: walletLower,
+            checkin_count: newCount,
+            streak_count: newStreak,
+            missed_count: newMissed,
+            last_checkin: now.toISOString(),
+            name: 'Anonymous',
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${walletLower}`
+          });
+      }
+
+      alert(`Check-in Successful! Streak: ${newStreak} days!`);
+      fetchCheckinStats();
+    } catch (err: any) {
+      console.error("Checkin Transaction failed:", err);
+      alert("Check-in Transaction failed: " + (err.shortMessage || err.message));
+    } finally {
+      setCheckinLoading(false);
+    }
+  };
 
   // 1. Fetch Profile Name for Custom Header Greeting
   useEffect(() => {
@@ -218,14 +346,56 @@ export default function Home() {
           <main className="space-y-8">
             {currentView === 'dashboard' && (
               <>
-                {/* Elegant Welcome Banner */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                 {/* Elegant Welcome Banner */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm">
                   <div>
                     <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
                       Hello, {profileName} 👋
                     </h2>
                     <p className="text-xs text-slate-500 font-semibold mt-0.5">Explore active markets, launch customized tokens, and claim points allocations.</p>
                   </div>
+
+                  {/* Daily Check-in Interaction Block */}
+                  {isConnected && (
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleDailyCheckin}
+                        disabled={checkinLoading || !!(checkinStats?.last_checkin && new Date(checkinStats.last_checkin).toDateString() === new Date().toDateString())}
+                        className={`px-5 py-3 rounded-2xl text-xs font-black tracking-wide uppercase transition-all duration-150 flex items-center gap-2 shadow-md cursor-pointer ${
+                          !!(checkinStats?.last_checkin && new Date(checkinStats.last_checkin).toDateString() === new Date().toDateString())
+                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-200/30 cursor-not-allowed shadow-none'
+                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/20 active:scale-[0.98]'
+                        }`}
+                      >
+                        {checkinLoading ? (
+                          <>
+                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Checking In...</span>
+                          </>
+                        ) : checkinStats?.last_checkin && new Date(checkinStats.last_checkin).toDateString() === new Date().toDateString() ? (
+                          <>
+                            <span>✓ Checked In Today</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>📅 Daily Check-in</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Tiny Streak info display */}
+                      {checkinStats && (
+                        <div className="text-left font-semibold">
+                          <span className="text-[10px] text-slate-400 block uppercase tracking-widest">Check-in Streak</span>
+                          <span className="text-xs text-slate-700 font-extrabold flex items-center gap-1">
+                            🔥 {checkinStats.streak_count} Days 
+                            <span className="text-slate-300 font-normal">|</span> 
+                            ⚠️ {checkinStats.missed_count} Missed
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Global Dashboard Stats */}
@@ -317,6 +487,14 @@ export default function Home() {
                 <div>
                   <p className="text-slate-800 font-extrabold text-sm mb-0.5">Claim Rewards Later</p>
                   <p className="text-slate-500 text-xs font-medium leading-relaxed">Points determine your share of the upcoming ARCL Airdrop pool. The higher you rank on the earners list, the larger your payout!</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 border-t border-slate-200/40 pt-3">
+                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">4</div>
+                <div>
+                  <p className="text-slate-800 font-extrabold text-sm mb-0.5">⭐ Partner Affiliate Badge</p>
+                  <p className="text-slate-500 text-xs font-medium leading-relaxed">Get the exclusive Partner Affiliate badge by either: (1) Launching a token whose price successfully touches $1.00 USDC, OR (2) Completing 30 consecutive days of Daily Check-ins!</p>
                 </div>
               </div>
             </div>

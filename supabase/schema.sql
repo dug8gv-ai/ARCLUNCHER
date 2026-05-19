@@ -67,6 +67,10 @@ CREATE TABLE IF NOT EXISTS profiles (
     discord TEXT,
     twitter TEXT,
     is_affiliate BOOLEAN DEFAULT FALSE,
+    checkin_count INTEGER DEFAULT 0,
+    streak_count INTEGER DEFAULT 0,
+    missed_count INTEGER DEFAULT 0,
+    last_checkin TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
