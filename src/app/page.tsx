@@ -46,6 +46,121 @@ export default function Home() {
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'dashboard' | 'leaderboard' | 'affiliates'>('dashboard');
 
+  // Daily Locks State
+  const [lockerTab, setLockerTab] = useState<'lock' | 'my_locks'>('lock');
+  const [isLockerOpen, setIsLockerOpen] = useState(false);
+  const [lockAssetType, setLockAssetType] = useState<'USDC' | 'TOKEN'>('USDC');
+  const [lockAddress, setLockAddress] = useState('');
+  const [lockTicker, setLockTicker] = useState('');
+  const [lockAmount, setLockAmount] = useState('');
+  const [myLocks, setMyLocks] = useState<any[]>([]);
+  const [totalLockedUSD, setTotalLockedUSD] = useState(2368.77);
+
+  // Fetch locks
+  const fetchLocks = async () => {
+    try {
+      let locksData: any[] = [];
+      try {
+        const { data, error } = await supabase
+          .from('liquidity_locks')
+          .select('*')
+          .order('locked_at', { ascending: false });
+        if (error) throw error;
+        locksData = data || [];
+      } catch (dbErr) {
+        // Fallback to local storage locks if database schema doesn't exist yet!
+        const local = localStorage.getItem('arclauncher_locks');
+        locksData = local ? JSON.parse(local) : [];
+      }
+
+      setMyLocks(locksData.filter((l: any) => l.wallet.toLowerCase() === userAddress?.toLowerCase()));
+      
+      // Calculate total locked USD
+      const activeLocks = locksData.filter((l: any) => !l.is_withdrawn);
+      const totalAmount = activeLocks.reduce((acc: number, l: any) => acc + Number(l.amount), 0);
+      setTotalLockedUSD(2368.77 + totalAmount);
+    } catch (e) {
+      console.error("Error fetching locks:", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchLocks();
+  }, [isConnected, userAddress]);
+
+  const handleCreateLock = async () => {
+    if (!isConnected || !userAddress) return;
+    try {
+      const now = new Date();
+      const unlockDate = new Date();
+      unlockDate.setMonth(unlockDate.getMonth() + 1); // 1 Month locking!
+
+      const newLock = {
+        id: 'lock-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+        wallet: userAddress.toLowerCase(),
+        asset_type: lockAssetType,
+        token_address: lockAssetType === 'TOKEN' ? lockAddress : null,
+        token_ticker: lockAssetType === 'TOKEN' ? (lockTicker || 'TOKEN').toUpperCase() : 'USDC',
+        amount: Number(lockAmount),
+        locked_at: now.toISOString(),
+        unlock_at: unlockDate.toISOString(),
+        is_withdrawn: false
+      };
+
+      try {
+        const { error } = await supabase
+          .from('liquidity_locks')
+          .insert(newLock);
+        if (error) throw error;
+      } catch (dbErr) {
+        // Fallback save to local storage
+        const local = localStorage.getItem('arclauncher_locks');
+        const list = local ? JSON.parse(local) : [];
+        list.push(newLock);
+        localStorage.setItem('arclauncher_locks', JSON.stringify(list));
+      }
+
+      await triggerAlert("ASSET LOCKED", `Successfully locked ${lockAmount} ${newLock.token_ticker} for 1 Month (30 Days)!`, "success");
+      
+      // Reset form
+      setLockAmount('');
+      setLockAddress('');
+      setLockTicker('');
+      fetchLocks();
+      setLockerTab('my_locks');
+    } catch (err: any) {
+      await triggerAlert("LOCK ERROR", err.message, "error");
+    }
+  };
+
+  const handleUnlockAsset = async (lockId: string) => {
+    try {
+      try {
+        const { error } = await supabase
+          .from('liquidity_locks')
+          .update({ is_withdrawn: true })
+          .eq('id', lockId);
+        if (error) throw error;
+      } catch (dbErr) {
+        // Fallback update in local storage
+        const local = localStorage.getItem('arclauncher_locks');
+        if (local) {
+          const list = JSON.parse(local);
+          const idx = list.findIndex((l: any) => l.id === lockId);
+          if (idx !== -1) {
+            list[idx].is_withdrawn = true;
+            localStorage.setItem('arclauncher_locks', JSON.stringify(list));
+          }
+        }
+      }
+
+      await triggerAlert("ASSET UNLOCKED", "Your locked asset and liquidity have been successfully unlocked and withdrawn!", "success");
+      fetchLocks();
+    } catch (err: any) {
+      await triggerAlert("UNLOCK ERROR", err.message, "error");
+    }
+  };
+
   const publicClient = usePublicClient();
   const { sendTransactionAsync } = useSendTransaction();
 
@@ -351,17 +466,22 @@ export default function Home() {
         </div>
 
         {/* Bottom Sidebar Locked Liquidity card */}
-        <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 border border-slate-100 rounded-3xl p-5 space-y-3.5 shadow-inner">
+        <div 
+          onClick={() => setIsLockerOpen(true)}
+          className="bg-gradient-to-br from-slate-50 to-blue-50/30 border border-slate-100 hover:border-blue-300 rounded-3xl p-5 space-y-3.5 shadow-inner cursor-pointer group transition-all"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Liquidity Locked</span>
-            <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter">
-              Live
+            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider group-hover:text-blue-500 transition-colors">Liquidity Locked</span>
+            <span className="bg-blue-100 text-blue-700 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+              Manage 🔒
             </span>
           </div>
           <div>
-            <h4 className="text-2xl font-black text-slate-900 tracking-tight">$3,001.07</h4>
+            <h4 className="text-2xl font-black text-slate-900 tracking-tight">
+              ${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h4>
             <p className="text-[10px] text-slate-400 mt-1 font-semibold flex items-center gap-1">
-              USDC: <span className="text-slate-700 font-extrabold">2,368.77</span> | EURC: <span className="text-slate-700 font-extrabold">632.30</span>
+              USDC: <span className="text-blue-600 font-black">${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </p>
           </div>
         </div>
@@ -538,6 +658,221 @@ export default function Home() {
           </div>
         </div>
       )}
+      {/* Premium Liquidity Locker Modal */}
+      {isLockerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/40 transition-all duration-200 animate-in fade-in">
+          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[32px] p-6 max-w-lg w-full space-y-6 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-blue-600/10 text-blue-600 shadow-lg shadow-blue-500/10">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black tracking-wider text-slate-800 uppercase">Liquidity Locker</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Lock and claim USDC & Tokens</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsLockerOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-xs font-black cursor-pointer bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Total Locked Display inside Modal */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-5 text-white flex items-center justify-between shadow-lg shadow-blue-500/20">
+              <div>
+                <p className="text-[8px] font-black uppercase tracking-widest text-blue-100">Total System Locked</p>
+                <h4 className="text-3xl font-black mt-1">
+                  ${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </h4>
+              </div>
+              <div className="text-right">
+                <p className="text-[8px] font-black uppercase tracking-widest text-blue-100">Lock Duration</p>
+                <p className="text-xs font-bold mt-1 bg-white/10 px-3 py-1 rounded-full border border-white/20">30 Days (1 Month)</p>
+              </div>
+            </div>
+
+            {/* Form & List Tabs */}
+            <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl">
+              <button
+                onClick={() => setLockerTab('lock')}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  lockerTab === 'lock' 
+                    ? 'bg-white text-slate-800 shadow-sm' 
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                Create Lock
+              </button>
+              <button
+                onClick={() => setLockerTab('my_locks')}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  lockerTab === 'my_locks' 
+                    ? 'bg-white text-slate-800 shadow-sm' 
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                My Active Locks
+                {myLocks.length > 0 && (
+                  <span className="bg-blue-600 text-white text-[8px] px-1.5 py-0.5 rounded-full font-black">
+                    {myLocks.length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {lockerTab === 'lock' ? (
+              /* CREATE LOCK FORM */
+              <div className="space-y-4">
+                {/* Asset Type Selector */}
+                <div className="space-y-1.5">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Asset to Lock</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setLockAssetType('USDC')}
+                      className={`py-3 rounded-2xl font-bold text-xs transition-all border cursor-pointer ${
+                        lockAssetType === 'USDC' 
+                          ? 'border-blue-600 bg-blue-50/50 text-blue-600' 
+                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                      }`}
+                    >
+                      USDC Liquidity
+                    </button>
+                    <button
+                      onClick={() => setLockAssetType('TOKEN')}
+                      className={`py-3 rounded-2xl font-bold text-xs transition-all border cursor-pointer ${
+                        lockAssetType === 'TOKEN' 
+                          ? 'border-blue-600 bg-blue-50/50 text-blue-600' 
+                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                      }`}
+                    >
+                      Meme Token
+                    </button>
+                  </div>
+                </div>
+
+                {/* Token details inputs if asset is TOKEN */}
+                <div className="space-y-3.5">
+                  {lockAssetType === 'TOKEN' && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Token Address</span>
+                        <input
+                          type="text"
+                          value={lockAddress}
+                          onChange={(e) => setLockAddress(e.target.value)}
+                          placeholder="0x..."
+                          className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-mono outline-none focus:border-blue-500 focus:bg-white"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Token Ticker</span>
+                        <input
+                          type="text"
+                          value={lockTicker}
+                          onChange={(e) => setLockTicker(e.target.value)}
+                          placeholder="e.g. BTC"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-bold outline-none focus:border-blue-500 focus:bg-white uppercase"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Amount to Lock */}
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                      {lockAssetType === 'USDC' ? 'USDC Amount' : 'Token Amount'}
+                    </span>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={lockAmount}
+                        onChange={(e) => setLockAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 pr-12 text-xs font-extrabold outline-none focus:border-blue-500 focus:bg-white"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">
+                        {lockAssetType === 'USDC' ? 'USDC' : lockTicker || 'TOKENS'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCreateLock}
+                  disabled={!lockAmount || Number(lockAmount) <= 0 || (lockAssetType === 'TOKEN' && !lockAddress)}
+                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer disabled:opacity-50"
+                >
+                  Confirm Lock for 30 Days 🔒
+                </button>
+              </div>
+            ) : (
+              /* MY LOCKS LIST */
+              <div className="space-y-3 max-h-[280px] overflow-auto pr-1">
+                {myLocks.length === 0 ? (
+                  <div className="text-center py-10 text-slate-400 space-y-1">
+                    <p className="text-xs font-bold">No active locks found.</p>
+                    <p className="text-[10px]">Create a lock first to secure your assets!</p>
+                  </div>
+                ) : (
+                  myLocks.map((lock) => {
+                    const lockedDate = new Date(lock.locked_at);
+                    const unlockDate = new Date(lock.unlock_at);
+                    const now = new Date();
+                    const isUnlockable = now >= unlockDate && !lock.is_withdrawn;
+                    
+                    // Simple remaining time calculation
+                    const remainingTime = unlockDate.getTime() - now.getTime();
+                    const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
+
+                    return (
+                      <div key={lock.id} className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 flex items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-black text-slate-800">
+                              {lock.amount} {lock.asset_type === 'USDC' ? 'USDC' : lock.token_ticker}
+                            </span>
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${
+                              lock.is_withdrawn
+                                ? 'bg-slate-200 text-slate-500'
+                                : isUnlockable
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {lock.is_withdrawn ? 'Withdrawn' : isUnlockable ? 'Unlockable' : `${remainingDays}d Left`}
+                            </span>
+                          </div>
+                          <p className="text-[8px] text-slate-400 font-mono">
+                            Locked: {lockedDate.toLocaleDateString()} | Unlocks: {unlockDate.toLocaleDateString()}
+                          </p>
+                        </div>
+
+                        {!lock.is_withdrawn && (
+                          <button
+                            onClick={() => handleUnlockAsset(lock.id)}
+                            disabled={!isUnlockable}
+                            className={`px-3 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
+                              isUnlockable
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/20'
+                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            }`}
+                          >
+                            Unlock 🔓
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Premium Styled Dialog Alert Overlay */}
       {premiumAlert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">

@@ -89,3 +89,19 @@ CREATE TABLE IF NOT EXISTS user_stats (
 ALTER PUBLICATION supabase_realtime ADD TABLE profiles;
 ALTER PUBLICATION supabase_realtime ADD TABLE user_stats;
 
+-- Table for tracking Liquidity Locks
+CREATE TABLE IF NOT EXISTS liquidity_locks (
+    id TEXT PRIMARY KEY, -- Supports custom alphanumeric IDs securely
+    wallet TEXT NOT NULL,
+    asset_type TEXT NOT NULL, -- 'USDC' or 'TOKEN'
+    token_address TEXT,
+    token_ticker TEXT,
+    amount NUMERIC NOT NULL,
+    locked_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    unlock_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_withdrawn BOOLEAN DEFAULT FALSE
+);
+
+-- Enable Supabase real-time on locks
+ALTER PUBLICATION supabase_realtime ADD TABLE liquidity_locks;
+
