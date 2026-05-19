@@ -7,9 +7,10 @@ import { DashboardStats } from '@/components/DashboardStats';
 import { LaunchForm } from '@/components/LaunchForm';
 import { TradingPanel } from '@/components/TradingPanel';
 import { Leaderboard } from '@/components/Leaderboard';
+import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
 import { useAccount } from 'wagmi';
-import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => mod.PriceChart), {
@@ -24,6 +25,7 @@ export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'leaderboard' | 'affiliates'>('dashboard');
 
   // 1. Fetch Profile Name for Custom Header Greeting
   useEffect(() => {
@@ -122,11 +124,44 @@ export default function Home() {
           {/* Nav links */}
           <nav className="space-y-1">
             <button 
-              onClick={() => handleSelectToken(null)}
-              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all text-blue-600 bg-blue-50/70 border border-blue-100 hover:scale-[1.01]"
+              onClick={() => {
+                setCurrentView('dashboard');
+                handleSelectToken(null);
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'dashboard'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
             >
-              <HomeIcon size={16} />
+              <HomeIcon size={16} className={currentView === 'dashboard' ? 'text-blue-600' : 'text-slate-400'} />
               Home Dashboard
+            </button>
+
+            {/* Dedicated Leaderboard Tab */}
+            <button 
+              onClick={() => setCurrentView('leaderboard')}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'leaderboard'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Trophy size={16} className={currentView === 'leaderboard' ? 'text-blue-600' : 'text-slate-400'} />
+              Leaderboard
+            </button>
+
+            {/* Dedicated Affiliates Tab */}
+            <button 
+              onClick={() => setCurrentView('affiliates')}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'affiliates'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Users size={16} className={currentView === 'affiliates' ? 'text-blue-600' : 'text-slate-400'} />
+              Affiliates
             </button>
 
             {/* Earn coming soon glow badge */}
@@ -181,47 +216,64 @@ export default function Home() {
           <NetworkGuard />
           
           <main className="space-y-8">
-            {/* Elegant Welcome Banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-                  Hello, {profileName} 👋
-                </h2>
-                <p className="text-xs text-slate-500 font-semibold mt-0.5">Explore active markets, launch customized tokens, and claim points allocations.</p>
-              </div>
-            </div>
-
-            {/* Global Dashboard Stats */}
-            <DashboardStats /> 
-
-            {/* Main Interactive Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column - Token Launch or Trading Panel */}
-              <div className="lg:col-span-1 space-y-8">
-                {selectedToken ? (
-                  <div className="space-y-4">
-                    <TradingPanel token={selectedToken} />
-                    <button 
-                      onClick={() => handleSelectToken(null)}
-                      className="w-full py-3 border-2 border-dashed border-slate-200 text-slate-500 font-bold rounded-2xl text-xs hover:text-slate-800 hover:border-slate-400 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      ← Launch New Token instead
-                    </button>
+            {currentView === 'dashboard' && (
+              <>
+                {/* Elegant Welcome Banner */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                      Hello, {profileName} 👋
+                    </h2>
+                    <p className="text-xs text-slate-500 font-semibold mt-0.5">Explore active markets, launch customized tokens, and claim points allocations.</p>
                   </div>
-                ) : (
-                  <LaunchForm />
-                )}
-              </div>
-
-              {/* Right Column - Trading & Analytics */}
-              <div className="lg:col-span-2 space-y-8">
-                <PriceChart selectedToken={selectedToken} />
-                <TransactionHistory tokenAddress={selectedToken?.token_address} />
-                <div className="h-[500px]">
-                  <Leaderboard onSelectToken={handleSelectToken} />
                 </div>
+
+                {/* Global Dashboard Stats */}
+                <DashboardStats /> 
+
+                {/* Main Interactive Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Left Column - Token Launch or Trading Panel */}
+                  <div className="lg:col-span-1 space-y-8">
+                    {selectedToken ? (
+                      <div className="space-y-4">
+                        <TradingPanel token={selectedToken} />
+                        <button 
+                          onClick={() => handleSelectToken(null)}
+                          className="w-full py-3 border-2 border-dashed border-slate-200 text-slate-500 font-bold rounded-2xl text-xs hover:text-slate-800 hover:border-slate-400 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          ← Launch New Token instead
+                        </button>
+                      </div>
+                    ) : (
+                      <LaunchForm />
+                    )}
+                  </div>
+
+                  {/* Right Column - Trading & Analytics */}
+                  <div className="lg:col-span-2 space-y-8">
+                    <PriceChart selectedToken={selectedToken} />
+                    <TransactionHistory tokenAddress={selectedToken?.token_address} />
+                    <div className="h-[500px]">
+                      <Leaderboard onSelectToken={handleSelectToken} />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {currentView === 'leaderboard' && (
+              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm">
+                <Leaderboard onSelectToken={(token) => {
+                  setCurrentView('dashboard');
+                  handleSelectToken(token);
+                }} />
               </div>
-            </div>
+            )}
+
+            {currentView === 'affiliates' && (
+              <AffiliatesView />
+            )}
           </main>
         </div>
       </div>
