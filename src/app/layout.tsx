@@ -11,6 +11,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ArcLauncher Pro | Global Analytics Edition",
   description: "High-Frequency Token Launchpad on Arc Testnet",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({
