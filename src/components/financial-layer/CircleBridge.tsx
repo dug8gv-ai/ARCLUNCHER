@@ -76,7 +76,7 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
   const [currentStepIdx, setCurrentStepIdx] = useState<number>(-1); // -1 = not started
   const [isBridging, setIsBridging] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [execMode, setExecMode] = useState<'LIVE' | 'SANDBOX'>('SANDBOX');
+  const [execMode, setExecMode] = useState<'LIVE' | 'SANDBOX'>('LIVE');
   const [steps, setSteps] = useState<CctpStep[]>([]);
 
   // Active balances (dynamic depending on execution mode)
@@ -585,65 +585,6 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
             <span className="text-[10px] uppercase font-extrabold tracking-widest text-blue-600 block">Circle CCTP Integration</span>
             <h2 className="text-xl font-black text-slate-900 tracking-tight">Circle Cross-Chain Bridge</h2>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Mode Switcher */}
-          <div className="bg-slate-100 p-1 rounded-xl flex border border-slate-200/50">
-            <button
-              type="button"
-              onClick={() => setExecMode('SANDBOX')}
-              className={`px-3 py-1.5 rounded-lg text-[9px] uppercase font-black tracking-wide transition-all cursor-pointer ${
-                execMode === 'SANDBOX' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Sandbox Sim
-            </button>
-            <button
-              type="button"
-              onClick={() => setExecMode('LIVE')}
-              className={`px-3 py-1.5 rounded-lg text-[9px] uppercase font-black tracking-wide transition-all cursor-pointer ${
-                execMode === 'LIVE' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Live On-Chain
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Switcher Tabs */}
-      <div className="flex justify-center sm:justify-start">
-        <div className="bg-slate-100/80 p-1.5 rounded-2xl flex border border-slate-200/50 backdrop-blur-sm shadow-sm">
-          <button
-            type="button"
-            onClick={() => {
-              if (isBridging) return;
-              setBridgeMode('CROSS_CHAIN');
-            }}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
-              bridgeMode === 'CROSS_CHAIN'
-                ? 'bg-white text-blue-600 shadow-sm border border-slate-200/20'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Coins size={14} />
-            Cross-Chain Bridge
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (isBridging) return;
-              setBridgeMode('ARC_SWAP');
-            }}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
-              bridgeMode === 'ARC_SWAP'
-                ? 'bg-white text-blue-600 shadow-sm border border-slate-200/20'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <RefreshCw size={14} className={bridgeMode === 'ARC_SWAP' && isBridging ? 'animate-spin' : ''} />
-            Arc Chain Testnet Swap
-          </button>
         </div>
       </div>
 
