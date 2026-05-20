@@ -11,13 +11,14 @@ import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
 import { parseUnits, erc20Abi } from 'viem';
-import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info } from 'lucide-react';
+import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => mod.PriceChart), {
   ssr: false,
 });
 import { TransactionHistory } from '@/components/TransactionHistory';
+import { SocialPay } from '@/components/SocialPay';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -45,7 +46,7 @@ export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'dashboard' | 'leaderboard' | 'affiliates'>('dashboard');
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn'>('launcher');
 
   // Daily Locks State
   const [lockerTab, setLockerTab] = useState<'lock' | 'my_locks'>('lock');
@@ -423,12 +424,16 @@ export default function Home() {
     }
   }, [isConnected, userAddress]);
 
-  // 2. URL State / Chart Persistence Fix
+  // 2. URL State / Chart Persistence Fix & payTo Prefill
   useEffect(() => {
     const loadTokenFromUrl = async () => {
       const searchParams = new URLSearchParams(window.location.search);
       const tokenAddress = searchParams.get('token');
-      if (tokenAddress) {
+      const payTo = searchParams.get('payTo');
+      
+      if (payTo) {
+        setCurrentView('social-pay');
+      } else if (tokenAddress) {
         try {
           const { data, error } = await supabase
             .from('token_launches')
@@ -438,6 +443,7 @@ export default function Home() {
           
           if (data && !error) {
             setSelectedToken(data);
+            setCurrentView('trade');
           }
         } catch (e) {
           console.error("Error fetching token by URL:", e);
@@ -453,6 +459,7 @@ export default function Home() {
     if (token) {
       const newUrl = `${window.location.origin}/dashboard?token=${token.token_address.toLowerCase()}`;
       window.history.pushState({ path: newUrl }, '', newUrl);
+      setCurrentView('trade'); // Automatically switch view to Trade when token is selected!
     } else {
       const newUrl = `${window.location.origin}/dashboard`;
       window.history.pushState({ path: newUrl }, '', newUrl);
@@ -462,35 +469,65 @@ export default function Home() {
   return (
     <div className="min-h-screen flex bg-[#f4f7fc] text-slate-800 antialiased selection:bg-blue-100">
       
-      {/* 1. Desktop Sidebar Navigation (Radius inspired layout) */}
-      <aside className="hidden lg:flex w-72 flex-col bg-slate-950 border-r border-slate-900 p-6 space-y-8 sticky top-0 h-screen justify-between shadow-xl z-30">
+      {/* 1. Desktop Sidebar Navigation (Luxury White & Calm Blue layout) */}
+      <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-slate-100 p-6 space-y-8 sticky top-0 h-screen justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] z-30">
         <div className="space-y-8">
           {/* Brand header */}
           <div className="flex items-center gap-3 px-2">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <Layers className="text-white" size={20} />
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm shadow-blue-500/10">
+              <Layers className="text-blue-600" size={20} />
             </div>
             <div>
-              <span className="text-sm font-black tracking-wide text-white block">ARC LAUNCHER</span>
-              <span className="text-[9px] block font-extrabold text-slate-500 tracking-widest mt-[-2px] uppercase">BETA</span>
+              <span className="text-sm font-black tracking-wide text-slate-900 block">ARC LAUNCHER</span>
+              <span className="text-[9px] block font-extrabold text-blue-600 tracking-widest mt-[-2px] uppercase">PRO</span>
             </div>
           </div>
 
           {/* Nav links */}
-          <nav className="space-y-1">
+          <nav className="space-y-1.5">
+            {/* Launcher Tab */}
             <button 
               onClick={() => {
-                setCurrentView('dashboard');
-                handleSelectToken(null);
+                setCurrentView('launcher');
               }}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
-                currentView === 'dashboard'
-                  ? 'text-white bg-blue-600/20 border border-blue-500/30'
-                  : 'text-slate-400 hover:bg-slate-900/60 border border-transparent hover:text-slate-200'
+                currentView === 'launcher'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
               }`}
             >
-              <HomeIcon size={16} className={currentView === 'dashboard' ? 'text-blue-400' : 'text-slate-500'} />
-              Home Dashboard
+              <Rocket size={16} className={currentView === 'launcher' ? 'text-blue-600' : 'text-slate-400'} />
+              Launcher
+            </button>
+
+            {/* Trade Tab */}
+            <button 
+              onClick={() => {
+                setCurrentView('trade');
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'trade'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <TrendingUp size={16} className={currentView === 'trade' ? 'text-blue-600' : 'text-slate-400'} />
+              Trade
+            </button>
+
+            {/* Social Pay (New) Tab */}
+            <button 
+              onClick={() => {
+                setCurrentView('social-pay');
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'social-pay'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Send size={16} className={currentView === 'social-pay' ? 'text-blue-600' : 'text-slate-400'} />
+              Social Pay
             </button>
 
             {/* Dedicated Leaderboard Tab */}
@@ -498,11 +535,11 @@ export default function Home() {
               onClick={() => setCurrentView('leaderboard')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'leaderboard'
-                  ? 'text-white bg-blue-600/20 border border-blue-500/30'
-                  : 'text-slate-400 hover:bg-slate-900/60 border border-transparent hover:text-slate-200'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
               }`}
             >
-              <Trophy size={16} className={currentView === 'leaderboard' ? 'text-blue-400' : 'text-slate-500'} />
+              <Trophy size={16} className={currentView === 'leaderboard' ? 'text-blue-600' : 'text-slate-400'} />
               Leaderboard
             </button>
 
@@ -511,11 +548,11 @@ export default function Home() {
               onClick={() => setCurrentView('affiliates')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'affiliates'
-                  ? 'text-white bg-blue-600/20 border border-blue-500/30'
-                  : 'text-slate-400 hover:bg-slate-900/60 border border-transparent hover:text-slate-200'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
               }`}
             >
-              <Users size={16} className={currentView === 'affiliates' ? 'text-blue-400' : 'text-slate-500'} />
+              <Users size={16} className={currentView === 'affiliates' ? 'text-blue-600' : 'text-slate-400'} />
               Affiliates
             </button>
 
@@ -524,35 +561,39 @@ export default function Home() {
               href="https://faucet.circle.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all text-slate-400 hover:bg-slate-900/60 hover:text-slate-200 hover:scale-[1.01]"
+              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all text-slate-500 hover:bg-slate-50 hover:text-slate-800 hover:scale-[1.01] border border-transparent"
             >
-              <Droplet size={16} className="text-slate-500" />
+              <Droplet size={16} className="text-slate-400" />
               USDC Faucet
             </a>
 
             {/* Earn coming soon glow badge */}
-            <div className="relative group">
-              <button 
-                disabled
-                className="w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold text-slate-600 cursor-not-allowed transition-all"
-              >
-                <div className="flex items-center gap-3.5">
-                  <Coins size={16} className="text-slate-600" />
-                  <span>Earn Points</span>
-                </div>
-                {/* Glowing Pill badge */}
-                <span className="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-slate-700">
-                  Soon
-                </span>
-              </button>
-            </div>
+            <button 
+              onClick={() => {
+                setCurrentView('earn');
+              }}
+              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'earn'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <Coins size={16} className={currentView === 'earn' ? 'text-blue-600' : 'text-slate-400'} />
+                <span>Earn Points</span>
+              </div>
+              {/* Glowing Pill badge */}
+              <span className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-200/50 animate-pulse">
+                Soon
+              </span>
+            </button>
 
             {/* Airdrop Rules modal opener */}
             <button 
               onClick={() => setIsRulesOpen(true)}
-              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold text-slate-400 hover:bg-slate-900/60 transition-all hover:text-slate-200"
+              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all hover:text-slate-800 border border-transparent"
             >
-              <HelpCircle size={16} className="text-slate-500" />
+              <HelpCircle size={16} className="text-slate-400" />
               Airdrop Rules
             </button>
           </nav>
@@ -561,20 +602,20 @@ export default function Home() {
         {/* Bottom Sidebar Locked Liquidity card */}
         <div 
           onClick={() => setIsLockerOpen(true)}
-          className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 hover:border-slate-700 rounded-3xl p-5 space-y-3.5 shadow-inner cursor-pointer group transition-all"
+          className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 rounded-3xl p-5 space-y-3.5 shadow-sm cursor-pointer group transition-all"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider group-hover:text-blue-400 transition-colors">Liquidity Locked</span>
-            <span className="bg-blue-950 text-blue-400 border border-blue-900/50 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider group-hover:text-blue-600 transition-colors">Liquidity Locked</span>
+            <span className="bg-blue-100 text-blue-700 border border-blue-200/50 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
               Manage 🔒
             </span>
           </div>
           <div>
-            <h4 className="text-2xl font-black text-white tracking-tight">
+            <h4 className="text-2xl font-black text-slate-900 tracking-tight">
               ${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h4>
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold flex items-center gap-1">
-              USDC: <span className="text-blue-400 font-black">${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <p className="text-[10px] text-slate-550 mt-1 font-semibold flex items-center gap-1">
+              USDC: <span className="text-blue-600 font-black">${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </p>
           </div>
         </div>
@@ -587,9 +628,10 @@ export default function Home() {
           <NetworkGuard />
           
           <main className="space-y-8">
-            {currentView === 'dashboard' && (
+            {/* LAUNCHER TAB VIEW */}
+            {currentView === 'launcher' && (
               <>
-                 {/* Elegant Welcome Banner */}
+                {/* Elegant Welcome Banner */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm">
                   <div>
                     <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
@@ -646,46 +688,142 @@ export default function Home() {
 
                 {/* Main Interactive Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Left Column - Token Launch or Trading Panel */}
+                  {/* Left Column - Token Launch Form */}
                   <div className="lg:col-span-1 space-y-8">
-                    {selectedToken ? (
-                      <div className="space-y-4">
-                        <TradingPanel token={selectedToken} />
-                        <button 
-                          onClick={() => handleSelectToken(null)}
-                          className="w-full py-3 border-2 border-dashed border-slate-200 text-slate-500 font-bold rounded-2xl text-xs hover:text-slate-800 hover:border-slate-400 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          ← Launch New Token instead
-                        </button>
-                      </div>
-                    ) : (
-                      <LaunchForm />
-                    )}
+                    <LaunchForm />
                   </div>
 
-                  {/* Right Column - Trading & Analytics */}
+                  {/* Right Column - Recent Token Releases List */}
                   <div className="lg:col-span-2 space-y-8">
-                    <PriceChart selectedToken={selectedToken} />
-                    <TransactionHistory tokenAddress={selectedToken?.token_address} />
-                    <div className="h-[500px]">
-                      <Leaderboard onSelectToken={handleSelectToken} />
+                    <div className="h-[600px] flex flex-col">
+                      <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-3xl mb-4 text-xs font-bold text-blue-600 flex items-center gap-2">
+                        <Info size={14} className="text-blue-500" />
+                        Click any token on the markets list below to open its dedicated Trade desk & Price Charts!
+                      </div>
+                      <div className="flex-1 min-h-0">
+                        <Leaderboard onSelectToken={handleSelectToken} />
+                      </div>
                     </div>
                   </div>
                 </div>
               </>
             )}
 
-            {currentView === 'leaderboard' && (
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm">
-                <Leaderboard onSelectToken={(token) => {
-                  setCurrentView('dashboard');
-                  handleSelectToken(token);
-                }} />
+            {/* TRADE TAB VIEW */}
+            {currentView === 'trade' && (
+              <>
+                {selectedToken ? (
+                  <div className="space-y-8 animate-in fade-in duration-200">
+                    {/* Dynamic title bar for trade */}
+                    <div className="flex items-center justify-between bg-white border border-slate-200/80 rounded-[28px] p-5 shadow-sm">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center">
+                          {selectedToken.image_url ? (
+                            <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <TrendingUp className="text-slate-400" size={18} />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-extrabold text-slate-800 text-base flex items-center gap-1.5">
+                            {selectedToken.name}
+                            <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
+                          </h3>
+                          <p className="text-[10px] text-slate-400 font-mono mt-0.5">{selectedToken.token_address}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleSelectToken(null)}
+                        className="text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-extrabold px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm"
+                      >
+                        ← View Other Markets
+                      </button>
+                    </div>
+
+                    {/* Trading Dashboard Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      <div className="lg:col-span-1">
+                        <TradingPanel token={selectedToken} />
+                      </div>
+                      <div className="lg:col-span-2 space-y-8">
+                        <PriceChart selectedToken={selectedToken} />
+                        <TransactionHistory tokenAddress={selectedToken.token_address} />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Market Selector if no token is currently selected */
+                  <div className="bg-white border border-slate-200/80 rounded-[32px] p-8 shadow-sm space-y-6 animate-in fade-in duration-200">
+                    <div className="text-center max-w-md mx-auto space-y-2 py-4">
+                      <TrendingUp className="mx-auto text-blue-600" size={32} />
+                      <h2 className="text-xl font-black text-slate-900">Meme Markets Trading Desk</h2>
+                      <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                        Select an active token from the live markets index below to open live charts, view transactions history, and place trades instantly.
+                      </p>
+                    </div>
+                    <div className="h-[550px]">
+                      <Leaderboard onSelectToken={handleSelectToken} />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* SOCIAL PAY TAB VIEW */}
+            {currentView === 'social-pay' && (
+              <div className="animate-in fade-in duration-200">
+                <SocialPay />
               </div>
             )}
 
+            {/* LEADERBOARD TAB VIEW */}
+            {currentView === 'leaderboard' && (
+              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
+                <Leaderboard onSelectToken={handleSelectToken} />
+              </div>
+            )}
+
+            {/* AFFILIATES TAB VIEW */}
             {currentView === 'affiliates' && (
-              <AffiliatesView />
+              <div className="animate-in fade-in duration-200">
+                <AffiliatesView />
+              </div>
+            )}
+
+            {/* EARN TAB VIEW (TEASER ONLY) */}
+            {currentView === 'earn' && (
+              <div className="bg-white border border-slate-200/80 rounded-[32px] p-8 shadow-sm text-center max-w-xl mx-auto space-y-6 animate-in fade-in duration-200 py-12">
+                <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto animate-bounce">
+                  <Coins size={32} />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-black text-slate-900 flex items-center justify-center gap-2">
+                    Earn Points Program
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-200/50 animate-pulse">Soon</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                    Earn yields, multiply your ARCL points allocations, and unlock VIP privileges. The referral and points-staking protocol is launching soon on Arc Chain.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 text-left pt-4">
+                  <div className="border border-slate-100 p-4.5 bg-slate-50/50 rounded-2xl">
+                    <span className="text-lg block mb-1">🤝</span>
+                    <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Referral Bonanza</h4>
+                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">Invite friends and earn 10% of all points they accumulate forever.</p>
+                  </div>
+                  <div className="border border-slate-100 p-4.5 bg-slate-50/50 rounded-2xl">
+                    <span className="text-lg block mb-1">🔥</span>
+                    <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Streaks Boost</h4>
+                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">Keep check-in streaks to earn up to 2.5x multiplier on trading points.</p>
+                  </div>
+                  <div className="border border-slate-100 p-4.5 bg-slate-50/50 rounded-2xl">
+                    <span className="text-lg block mb-1">💎</span>
+                    <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Staking Rewards</h4>
+                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">Stake ARCL points or locks to earn direct USDC gas rebates.</p>
+                  </div>
+                </div>
+              </div>
             )}
           </main>
         </div>
