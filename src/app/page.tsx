@@ -50,16 +50,124 @@ export default function Home() {
   const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'bridge'>('launcher');
   const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
-  // Daily Locks State
+  // Daily Locks State (V2 Upgraded)
   const [lockerTab, setLockerTab] = useState<'lock' | 'my_locks'>('lock');
   const [isLockerOpen, setIsLockerOpen] = useState(false);
-  const [lockAssetType, setLockAssetType] = useState<'USDC' | 'TOKEN'>('USDC');
+  const [lockAssetType, setLockAssetType] = useState<'USDC' | 'EURC' | 'PLATFORM_TOKEN' | 'CUSTOM_ERC20'>('USDC');
   const [lockAddress, setLockAddress] = useState('');
   const [lockTicker, setLockTicker] = useState('');
+  const [lockCustomPrice, setLockCustomPrice] = useState('1.00'); // Custom token worth custom price
   const [lockAmount, setLockAmount] = useState('');
   const [myLocks, setMyLocks] = useState<any[]>([]);
   const [totalLockedUSD, setTotalLockedUSD] = useState(0); // Real locked value only (no base!)
   const [tokensList, setTokensList] = useState<any[]>([]);
+  const [tokenBalance, setTokenBalance] = useState<number>(1000.00);
+  const [isFetchingWorth, setIsFetchingWorth] = useState(false);
+  const [estimatedWorthUSD, setEstimatedWorthUSD] = useState<number>(0);
+
+  // Dynamic balance fetcher for the selected asset (handles both simulated localStorage and chain fallbacks)
+  const fetchTokenBalance = async () => {
+    if (!userAddress) {
+      setTokenBalance(0);
+      return;
+    }
+    const wallet = userAddress.toLowerCase();
+    try {
+      if (lockAssetType === 'USDC') {
+        const stored = localStorage.getItem(`sim_usdc_${wallet}`);
+        setTokenBalance(stored ? Number(stored) : 1000.00);
+      } else if (lockAssetType === 'EURC') {
+        const stored = localStorage.getItem(`sim_eurc_${wallet}`);
+        setTokenBalance(stored ? Number(stored) : 1000.00);
+      } else if (lockAssetType === 'PLATFORM_TOKEN' && lockAddress) {
+        const stored = localStorage.getItem(`sim_${lockTicker.toLowerCase()}_${wallet}`);
+        setTokenBalance(stored ? Number(stored) : 0.00);
+      } else if (lockAssetType === 'CUSTOM_ERC20' && lockAddress) {
+        const stored = localStorage.getItem(`sim_${(lockTicker || 'custom').toLowerCase()}_${wallet}`);
+        setTokenBalance(stored ? Number(stored) : 500.00); // Give a healthy default for simulation
+      } else {
+        setTokenBalance(0);
+      }
+    } catch (err) {
+      console.error("Error fetching token balance:", err);
+      setTokenBalance(0);
+    }
+  };
+
+  // Re-fetch balance when user, type or address changes
+  useEffect(() => {
+    fetchTokenBalance();
+  }, [userAddress, lockAssetType, lockAddress, lockTicker, isLockerOpen]);
+
+  // Sync token balance on storage events reactively
+  useEffect(() => {
+    const handleStorageChange = () => {
+      fetchTokenBalance();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [userAddress, lockAssetType, lockAddress, lockTicker]);
+
+  // Dynamic worth calculator in USD
+  useEffect(() => {
+    const calcWorth = async () => {
+      const amt = Number(lockAmount);
+      if (!amt || amt <= 0) {
+        setEstimatedWorthUSD(0);
+        return;
+      }
+
+      setIsFetchingWorth(true);
+      try {
+        if (lockAssetType === 'USDC') {
+          setEstimatedWorthUSD(amt);
+        } else if (lockAssetType === 'EURC') {
+          setEstimatedWorthUSD(amt * 1.09); // Pegged roughly at 1 EURC = 1.09 USD
+        } else if (lockAssetType === 'PLATFORM_TOKEN' && lockAddress) {
+          // Calculate using active bonding curve
+          const VIRTUAL_USDC = 100;
+          const VIRTUAL_TOKENS = VIRTUAL_USDC / 0.01;
+          let currentUSDC = VIRTUAL_USDC;
+          let currentTokens = VIRTUAL_TOKENS;
+
+          const { data: swaps } = await supabase
+            .from('token_swaps')
+            .select('usdc_amount, token_amount, is_buy')
+            .eq('token_address', lockAddress.toLowerCase());
+
+          swaps?.forEach(s => {
+            if (s.is_buy) {
+              currentUSDC += Number(s.usdc_amount);
+              currentTokens -= Number(s.token_amount);
+            } else {
+              currentUSDC -= Number(s.usdc_amount);
+              currentTokens += Number(s.token_amount);
+            }
+          });
+
+          if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
+          if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
+
+          const price = currentUSDC / currentTokens;
+          setEstimatedWorthUSD(amt * price);
+        } else if (lockAssetType === 'CUSTOM_ERC20') {
+          const customPrice = Number(lockCustomPrice) || 1.00;
+          setEstimatedWorthUSD(amt * customPrice);
+        } else {
+          setEstimatedWorthUSD(amt);
+        }
+      } catch (err) {
+        console.error("Error calculating worth:", err);
+        setEstimatedWorthUSD(amt);
+      } finally {
+        setIsFetchingWorth(false);
+      }
+    };
+
+    calcWorth();
+  }, [lockAmount, lockAssetType, lockAddress, lockCustomPrice, lockTicker]);
 
   // Fetch locks
   const fetchLocks = async () => {
@@ -86,8 +194,12 @@ export default function Home() {
         let worth = Number(l.amount);
         if (l.usdc_worth != null) {
            worth = Number(l.usdc_worth);
-        } else if (l.asset_type === 'TOKEN') {
-           worth = Number(l.amount) * 0.01; // fallback
+        } else if (l.asset_type === 'USDC') {
+           worth = Number(l.amount);
+        } else if (l.asset_type === 'EURC') {
+           worth = Number(l.amount) * 1.09;
+        } else if (l.asset_type === 'PLATFORM_TOKEN' || l.asset_type === 'TOKEN') {
+           worth = Number(l.amount) * 0.01; // default fallback
         }
         return acc + worth;
       }, 0);
@@ -112,6 +224,13 @@ export default function Home() {
   };
 
   useEffect(() => {
+    // Clear previous lock data to start fresh on Version 2 upgrade!
+    const hasUpgraded = localStorage.getItem('arclauncher_locks_v2_upgraded');
+    if (!hasUpgraded) {
+      localStorage.removeItem('arclauncher_locks');
+      localStorage.setItem('arclauncher_locks_v2_upgraded', 'true');
+    }
+
     fetchLocks();
     fetchTokensList();
 
@@ -124,53 +243,66 @@ export default function Home() {
       window.removeEventListener('open-locker', handleOpenLocker);
     };
   }, [isConnected, userAddress]);
-
   const handleCreateLock = async () => {
-    if (!isConnected || !userAddress) return;
-    if (!lockAmount || Number(lockAmount) <= 0) {
+    if (!isConnected || !userAddress) {
+      await triggerAlert("CONNECT WALLET", "Please connect your wallet first!", "info");
+      return;
+    }
+    const amt = Number(lockAmount);
+    if (!lockAmount || amt <= 0) {
       await triggerAlert("INVALID AMOUNT", "Please enter a valid amount to lock.", "error");
       return;
     }
 
+    // Check balance first
+    if (amt > tokenBalance) {
+      await triggerAlert("INSUFFICIENT BALANCE", `You do not have enough balance to lock. Available: ${tokenBalance} ${lockAssetType === 'USDC' ? 'USDC' : lockAssetType === 'EURC' ? 'EURC' : lockTicker || 'TOKEN'}`, "error");
+      return;
+    }
+
     try {
-      // 1. Calculate USDC Worth dynamically if it's a TOKEN
-      let usdcWorth = Number(lockAmount);
-      
-      if (lockAssetType === 'TOKEN' && lockAddress) {
-        const VIRTUAL_USDC = 100;
-        const VIRTUAL_TOKENS = VIRTUAL_USDC / 0.01;
-        let currentUSDC = VIRTUAL_USDC;
-        let currentTokens = VIRTUAL_TOKENS;
+      // 1. Determine Decimals & Contract Address & Ticker
+      let decimals = 18;
+      let tokenContractAddress = '';
+      let activeTicker = 'TOKEN';
 
-        const { data: swaps } = await supabase
-          .from('token_swaps')
-          .select('usdc_amount, token_amount, is_buy')
-          .eq('token_address', lockAddress.toLowerCase());
-
-        swaps?.forEach(s => {
-          if (s.is_buy) {
-            currentUSDC += Number(s.usdc_amount);
-            currentTokens -= Number(s.token_amount);
-          } else {
-            currentUSDC -= Number(s.usdc_amount);
-            currentTokens += Number(s.token_amount);
-          }
-        });
-
-        if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
-        if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
-
-        const price = currentUSDC / currentTokens;
-        usdcWorth = Number(lockAmount) * price;
+      if (lockAssetType === 'USDC') {
+        decimals = 6;
+        tokenContractAddress = '0x3600000000000000000000000000000000000000';
+        activeTicker = 'USDC';
+      } else if (lockAssetType === 'EURC') {
+        decimals = 6;
+        tokenContractAddress = '0xeC00000000000000000000000000000000000000';
+        activeTicker = 'EURC';
+      } else if (lockAssetType === 'PLATFORM_TOKEN') {
+        decimals = 18;
+        tokenContractAddress = lockAddress;
+        activeTicker = (lockTicker || 'MEME').toUpperCase();
+      } else if (lockAssetType === 'CUSTOM_ERC20') {
+        decimals = 18;
+        tokenContractAddress = lockAddress;
+        activeTicker = (lockTicker || 'CUSTOM').toUpperCase();
       }
 
-      // 2. Perform on-chain proper transaction (transfer to Admin / Locker Address)
-      const adminAddress = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
-      const decimals = lockAssetType === 'USDC' ? 6 : 18;
-      const amountWei = parseUnits(lockAmount, decimals);
-      const tokenContractAddress = lockAssetType === 'USDC' ? '0x3600000000000000000000000000000000000000' : lockAddress;
+      if ((lockAssetType === 'PLATFORM_TOKEN' || lockAssetType === 'CUSTOM_ERC20') && !tokenContractAddress) {
+        await triggerAlert("MISSING ADDRESS", "Please select or provide a token contract address.", "error");
+        return;
+      }
 
-      await triggerAlert("INITIATING LOCK", "Please confirm the transaction in your wallet to lock assets.", "info");
+      // 2. Estimate Worth
+      let finalWorth = estimatedWorthUSD;
+      if (finalWorth <= 0) {
+        if (lockAssetType === 'USDC') finalWorth = amt;
+        else if (lockAssetType === 'EURC') finalWorth = amt * 1.09;
+        else if (lockAssetType === 'CUSTOM_ERC20') finalWorth = amt * (Number(lockCustomPrice) || 1.00);
+        else finalWorth = amt * 0.01;
+      }
+
+      // 3. Perform on-chain transaction (Direct ERC-20 transfer to Treasury Address)
+      const adminAddress = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
+      const amountWei = parseUnits(lockAmount, decimals);
+
+      await triggerAlert("INITIATING LOCK", `Please confirm the wallet transaction to lock ${lockAmount} ${activeTicker} (worth ~$${finalWorth.toFixed(2)} USD).`, "info");
 
       const txHash = await writeContractAsync({
         address: tokenContractAddress as `0x${string}`,
@@ -183,19 +315,41 @@ export default function Home() {
         await publicClient.waitForTransactionReceipt({ hash: txHash });
       }
 
-      // 3. Save Lock record
+      // 4. Sandbox simulated balance deduction in local storage!
+      const walletKey = userAddress.toLowerCase();
+      if (lockAssetType === 'USDC') {
+        const stored = localStorage.getItem(`sim_usdc_${walletKey}`);
+        const current = stored ? Number(stored) : 1000.00;
+        localStorage.setItem(`sim_usdc_${walletKey}`, Math.max(0, current - amt).toFixed(2));
+      } else if (lockAssetType === 'EURC') {
+        const stored = localStorage.getItem(`sim_eurc_${walletKey}`);
+        const current = stored ? Number(stored) : 1000.00;
+        localStorage.setItem(`sim_eurc_${walletKey}`, Math.max(0, current - amt).toFixed(2));
+      } else if (lockAssetType === 'PLATFORM_TOKEN' || lockAssetType === 'CUSTOM_ERC20') {
+        const key = `sim_${activeTicker.toLowerCase()}_${walletKey}`;
+        const stored = localStorage.getItem(key);
+        const current = stored ? Number(stored) : 0;
+        if (stored) {
+          localStorage.setItem(key, Math.max(0, current - amt).toString());
+        }
+      }
+
+      // Dispatch event to update the other UI panels reactively
+      window.dispatchEvent(new Event('storage'));
+
+      // 5. Save Lock record
       const now = new Date();
       const unlockDate = new Date();
       unlockDate.setMonth(unlockDate.getMonth() + 1); // 1 Month locking!
 
       const newLock = {
         id: 'lock-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-        wallet: userAddress.toLowerCase(),
+        wallet: walletKey,
         asset_type: lockAssetType,
-        token_address: lockAssetType === 'TOKEN' ? lockAddress : null,
-        token_ticker: lockAssetType === 'TOKEN' ? (lockTicker || 'TOKEN').toUpperCase() : 'USDC',
-        amount: Number(lockAmount),
-        usdc_worth: usdcWorth,
+        token_address: tokenContractAddress || null,
+        token_ticker: activeTicker,
+        amount: amt,
+        usdc_worth: finalWorth,
         locked_at: now.toISOString(),
         unlock_at: unlockDate.toISOString(),
         is_withdrawn: false
@@ -214,13 +368,15 @@ export default function Home() {
         localStorage.setItem('arclauncher_locks', JSON.stringify(list));
       }
 
-      await triggerAlert("ASSET LOCKED", `Successfully locked ${lockAmount} ${newLock.token_ticker} for 1 Month (30 Days)!`, "success");
+      await triggerAlert("ASSET LOCKED", `Successfully locked ${lockAmount} ${activeTicker} (Worth ~$${finalWorth.toFixed(2)} USD) for 30 Days!`, "success");
       
       // Reset form
       setLockAmount('');
       setLockAddress('');
       setLockTicker('');
+      setLockCustomPrice('1.00');
       fetchLocks();
+      fetchTokenBalance();
       setLockerTab('my_locks');
     } catch (err: any) {
       console.error(err);
@@ -230,6 +386,32 @@ export default function Home() {
 
   const handleUnlockAsset = async (lockId: string) => {
     try {
+      // Find the lock first to know details
+      let targetLock: any = null;
+      try {
+        const { data } = await supabase
+          .from('liquidity_locks')
+          .select('*')
+          .eq('id', lockId);
+        if (data && data.length > 0) {
+          targetLock = data[0];
+        }
+      } catch (dbErr) {}
+
+      if (!targetLock) {
+        const local = localStorage.getItem('arclauncher_locks');
+        if (local) {
+          const list = JSON.parse(local);
+          targetLock = list.find((l: any) => l.id === lockId);
+        }
+      }
+
+      if (!targetLock) {
+        await triggerAlert("LOCK NOT FOUND", "Could not locate this locked asset record.", "error");
+        return;
+      }
+
+      // Update Database/Local Storage state to withdrawn
       try {
         const { error } = await supabase
           .from('liquidity_locks')
@@ -249,8 +431,33 @@ export default function Home() {
         }
       }
 
-      await triggerAlert("ASSET UNLOCKED", "Your locked asset and liquidity have been successfully unlocked and withdrawn!", "success");
+      // Refund Sandbox balance in local storage
+      const walletKey = userAddress?.toLowerCase() || '';
+      const amt = Number(targetLock.amount);
+      const asset = targetLock.asset_type;
+      const ticker = targetLock.token_ticker;
+
+      if (walletKey) {
+        if (asset === 'USDC') {
+          const stored = localStorage.getItem(`sim_usdc_${walletKey}`);
+          const current = stored ? Number(stored) : 1000.00;
+          localStorage.setItem(`sim_usdc_${walletKey}`, (current + amt).toFixed(2));
+        } else if (asset === 'EURC') {
+          const stored = localStorage.getItem(`sim_eurc_${walletKey}`);
+          const current = stored ? Number(stored) : 1000.00;
+          localStorage.setItem(`sim_eurc_${walletKey}`, (current + amt).toFixed(2));
+        } else {
+          const key = `sim_${ticker.toLowerCase()}_${walletKey}`;
+          const stored = localStorage.getItem(key);
+          const current = stored ? Number(stored) : 0;
+          localStorage.setItem(key, (current + amt).toString());
+        }
+        window.dispatchEvent(new Event('storage'));
+      }
+
+      await triggerAlert("ASSET UNLOCKED", `Your locked ${amt} ${ticker} has been unlocked and credited back to your account!`, "success");
       fetchLocks();
+      fetchTokenBalance();
     } catch (err: any) {
       await triggerAlert("UNLOCK ERROR", err.message, "error");
     }
@@ -915,22 +1122,19 @@ export default function Home() {
             >
               Start Trading Now <ArrowRight size={13} />
             </button>
-          </div>
-        </div>
-      )}
-      {/* Premium Liquidity Locker Modal */}
+              {/* Premium Liquidity Locker Modal (Version 2 Upgraded) */}
       {isLockerOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/40 transition-all duration-200 animate-in fade-in">
           <div className="bg-slate-950/95 border border-slate-800 shadow-2xl rounded-[32px] p-6 max-w-lg w-full space-y-6 transform transition-all scale-100 animate-in zoom-in-95 duration-200 text-slate-100">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-blue-600/10 text-blue-400 shadow-lg shadow-blue-500/10 border border-blue-500/20">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-blue-600/10 text-blue-400 shadow-lg shadow-blue-500/10 border border-blue-500/20 animate-pulse">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black tracking-wider text-white uppercase">Liquidity Locker</h3>
-                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Lock and claim USDC & Tokens</p>
+                  <h3 className="text-sm font-black tracking-wider text-white uppercase">Liquidity Locker V2</h3>
+                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Lock and claim USDC, EURC, & Tokens</p>
                 </div>
               </div>
               <button 
@@ -989,42 +1193,55 @@ export default function Home() {
               <div className="space-y-4">
                 {/* Asset Type Selector */}
                 <div className="space-y-1.5">
-                  <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Asset to Lock</span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setLockAssetType('USDC')}
-                      className={`py-3 rounded-2xl font-bold text-xs transition-all border cursor-pointer ${
-                        lockAssetType === 'USDC' 
-                          ? 'border-blue-500 bg-blue-950/40 text-blue-400' 
-                          : 'border-slate-800 bg-slate-900/40 text-slate-400 hover:bg-slate-900'
-                      }`}
-                    >
-                      USDC Liquidity
-                    </button>
-                    <button
-                      onClick={() => setLockAssetType('TOKEN')}
-                      className={`py-3 rounded-2xl font-bold text-xs transition-all border cursor-pointer ${
-                        lockAssetType === 'TOKEN' 
-                          ? 'border-blue-500 bg-blue-950/40 text-blue-400' 
-                          : 'border-slate-800 bg-slate-900/40 text-slate-400 hover:bg-slate-900'
-                      }`}
-                    >
-                      Meme Token
-                    </button>
+                  <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Select Asset to Lock</span>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { type: 'USDC', label: 'USDC', desc: '$1.00 USD' },
+                      { type: 'EURC', label: 'EURC', desc: '$1.09 USD' },
+                      { type: 'PLATFORM_TOKEN', label: 'Meme Coin', desc: 'Bond Curve' },
+                      { type: 'CUSTOM_ERC20', label: 'Custom', desc: 'ERC20' },
+                    ].map((item) => (
+                      <button
+                        key={item.type}
+                        type="button"
+                        onClick={() => {
+                          setLockAssetType(item.type as any);
+                          if (item.type === 'USDC') {
+                            setLockAddress('0x3600000000000000000000000000000000000000');
+                            setLockTicker('USDC');
+                          } else if (item.type === 'EURC') {
+                            setLockAddress('0xeC00000000000000000000000000000000000000');
+                            setLockTicker('EURC');
+                          } else {
+                            setLockAddress('');
+                            setLockTicker('');
+                          }
+                        }}
+                        className={`py-2 px-1 rounded-xl font-black text-[10px] transition-all border cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                          lockAssetType === item.type
+                            ? 'border-blue-500 bg-blue-950/40 text-blue-400' 
+                            : 'border-slate-800 bg-slate-900/40 text-slate-400 hover:bg-slate-900/70'
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        <span className="text-[7.5px] font-mono text-slate-500 font-bold">{item.desc}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Dynamic Selection for Launched Tokens (Wallet / platform mimic) */}
-                {lockAssetType === 'TOKEN' && (
+                {/* Dynamic Selection for Launched Platform Meme Tokens */}
+                {lockAssetType === 'PLATFORM_TOKEN' && (
                   <div className="space-y-1.5">
-                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Select Platform Token to Lock</span>
-                    <div className="grid grid-cols-3 gap-2 max-h-[105px] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl p-2 pr-1">
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Select Launched Meme Token</span>
+                    <div className="grid grid-cols-3 gap-2 max-h-[90px] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl p-2 pr-1">
                       {tokensList.length === 0 ? (
-                        <p className="text-[9px] text-slate-500 col-span-3 text-center py-2">No active platform tokens found.</p>
+                        <p className="text-[9px] text-slate-500 col-span-3 text-center py-2">No active tokens launched yet.</p>
                       ) : (
                         tokensList.map((tok: any) => (
                           <button
                             key={tok.id}
+                            type="button"
                             onClick={() => {
                               setLockAddress(tok.token_address);
                               setLockTicker(tok.ticker);
@@ -1044,64 +1261,99 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Token details inputs if asset is TOKEN */}
-                <div className="space-y-3.5">
-                  {lockAssetType === 'TOKEN' && (
+                {/* Custom Token Details Inputs */}
+                {lockAssetType === 'CUSTOM_ERC20' && (
+                  <div className="space-y-3 p-3 bg-slate-900/50 border border-slate-800 rounded-2xl animate-in slide-in-from-top-2 duration-150">
+                    <div className="space-y-1">
+                      <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Contract Address</span>
+                      <input
+                        type="text"
+                        value={lockAddress}
+                        onChange={(e) => setLockAddress(e.target.value)}
+                        placeholder="0x..."
+                        className="w-full bg-slate-955 border border-slate-800 text-white placeholder-slate-700 rounded-xl p-2.5 text-xs font-mono outline-none focus:border-blue-500"
+                      />
+                    </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Token Address</span>
-                        <input
-                          type="text"
-                          value={lockAddress}
-                          onChange={(e) => setLockAddress(e.target.value)}
-                          placeholder="0x..."
-                          className="w-full bg-slate-900 border border-slate-800 text-white placeholder-slate-600 rounded-2xl p-3.5 text-xs font-mono outline-none focus:border-blue-500 focus:bg-slate-950"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Token Ticker</span>
+                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Ticker Symbol</span>
                         <input
                           type="text"
                           value={lockTicker}
                           onChange={(e) => setLockTicker(e.target.value)}
-                          placeholder="e.g. BTC"
-                          className="w-full bg-slate-900 border border-slate-800 text-white placeholder-slate-600 rounded-2xl p-3.5 text-xs font-bold outline-none focus:border-blue-500 focus:bg-slate-950 uppercase"
+                          placeholder="e.g. LINK"
+                          className="w-full bg-slate-955 border border-slate-800 text-white placeholder-slate-700 rounded-xl p-2.5 text-xs font-black outline-none focus:border-blue-500 uppercase"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">USD Price Estimate ($)</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={lockCustomPrice}
+                          onChange={(e) => setLockCustomPrice(e.target.value)}
+                          placeholder="1.00"
+                          className="w-full bg-slate-955 border border-slate-800 text-white placeholder-slate-700 rounded-xl p-2.5 text-xs font-bold outline-none focus:border-blue-500"
                         />
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Amount to Lock */}
-                  <div className="space-y-1">
-                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">
-                      {lockAssetType === 'USDC' ? 'USDC Amount' : 'Token Amount'}
+                {/* Amount Input */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[8px] font-black text-slate-500 uppercase tracking-widest">
+                    <span>Amount to Lock</span>
+                    <span className="flex items-center gap-1">
+                      Available: <span className="text-slate-350 font-bold">{tokenBalance.toFixed(2)} {lockTicker || 'TOKENS'}</span>
                     </span>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={lockAmount}
-                        onChange={(e) => setLockAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="w-full bg-slate-900 border border-slate-800 text-white placeholder-slate-600 rounded-2xl p-3.5 pr-12 text-xs font-extrabold outline-none focus:border-blue-500 focus:bg-slate-950"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-500">
-                        {lockAssetType === 'USDC' ? 'USDC' : lockTicker || 'TOKENS'}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={lockAmount}
+                      onChange={(e) => setLockAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full bg-slate-900 border border-slate-800 text-white placeholder-slate-650 rounded-2xl p-4.5 pr-20 text-sm font-extrabold outline-none focus:border-blue-500 focus:bg-slate-950"
+                    />
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setLockAmount(tokenBalance.toString())}
+                        className="text-[8.5px] uppercase font-black px-2 py-1 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/50 cursor-pointer shadow-sm"
+                      >
+                        Max
+                      </button>
+                      <span className="text-[10px] font-black text-slate-400 tracking-wider">
+                        {lockTicker || 'TOKEN'}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Worth Display */}
+                  <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-3 flex justify-between items-center text-[10px] font-bold">
+                    <span className="text-slate-500">Estimated Worth (USD):</span>
+                    <span className="text-emerald-400 font-mono font-black flex items-center gap-1.5">
+                      {isFetchingWorth ? (
+                        <span className="w-2.5 h-2.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></span>
+                      ) : null}
+                      ${estimatedWorthUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleCreateLock}
-                  disabled={!lockAmount || Number(lockAmount) <= 0 || (lockAssetType === 'TOKEN' && !lockAddress)}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer disabled:opacity-50 active:scale-[0.98]"
+                  disabled={!lockAmount || Number(lockAmount) <= 0 || !lockAddress || Number(lockAmount) > tokenBalance}
+                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10.5px] tracking-widest uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer disabled:opacity-40 active:scale-[0.98] duration-150 flex items-center justify-center gap-1.5"
                 >
-                  Confirm Lock for 30 Days 🔒
+                  🔒 Lock {lockAmount || '0'} {lockTicker || 'Tokens'} for 30 Days
                 </button>
               </div>
             ) : (
               /* MY LOCKS LIST */
-              <div className="space-y-3 max-h-[280px] overflow-auto pr-1">
+              <div className="space-y-3 max-h-[250px] overflow-auto pr-1">
                 {myLocks.length === 0 ? (
                   <div className="text-center py-10 text-slate-500 space-y-1">
                     <p className="text-xs font-bold text-slate-400">No active locks found.</p>
@@ -1123,34 +1375,36 @@ export default function Home() {
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-black text-white">
-                              {lock.amount} {lock.asset_type === 'USDC' ? 'USDC' : lock.token_ticker}
+                              {lock.amount} {lock.token_ticker}
                             </span>
                             <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${
                               lock.is_withdrawn
                                 ? 'bg-slate-800 text-slate-500'
                                 : isUnlockable
-                                ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-900/30'
+                                ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-900/30 animate-pulse'
                                 : 'bg-amber-950/80 text-amber-400 border border-amber-900/30'
                             }`}>
                               {lock.is_withdrawn ? 'Withdrawn' : isUnlockable ? 'Unlockable' : `${remainingDays}d Left`}
                             </span>
                           </div>
-                          <p className="text-[8px] text-slate-500 font-mono">
-                            Locked: {lockedDate.toLocaleDateString()} | Unlocks: {unlockDate.toLocaleDateString()}
-                          </p>
+                          <div className="flex flex-col gap-0.5 text-[8px] text-slate-500 font-mono">
+                            <p>USD Worth: <span className="text-emerald-500 font-bold">${Number(lock.usdc_worth || 0).toFixed(2)}</span></p>
+                            <p>Locked: {lockedDate.toLocaleDateString()} | Unlocks: {unlockDate.toLocaleDateString()}</p>
+                          </div>
                         </div>
 
                         {!lock.is_withdrawn && (
                           <button
+                            type="button"
                             onClick={() => handleUnlockAsset(lock.id)}
                             disabled={!isUnlockable}
                             className={`px-3 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
                               isUnlockable
                                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/20'
-                                : 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700/40'
+                                : 'bg-slate-800 text-slate-650 cursor-not-allowed border border-slate-700/40'
                             }`}
                           >
-                            Unlock 🔓
+                            Withdraw 🔓
                           </button>
                         )}
                       </div>
@@ -1159,6 +1413,9 @@ export default function Home() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
           </div>
         </div>
       )}
