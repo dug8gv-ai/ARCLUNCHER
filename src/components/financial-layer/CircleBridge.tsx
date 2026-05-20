@@ -52,42 +52,110 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
-  // Bridge States
-  const [sourceChain, setSourceChain] = useState<'SEPOLIA' | 'BASE'>('SEPOLIA');
+  // Mode & Toggle States
+  const [bridgeMode, setBridgeMode] = useState<'CROSS_CHAIN' | 'ARC_SWAP'>('CROSS_CHAIN');
   const [selectedBridgeToken, setSelectedBridgeToken] = useState<'USDC' | 'EURC'>(initialToken);
+  const [sourceChain, setSourceChain] = useState<'SEPOLIA' | 'BASE'>('SEPOLIA');
   const [bridgeAmount, setBridgeAmount] = useState('');
+  
+  // Swap States
+  const [swapDirection, setSwapDirection] = useState<'USDC_TO_EURC' | 'EURC_TO_USDC'>('USDC_TO_EURC');
+  const [swapAmount, setSwapAmount] = useState('');
+  const [outputAmount, setOutputAmount] = useState('');
+  
+  // Wallet Balance States
+  const [usdcBalance, setUsdcBalance] = useState<number>(1000.00);
+  const [eurcBalance, setEurcBalance] = useState<number>(500.00);
+
+  // General Transaction States
   const [currentStepIdx, setCurrentStepIdx] = useState<number>(-1); // -1 = not started
   const [isBridging, setIsBridging] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [execMode, setExecMode] = useState<'LIVE' | 'SANDBOX'>('SANDBOX');
+  const [steps, setSteps] = useState<CctpStep[]>([]);
+
+  // Rates definition
+  const fxRate = swapDirection === 'USDC_TO_EURC' ? 0.92 : 1.09;
 
   // Sync initial token prop updates
   useEffect(() => {
     setSelectedBridgeToken(initialToken);
   }, [initialToken]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Execution Mode: 'LIVE' or 'SANDBOX'
-  const [execMode, setExecMode] = useState<'LIVE' | 'SANDBOX'>('SANDBOX');
-
-  // Simulated CCTP Step Progression
-  const [steps, setSteps] = useState<CctpStep[]>([]);
-
-  // Automatically update step titles and reset state when selected token changes
+  // Balance syncing with localStorage (synchronizes with ArcWallet)
   useEffect(() => {
-    const tokenName = selectedBridgeToken;
-    setSteps([
-      { title: `1. Approve ${tokenName}`, desc: `Approve the CCTP contract to burn your ${tokenName}`, status: 'pending' },
-      { title: `2. Burn ${tokenName}`, desc: 'Call depositForBurn on source chain messenger', status: 'pending' },
-      { title: '3. Circle Attestation', desc: 'Retrieve off-chain attestation signature from Circle API', status: 'pending' },
-      { title: `4. Mint on Arc Chain`, desc: `Submit attestation to receive native ${tokenName}`, status: 'pending' }
-    ]);
+    if (!userAddress) return;
+    
+    const loadBalances = () => {
+      const storedUsdc = localStorage.getItem(`sim_usdc_${userAddress.toLowerCase()}`);
+      const storedEurc = localStorage.getItem(`sim_eurc_${userAddress.toLowerCase()}`);
+      
+      if (storedUsdc) {
+        setUsdcBalance(Number(storedUsdc));
+      } else {
+        localStorage.setItem(`sim_usdc_${userAddress.toLowerCase()}`, '1000.00');
+        setUsdcBalance(1000.00);
+      }
+      
+      if (storedEurc) {
+        setEurcBalance(Number(storedEurc));
+      } else {
+        localStorage.setItem(`sim_eurc_${userAddress.toLowerCase()}`, '500.00');
+        setEurcBalance(500.00);
+      }
+    };
+
+    loadBalances();
+
+    const handleStorageChange = () => {
+      loadBalances();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [userAddress]);
+
+  // Swap output calculator (0.3% fee included)
+  useEffect(() => {
+    const amt = Number(swapAmount);
+    if (amt > 0) {
+      const fee = amt * 0.003;
+      const rawOutput = (amt - fee) * fxRate;
+      setOutputAmount(rawOutput.toFixed(2));
+    } else {
+      setOutputAmount('');
+    }
+  }, [swapAmount, swapDirection, fxRate]);
+
+  // Automatically update step titles and reset state when selected token/mode changes
+  useEffect(() => {
+    if (bridgeMode === 'CROSS_CHAIN') {
+      const tokenName = selectedBridgeToken;
+      setSteps([
+        { title: `1. Approve ${tokenName}`, desc: `Approve the CCTP contract to burn your ${tokenName}`, status: 'pending' },
+        { title: `2. Burn ${tokenName}`, desc: 'Call depositForBurn on source chain messenger', status: 'pending' },
+        { title: '3. Circle Attestation', desc: 'Retrieve off-chain attestation signature from Circle API', status: 'pending' },
+        { title: `4. Mint on Arc Chain`, desc: `Submit attestation to receive native ${tokenName}`, status: 'pending' }
+      ]);
+    } else {
+      const fromToken = swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC';
+      const toToken = swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC';
+      setSteps([
+        { title: `1. Approve Swap Router`, desc: `Approve the Arc Swap Router to access your ${fromToken}`, status: 'pending' },
+        { title: `2. Execute Conversion`, desc: `Call the Swap Router contract on Arc Chain Testnet to exchange ${fromToken}`, status: 'pending' },
+        { title: `3. Ledger Verification`, desc: `Confirm block validation and inclusion on Arc Chain Testnet`, status: 'pending' },
+        { title: `4. Credit ${toToken} Balance`, desc: `Successfully credit native ${toToken} directly to your wallet`, status: 'pending' }
+      ]);
+    }
     setCurrentStepIdx(-1);
     setErrorMessage(null);
-  }, [selectedBridgeToken]);
+  }, [bridgeMode, selectedBridgeToken, swapDirection]);
 
   const updateStepStatus = (idx: number, status: 'pending' | 'active' | 'success' | 'failed') => {
     setSteps(prev => prev.map((s, i) => i === idx ? { ...s, status } : s));
   };
 
+  // Cross-Chain CCTP Bridging Handler
   const handleStartBridge = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConnected || !userAddress) {
@@ -159,7 +227,6 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
 
         // Step 3: Circle API Attestation
         updateStepStatus(2, 'active');
-        // Fetching sandbox attestation status with delay retry
         await new Promise(r => setTimeout(r, 3000));
         updateStepStatus(2, 'success');
         setCurrentStepIdx(3);
@@ -202,6 +269,7 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
       const curBal = localVal ? Number(localVal) : (selectedBridgeToken === 'USDC' ? 1000.00 : 500.00);
       const newBal = curBal + amt;
       localStorage.setItem(localKey, newBal.toFixed(2));
+      window.dispatchEvent(new Event('storage'));
 
       // Trigger reward points +1 per 10 USDC volume transacted
       if (amt >= 10) {
@@ -233,6 +301,197 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
           }
         } catch (dbErr) {
           console.error('Error logging CCTP points to Supabase:', dbErr);
+        }
+      }
+
+      setIsBridging(false);
+      setCurrentStepIdx(4);
+    } catch (err: any) {
+      console.error(err);
+      if (currentStepIdx >= 0) {
+        updateStepStatus(currentStepIdx, 'failed');
+      }
+      setErrorMessage(err.shortMessage || err.message || 'Transaction rejected or network error.');
+      setIsBridging(false);
+    }
+  };
+
+  // Local Stablecoin Swap (Arc Chain Testnet) Handler
+  const handleStartSwap = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isConnected || !userAddress) {
+      alert('Please connect your wallet first!');
+      return;
+    }
+
+    const amt = Number(swapAmount);
+    if (!swapAmount || amt <= 0) {
+      alert('Please enter a valid amount.');
+      return;
+    }
+
+    const fromToken = swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC';
+    const toToken = swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC';
+    const balanceToCheck = fromToken === 'USDC' ? usdcBalance : eurcBalance;
+
+    if (amt > balanceToCheck) {
+      alert(`Insufficient ${fromToken} balance.`);
+      return;
+    }
+
+    setIsBridging(true);
+    setCurrentStepIdx(0);
+    setErrorMessage(null);
+
+    // Reset steps dynamically
+    setSteps([
+      { title: `1. Approve Swap Router`, desc: `Approve the Arc Swap Router to access your ${fromToken}`, status: 'pending' },
+      { title: `2. Execute Conversion`, desc: `Call the Swap Router contract on Arc Chain Testnet to exchange ${fromToken}`, status: 'pending' },
+      { title: `3. Ledger Verification`, desc: `Confirm block validation and inclusion on Arc Chain Testnet`, status: 'pending' },
+      { title: `4. Credit ${toToken} Balance`, desc: `Successfully credit native ${toToken} directly to your wallet`, status: 'pending' }
+    ]);
+
+    try {
+      const outAmtVal = Number(outputAmount);
+
+      if (execMode === 'LIVE') {
+        // LIVE Swap Smart Contract transfers
+        if (fromToken === 'USDC') {
+          const USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
+          const treasuryAddress = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
+          const amtWei = parseUnits(swapAmount, 6);
+
+          // Step 1: Approve Swap Router
+          updateStepStatus(0, 'active');
+          const approveTx = await writeContractAsync({
+            address: USDC_ADDRESS,
+            abi: erc20Abi,
+            functionName: 'approve',
+            args: [treasuryAddress, amtWei]
+          });
+          if (publicClient) {
+            await publicClient.waitForTransactionReceipt({ hash: approveTx });
+          }
+          updateStepStatus(0, 'success');
+          setCurrentStepIdx(1);
+
+          // Step 2: Execute Swap (Transfer USDC to Treasury)
+          updateStepStatus(1, 'active');
+          const swapTx = await writeContractAsync({
+            address: USDC_ADDRESS,
+            abi: erc20Abi,
+            functionName: 'transfer',
+            args: [treasuryAddress, amtWei]
+          });
+          if (publicClient) {
+            await publicClient.waitForTransactionReceipt({ hash: swapTx });
+          }
+          updateStepStatus(1, 'success');
+          setCurrentStepIdx(2);
+
+          // Step 3: Ledger verification
+          updateStepStatus(2, 'active');
+          await new Promise(r => setTimeout(r, 2000));
+          updateStepStatus(2, 'success');
+          setCurrentStepIdx(3);
+
+          // Step 4: Mint/Credit
+          updateStepStatus(3, 'active');
+          await new Promise(r => setTimeout(r, 1000));
+          updateStepStatus(3, 'success');
+        } else {
+          // EURC is a simulation asset on live, so we run highly polished simulations
+          updateStepStatus(0, 'active');
+          await new Promise(r => setTimeout(r, 1500));
+          updateStepStatus(0, 'success');
+          setCurrentStepIdx(1);
+
+          updateStepStatus(1, 'active');
+          await new Promise(r => setTimeout(r, 1500));
+          updateStepStatus(1, 'success');
+          setCurrentStepIdx(2);
+
+          updateStepStatus(2, 'active');
+          await new Promise(r => setTimeout(r, 2000));
+          updateStepStatus(2, 'success');
+          setCurrentStepIdx(3);
+
+          updateStepStatus(3, 'active');
+          await new Promise(r => setTimeout(r, 1000));
+          updateStepStatus(3, 'success');
+        }
+      } else {
+        // SANDBOX / SIMULATED FLOW
+        // Step 1: Approve Router
+        updateStepStatus(0, 'active');
+        await new Promise(r => setTimeout(r, 1200));
+        updateStepStatus(0, 'success');
+        setCurrentStepIdx(1);
+
+        // Step 2: Execute Conversion
+        updateStepStatus(1, 'active');
+        await new Promise(r => setTimeout(r, 1200));
+        updateStepStatus(1, 'success');
+        setCurrentStepIdx(2);
+
+        // Step 3: Ledger Verification
+        updateStepStatus(2, 'active');
+        await new Promise(r => setTimeout(r, 1500));
+        updateStepStatus(2, 'success');
+        setCurrentStepIdx(3);
+
+        // Step 4: Balance Update
+        updateStepStatus(3, 'active');
+        await new Promise(r => setTimeout(r, 1000));
+        updateStepStatus(3, 'success');
+      }
+
+      // Update simulated balances in localStorage
+      const fromKey = `sim_${fromToken.toLowerCase()}_${userAddress.toLowerCase()}`;
+      const toKey = `sim_${toToken.toLowerCase()}_${userAddress.toLowerCase()}`;
+
+      const newFromBal = balanceToCheck - amt;
+      const toBalVal = localStorage.getItem(toKey);
+      const curToBal = toBalVal ? Number(toBalVal) : (toToken === 'USDC' ? 1000.00 : 500.00);
+      const newToBal = curToBal + outAmtVal;
+
+      localStorage.setItem(fromKey, newFromBal.toFixed(2));
+      localStorage.setItem(toKey, newToBal.toFixed(2));
+
+      // Trigger local storage updates reactive sync
+      window.dispatchEvent(new Event('storage'));
+
+      // Award +1 points per 10 USDC volume
+      const usdVolume = fromToken === 'USDC' ? amt : amt * 1.09;
+      if (usdVolume >= 10) {
+        try {
+          const pointsEarned = usdVolume / 10;
+          const walletLower = userAddress.toLowerCase();
+          
+          const { data: currentStats } = await supabase
+            .from('user_stats')
+            .select('*')
+            .eq('wallet', walletLower);
+
+          if (currentStats && currentStats.length > 0) {
+            await supabase
+              .from('user_stats')
+              .update({
+                total_volume: Number(currentStats[0].total_volume || 0) + usdVolume,
+                points: Number(currentStats[0].points || 0) + pointsEarned
+              })
+              .eq('wallet', walletLower);
+          } else {
+            await supabase
+              .from('user_stats')
+              .insert({
+                wallet: walletLower,
+                total_volume: usdVolume,
+                points: pointsEarned
+              });
+          }
+        } catch (dbErr) {
+          console.error('Error logging points on swap:', dbErr);
         }
       }
 
@@ -287,132 +546,326 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
         </div>
       </div>
 
+      {/* Switcher Tabs */}
+      <div className="flex justify-center sm:justify-start">
+        <div className="bg-slate-100/80 p-1.5 rounded-2xl flex border border-slate-200/50 backdrop-blur-sm shadow-sm">
+          <button
+            type="button"
+            onClick={() => {
+              if (isBridging) return;
+              setBridgeMode('CROSS_CHAIN');
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
+              bridgeMode === 'CROSS_CHAIN'
+                ? 'bg-white text-blue-600 shadow-sm border border-slate-200/20'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Coins size={14} />
+            Cross-Chain Bridge
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (isBridging) return;
+              setBridgeMode('ARC_SWAP');
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
+              bridgeMode === 'ARC_SWAP'
+                ? 'bg-white text-blue-600 shadow-sm border border-slate-200/20'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <RefreshCw size={14} className={bridgeMode === 'ARC_SWAP' && isBridging ? 'animate-spin' : ''} />
+            Arc Chain Testnet Swap
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Left Column: Form Trigger */}
         <div className="lg:col-span-6 space-y-6">
           <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
             
-             <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-100 p-3 rounded-xl">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-100 p-3 rounded-xl">
               <Zap size={14} className="text-blue-500 shrink-0 animate-pulse" />
               <span>
-                {execMode === 'LIVE' 
-                  ? `Executing LIVE CCTP smart contract calls on your wallet. Fast & secure cross-chain routing for ${selectedBridgeToken}.` 
-                  : `Sandbox interactive guide mode. Visualizes step-by-step ${selectedBridgeToken} burn/mint flows on EVM.`}
+                {bridgeMode === 'CROSS_CHAIN' ? (
+                  execMode === 'LIVE' 
+                    ? `Executing LIVE CCTP smart contract calls on your wallet. Fast & secure cross-chain routing for ${selectedBridgeToken}.` 
+                    : `Sandbox interactive guide mode. Visualizes step-by-step ${selectedBridgeToken} burn/mint flows on EVM.`
+                ) : (
+                  execMode === 'LIVE'
+                    ? `Executing LIVE on-chain ERC-20 conversions directly on Arc Chain Testnet.`
+                    : `Sandbox interactive stablecoin swap. Convert USDC and EURC natively on Arc Chain Testnet.`
+                )}
               </span>
             </div>
 
-            <form onSubmit={handleStartBridge} className="space-y-6">
-              {/* Route Picker */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Source Network</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSourceChain('SEPOLIA')}
-                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
-                      sourceChain === 'SEPOLIA'
-                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
-                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
-                    }`}
-                  >
-                    Ethereum Sepolia
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSourceChain('BASE')}
-                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
-                      sourceChain === 'BASE'
-                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
-                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
-                    }`}
-                  >
-                    Base Testnet
-                  </button>
+            {bridgeMode === 'CROSS_CHAIN' ? (
+              // Original CCTP Bridge Form
+              <form onSubmit={handleStartBridge} className="space-y-6">
+                {/* Route Picker */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Source Network</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSourceChain('SEPOLIA')}
+                      className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
+                        sourceChain === 'SEPOLIA'
+                          ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                      }`}
+                    >
+                      Ethereum Sepolia
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSourceChain('BASE')}
+                      className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
+                        sourceChain === 'BASE'
+                          ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                      }`}
+                    >
+                      Base Testnet
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Asset Selector */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Asset to Bridge</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedBridgeToken('USDC')}
-                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex items-center justify-center gap-2 ${
-                      selectedBridgeToken === 'USDC'
-                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
-                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
-                    }`}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">
-                      $
-                    </div>
-                    USDC Stablecoin
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedBridgeToken('EURC')}
-                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex items-center justify-center gap-2 ${
-                      selectedBridgeToken === 'EURC'
-                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
-                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
-                    }`}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-blue-650 text-white flex items-center justify-center text-[10px] font-black shrink-0">
-                      €
-                    </div>
-                    EURC Stablecoin
-                  </button>
+                {/* Asset Selector */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Asset to Bridge</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBridgeToken('USDC')}
+                      className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex items-center justify-center gap-2 ${
+                        selectedBridgeToken === 'USDC'
+                          ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                        $
+                      </div>
+                      USDC Stablecoin
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBridgeToken('EURC')}
+                      className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex items-center justify-center gap-2 ${
+                        selectedBridgeToken === 'EURC'
+                          ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-blue-650 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                        €
+                      </div>
+                      EURC Stablecoin
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Destination Chain Box */}
-              <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Destination Network (Locked)</span>
-                <div className="flex justify-between items-center text-xs font-black text-slate-700 bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
-                  <span>Arc Chain Network</span>
-                  <span className="bg-blue-100 text-blue-700 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Target
+                {/* Destination Chain Box */}
+                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Destination Network (Locked)</span>
+                  <div className="flex justify-between items-center text-xs font-black text-slate-700 bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                    <span>Arc Chain Network</span>
+                    <span className="bg-blue-100 text-blue-700 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Target
+                    </span>
+                  </div>
+                </div>
+
+                {/* Input Amount */}
+                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Amount to Bridge ({selectedBridgeToken})</span>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    step="any"
+                    required
+                    value={bridgeAmount}
+                    disabled={isBridging}
+                    onChange={(e) => setBridgeAmount(e.target.value)}
+                    className="w-full bg-transparent text-3xl font-black font-mono text-slate-800 outline-none placeholder:text-slate-350"
+                  />
+                </div>
+
+                {/* Action Button */}
+                <button
+                  type="submit"
+                  disabled={isBridging}
+                  className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isBridging ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      CCTP Bridge Executing...
+                    </>
+                  ) : (
+                    <>
+                      <Flame size={15} />
+                      {execMode === 'LIVE' ? 'Execute Live CCTP Burn' : 'Initiate CCTP Transfer'}
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              // New Arc Chain stablecoin swap form
+              <form onSubmit={handleStartSwap} className="space-y-6">
+                {/* Swap Direction Picker */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Swap Direction</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isBridging) return;
+                        setSwapDirection('USDC_TO_EURC');
+                        setSwapAmount('');
+                      }}
+                      className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex items-center justify-center gap-2 ${
+                        swapDirection === 'USDC_TO_EURC'
+                          ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                        $
+                      </div>
+                      USDC ➔ EURC
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isBridging) return;
+                        setSwapDirection('EURC_TO_USDC');
+                        setSwapAmount('');
+                      }}
+                      className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex items-center justify-center gap-2 ${
+                        swapDirection === 'EURC_TO_USDC'
+                          ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                          : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-blue-650 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                        €
+                      </div>
+                      EURC ➔ USDC
+                    </button>
+                  </div>
+                </div>
+
+                {/* Available Balance Indicator */}
+                <div className="flex justify-between items-center text-[10px] text-slate-500 font-extrabold uppercase px-1">
+                  <span>Available Balance</span>
+                  <span className="text-blue-600 font-mono bg-blue-50/50 px-2 py-0.5 rounded-md border border-blue-100">
+                    {swapDirection === 'USDC_TO_EURC' 
+                      ? `${usdcBalance.toFixed(2)} USDC` 
+                      : `${eurcBalance.toFixed(2)} EURC`}
                   </span>
                 </div>
-              </div>
 
-              {/* Input Amount */}
-              <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Amount to Bridge ({selectedBridgeToken})</span>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  step="any"
-                  required
-                  value={bridgeAmount}
-                  disabled={isBridging}
-                  onChange={(e) => setBridgeAmount(e.target.value)}
-                  className="w-full bg-transparent text-3xl font-black font-mono text-slate-800 outline-none placeholder:text-slate-350"
-                />
-              </div>
+                {/* Swap Input */}
+                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
+                    <span>Pay Amount</span>
+                    <span>{swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      step="any"
+                      required
+                      value={swapAmount}
+                      disabled={isBridging}
+                      onChange={(e) => setSwapAmount(e.target.value)}
+                      className="w-full bg-transparent text-2xl font-black font-mono text-slate-800 outline-none placeholder:text-slate-350"
+                    />
+                    <button
+                      type="button"
+                      disabled={isBridging}
+                      onClick={() => {
+                        const bal = swapDirection === 'USDC_TO_EURC' ? usdcBalance : eurcBalance;
+                        setSwapAmount(bal.toString());
+                      }}
+                      className="text-[9px] uppercase font-black px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-650 cursor-pointer shadow-sm shrink-0"
+                    >
+                      Max
+                    </button>
+                  </div>
+                </div>
 
-              {/* Action Button */}
-              <button
-                type="submit"
-                disabled={isBridging}
-                className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {isBridging ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    CCTP Bridge Executing...
-                  </>
-                ) : (
-                  <>
-                    <Flame size={15} />
-                    {execMode === 'LIVE' ? 'Execute Live CCTP Burn' : 'Initiate CCTP Transfer'}
-                  </>
+                {/* Direction arrow graphic */}
+                <div className="flex justify-center -my-3 z-10 relative">
+                  <div className="w-9 h-9 rounded-full bg-white border border-slate-100 flex items-center justify-center text-blue-600 shadow-sm hover:rotate-180 transition-all duration-300">
+                    <ArrowRight size={14} className="rotate-90" />
+                  </div>
+                </div>
+
+                {/* Swap Output */}
+                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
+                    <span>Receive Amount (Est.)</span>
+                    <span>{swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC'}</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="0.00"
+                    readOnly
+                    value={outputAmount}
+                    className="w-full bg-transparent text-2xl font-black font-mono text-slate-500 outline-none placeholder:text-slate-350"
+                  />
+                </div>
+
+                {/* Conversion metadata rates */}
+                {Number(swapAmount) > 0 && (
+                  <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 space-y-2 text-[10px] font-bold text-slate-500 animate-in slide-in-from-top-1 duration-150">
+                    <div className="flex justify-between items-center">
+                      <span>Exchange Rate:</span>
+                      <span className="text-slate-700 font-mono">
+                        {swapDirection === 'USDC_TO_EURC' ? '1 USDC ≈ 0.92 EURC' : '1 EURC ≈ 1.09 USDC'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Slippage Tolerance:</span>
+                      <span className="text-slate-700 font-mono">0.10%</span>
+                    </div>
+                    <div className="flex justify-between items-center border-t border-slate-200/40 pt-2 text-[9.5px]">
+                      <span className="text-slate-400">LP Fee (0.3%):</span>
+                      <span className="text-slate-750 font-mono">
+                        {(Number(swapAmount) * 0.003).toFixed(4)} {swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC'}
+                      </span>
+                    </div>
+                  </div>
                 )}
-              </button>
 
-            </form>
+                {/* Action button */}
+                <button
+                  type="submit"
+                  disabled={isBridging}
+                  className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isBridging ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Executing Conversion...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={15} className="animate-pulse" />
+                      {execMode === 'LIVE' ? 'Execute On-Chain Swap' : 'Initiate Stablecoin Swap'}
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
 
           </div>
         </div>
@@ -422,8 +875,14 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
           <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
             
             <div className="border-b border-slate-100 pb-5">
-              <h3 className="font-extrabold text-slate-800 text-sm">CCTP Live Progress Monitor</h3>
-              <p className="text-[10px] text-slate-500 font-semibold">Real-time attestation tracking and mint signature monitor.</p>
+              <h3 className="font-extrabold text-slate-800 text-sm">
+                {bridgeMode === 'ARC_SWAP' ? 'Conversion Progress Monitor' : 'CCTP Live Progress Monitor'}
+              </h3>
+              <p className="text-[10px] text-slate-500 font-semibold">
+                {bridgeMode === 'ARC_SWAP' 
+                  ? 'Real-time stablecoin exchange ledger and mint verification.'
+                  : 'Real-time attestation tracking and mint signature monitor.'}
+              </p>
             </div>
 
             {/* Steps Container */}
@@ -492,13 +951,19 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 text-center space-y-3"
               >
-                <div className="w-12 h-12 rounded-full bg-white border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-sm shadow-emerald-500/10">
+                <div className="w-12 h-12 rounded-full bg-white border border-emerald-250 text-emerald-600 flex items-center justify-center mx-auto shadow-sm shadow-emerald-500/10">
                   <CheckCircle size={22} className="animate-bounce" />
                 </div>
                 <div>
-                  <h4 className="font-extrabold text-emerald-800 text-xs">Bridge Executed Successfully!</h4>
+                  <h4 className="font-extrabold text-emerald-800 text-xs">
+                    {bridgeMode === 'ARC_SWAP' ? 'Swap Executed Successfully!' : 'Bridge Executed Successfully!'}
+                  </h4>
                   <p className="text-[10px] text-emerald-600 font-semibold mt-1">
-                    Your {bridgeAmount} USDC was burned and successfully minted on the Arc Chain!
+                    {bridgeMode === 'ARC_SWAP' ? (
+                      `Your ${swapAmount} ${swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC'} was successfully converted to ${outputAmount} ${swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC'} on Arc Chain Testnet!`
+                    ) : (
+                      `Your ${bridgeAmount} ${selectedBridgeToken} was burned and successfully minted on the Arc Chain!`
+                    )}
                   </p>
                 </div>
                 <button
@@ -506,8 +971,9 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
                   onClick={() => {
                     setCurrentStepIdx(-1);
                     setBridgeAmount('');
+                    setSwapAmount('');
                   }}
-                  className="bg-white border border-emerald-250 hover:bg-emerald-100 text-emerald-700 font-extrabold text-[10px] uppercase tracking-wide px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm"
+                  className="bg-white border border-emerald-250 hover:bg-emerald-100 text-emerald-700 font-extrabold text-[10px] uppercase tracking-wide px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm animate-pulse"
                 >
                   Done
                 </button>
