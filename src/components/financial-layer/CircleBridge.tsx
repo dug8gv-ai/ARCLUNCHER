@@ -39,6 +39,11 @@ export default function CircleBridge() {
   const [poolUSDC, setPoolUSDC] = useState<number>(0);
   const [poolEURC, setPoolEURC] = useState<number>(0);
 
+  // Collected Fees (Admin Only)
+  const [collectedFeesUSDC, setCollectedFeesUSDC] = useState<number>(0);
+  const [collectedFeesEURC, setCollectedFeesEURC] = useState<number>(0);
+  const [isWithdrawingFees, setIsWithdrawingFees] = useState(false);
+
   // Transaction States
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -74,7 +79,7 @@ export default function CircleBridge() {
     setIsFetchingBalances(false);
   };
 
-  // Fetch pool reserves
+  // Fetch pool reserves and collected fees
   const fetchPoolReserves = async () => {
     if (!publicClient) return;
     try {
@@ -85,8 +90,16 @@ export default function CircleBridge() {
       }) as [bigint, bigint];
       setPoolUSDC(Number(formatUnits(reserves[0], 6)));
       setPoolEURC(Number(formatUnits(reserves[1], 6)));
+
+      const fees = await publicClient.readContract({
+        address: ARC_LIQUIDITY_POOL_ADDRESS as `0x${string}`,
+        abi: arcLiquidityPoolAbi,
+        functionName: 'getCollectedFees',
+      }) as [bigint, bigint];
+      setCollectedFeesUSDC(Number(formatUnits(fees[0], 6)));
+      setCollectedFeesEURC(Number(formatUnits(fees[1], 6)));
     } catch (err) {
-      console.error('Pool reserves error:', err);
+      console.error('Pool reserves and fees error:', err);
     }
   };
 
@@ -265,6 +278,29 @@ export default function CircleBridge() {
     setIsProcessing(false);
   };
 
+  const handleWithdrawFees = async () => {
+    if (!isConnected || !userAddress) return;
+    setIsWithdrawingFees(true);
+    setErrorMessage(null);
+    try {
+      const tx = await writeContractAsync({
+        address: ARC_LIQUIDITY_POOL_ADDRESS as `0x${string}`,
+        abi: arcLiquidityPoolAbi,
+        functionName: 'withdrawFees',
+      });
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: tx });
+      }
+      setTxSuccess(true);
+      await fetchPoolReserves();
+      await fetchBalances();
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.shortMessage || err.message || 'Fee withdrawal failed');
+    }
+    setIsWithdrawingFees(false);
+  };
+
   const resetState = () => {
     setSteps([]);
     setCurrentStepIdx(-1);
@@ -326,7 +362,7 @@ export default function CircleBridge() {
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-3.5 flex items-start gap-2.5">
               <Zap size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
               <p className="text-[10px] text-blue-700 font-semibold leading-relaxed">
-                Swap USDC ↔ EURC on Arc Chain Testnet via the on-chain liquidity pool. 0.3% swap fee applies.
+                Swap USDC ↔ EURC on Arc Chain Testnet via the on-chain liquidity pool. Flat 1 {fromToken} fee per swap applies.
               </p>
             </div>
 
@@ -419,6 +455,33 @@ export default function CircleBridge() {
               </div>
               <span className="text-indigo-700 font-black">{poolUSDC.toFixed(2)} USDC / {poolEURC.toFixed(2)} EURC</span>
             </div>
+
+            {/* Admin Collected Fees Panel */}
+            {userAddress?.toLowerCase() === '0x218b09a7d9ff6d69082ac605bb27029bc321b5c3' && (
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-3.5 space-y-2 animate-in slide-in-from-bottom-2 duration-200">
+                <div className="flex items-center justify-between text-[9px] font-black text-emerald-800 uppercase tracking-widest">
+                  <span>💼 Admin Fee Dashboard</span>
+                  <span className="bg-emerald-100 px-1.5 py-0.5 rounded text-[8px] text-emerald-700 font-bold uppercase">Active</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-bold text-slate-700">
+                  <span>Accumulated Fees:</span>
+                  <span className="text-emerald-750 font-black">
+                    {collectedFeesUSDC.toFixed(2)} USDC / {collectedFeesEURC.toFixed(2)} EURC
+                  </span>
+                </div>
+                <button
+                  onClick={handleWithdrawFees}
+                  disabled={isWithdrawingFees || (collectedFeesUSDC === 0 && collectedFeesEURC === 0)}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[9px] uppercase tracking-wider transition-all disabled:opacity-40 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  {isWithdrawingFees ? (
+                    <><Loader2 size={10} className="animate-spin" /> Claiming...</>
+                  ) : (
+                    <>💰 Claim Collected Fees</>
+                  )}
+                </button>
+              </div>
+            )}
 
             {/* Swap Button */}
             <button

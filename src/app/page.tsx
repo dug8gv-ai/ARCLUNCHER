@@ -10,9 +10,9 @@ import { Leaderboard } from '@/components/Leaderboard';
 import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
-import { parseUnits, erc20Abi } from 'viem';
+import { parseUnits, formatUnits, erc20Abi } from 'viem';
 import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp } from 'lucide-react';
-import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi } from '@/lib/arcDefiAbi';
+import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi, USDC_ADDRESS, EURC_ADDRESS } from '@/lib/arcDefiAbi';
 import dynamic from 'next/dynamic';
 
 const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => mod.PriceChart), {
@@ -24,6 +24,9 @@ import CircleBridge from '@/components/financial-layer/CircleBridge';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
+  const publicClient = usePublicClient();
+  const { sendTransactionAsync } = useSendTransaction();
+  const { writeContractAsync } = useWriteContract();
   
   // Premium Alert State
   const [premiumAlert, setPremiumAlert] = useState<{
@@ -61,6 +64,11 @@ export default function Home() {
   const [lockAmount, setLockAmount] = useState('');
   const [myLocks, setMyLocks] = useState<any[]>([]);
   const [totalLockedUSD, setTotalLockedUSD] = useState(0); // Real locked value only (no base!)
+  const [lockedUSDC, setLockedUSDC] = useState<number>(0);
+  const [lockedEURC, setLockedEURC] = useState<number>(0);
+  const [usdcWalletBalance, setUsdcWalletBalance] = useState<number>(0);
+  const [eurcWalletBalance, setEurcWalletBalance] = useState<number>(0);
+  const [isFetchingWalletBalances, setIsFetchingWalletBalances] = useState<boolean>(false);
   const [tokensList, setTokensList] = useState<any[]>([]);
   const [tokenBalance, setTokenBalance] = useState<number>(1000.00);
   const [isFetchingWorth, setIsFetchingWorth] = useState(false);
@@ -92,6 +100,42 @@ export default function Home() {
     } catch (err) {
       console.error("Error fetching token balance:", err);
       setTokenBalance(0);
+    }
+  };
+
+  // Dynamic wallet balance fetcher for stablecoins (USDC & EURC) on-chain
+  const fetchWalletBalances = async () => {
+    if (!userAddress || !publicClient) {
+      setUsdcWalletBalance(0);
+      setEurcWalletBalance(0);
+      return;
+    }
+    setIsFetchingWalletBalances(true);
+    try {
+      const usdcRaw = await publicClient.readContract({
+        address: USDC_ADDRESS as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [userAddress],
+      });
+      const eurcRaw = await publicClient.readContract({
+        address: EURC_ADDRESS as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [userAddress],
+      });
+      setUsdcWalletBalance(Number(formatUnits(usdcRaw as bigint, 6)));
+      setEurcWalletBalance(Number(formatUnits(eurcRaw as bigint, 6)));
+    } catch (err) {
+      console.error("Error fetching wallet stable balances on-chain:", err);
+      // Fallback to localStorage simulation just in case RPC/Contract fails or wallet doesn't support
+      const wallet = userAddress.toLowerCase();
+      const storedUsdc = localStorage.getItem(`sim_usdc_${wallet}`);
+      const storedEurc = localStorage.getItem(`sim_eurc_${wallet}`);
+      setUsdcWalletBalance(storedUsdc ? Number(storedUsdc) : 1000.00);
+      setEurcWalletBalance(storedEurc ? Number(storedEurc) : 1000.00);
+    } finally {
+      setIsFetchingWalletBalances(false);
     }
   };
 
@@ -191,8 +235,16 @@ export default function Home() {
       
       // Calculate total locked USD (Real locked values only, no base!)
       const activeLocks = locksData.filter((l: any) => !l.is_withdrawn);
+      let totalUSDC = 0;
+      let totalEURC = 0;
       const totalAmount = activeLocks.reduce((acc: number, l: any) => {
         let worth = Number(l.amount);
+        if (l.asset_type === 'USDC') {
+          totalUSDC += Number(l.amount);
+        } else if (l.asset_type === 'EURC') {
+          totalEURC += Number(l.amount);
+        }
+
         if (l.usdc_worth != null) {
            worth = Number(l.usdc_worth);
         } else if (l.asset_type === 'USDC') {
@@ -205,6 +257,8 @@ export default function Home() {
         return acc + worth;
       }, 0);
       setTotalLockedUSD(totalAmount);
+      setLockedUSDC(totalUSDC);
+      setLockedEURC(totalEURC);
     } catch (e) {
       console.error("Error fetching locks:", e);
     }
@@ -234,6 +288,7 @@ export default function Home() {
 
     fetchLocks();
     fetchTokensList();
+    fetchWalletBalances();
 
     const handleOpenLocker = () => {
       setIsLockerOpen(true);
@@ -243,7 +298,31 @@ export default function Home() {
     return () => {
       window.removeEventListener('open-locker', handleOpenLocker);
     };
-  }, [isConnected, userAddress]);
+  }, [isConnected, userAddress, publicClient]);
+
+  // Load and poll wallet balances reactively
+  useEffect(() => {
+    if (isConnected && userAddress) {
+      fetchWalletBalances();
+
+      const handleStorageSync = () => {
+        fetchWalletBalances();
+        fetchLocks(); // Fetch locks in case locks were updated on other tabs/components
+      };
+      window.addEventListener('storage', handleStorageSync);
+
+      // Poll balances every 10 seconds
+      const balanceInterval = setInterval(fetchWalletBalances, 10000);
+
+      return () => {
+        window.removeEventListener('storage', handleStorageSync);
+        clearInterval(balanceInterval);
+      };
+    } else {
+      setUsdcWalletBalance(0);
+      setEurcWalletBalance(0);
+    }
+  }, [isConnected, userAddress, publicClient]);
   const handleCreateLock = async () => {
     if (!isConnected || !userAddress) {
       await triggerAlert("CONNECT WALLET", "Please connect your wallet first!", "info");
@@ -486,10 +565,6 @@ export default function Home() {
       await triggerAlert("UNLOCK ERROR", err.message, "error");
     }
   };
-
-  const publicClient = usePublicClient();
-  const { sendTransactionAsync } = useSendTransaction();
-  const { writeContractAsync } = useWriteContract();
 
   // Daily Checkin states
   const [checkinLoading, setCheckinLoading] = useState(false);
@@ -853,6 +928,39 @@ export default function Home() {
           </nav>
         </div>
 
+        {/* Your Wallet Balances Card */}
+        {isConnected && (
+          <div className="bg-white border border-slate-100 rounded-3xl p-5 space-y-3 shadow-sm select-none">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Your Wallet</span>
+              <span className="text-[9px] bg-slate-100 text-slate-600 font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Stablecoins
+              </span>
+            </div>
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs">🔵</span>
+                  <span className="text-[11px] font-bold text-slate-700">USDC Balance</span>
+                </div>
+                <span className="text-xs font-extrabold text-slate-900">
+                  {usdcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="w-full h-[1px] bg-slate-100" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs">🟣</span>
+                  <span className="text-[11px] font-bold text-slate-700">EURC (Euro) Balance</span>
+                </div>
+                <span className="text-xs font-extrabold text-slate-900">
+                  {eurcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bottom Sidebar Locked Liquidity card */}
         <div 
           onClick={(e) => { e.stopPropagation(); setIsLockerOpen(true); setIsRulesOpen(false); }}
@@ -868,9 +976,20 @@ export default function Home() {
             <h4 className="text-2xl font-black text-slate-900 tracking-tight">
               ${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h4>
-            <p className="text-[10px] text-slate-550 mt-1 font-semibold flex items-center gap-1">
-              USDC: <span className="text-blue-600 font-black">${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </p>
+            <div className="flex flex-col gap-0.5 mt-1.5 text-[10px] text-slate-500 font-semibold">
+              <div className="flex items-center justify-between">
+                <span>USDC Locked:</span>
+                <span className="text-blue-600 font-black">
+                  {lockedUSDC.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>EURC Locked:</span>
+                <span className="text-indigo-600 font-black">
+                  {lockedEURC.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EURC
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </aside>

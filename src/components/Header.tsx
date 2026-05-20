@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect, usePublicClient } from 'wagmi';
 import { Layers, User, MessageSquare, Check, Loader2, ChevronDown, Award, Settings, LogOut } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { erc20Abi, formatUnits } from 'viem';
+import { USDC_ADDRESS, EURC_ADDRESS } from '@/lib/arcDefiAbi';
 
 // Premium Web3 preset avatars for single-click selection
 const PRESET_AVATARS = [
@@ -19,6 +21,11 @@ const PRESET_AVATARS = [
 export function Header() {
   const { isConnected, address: userAddress } = useAccount();
   const { disconnect } = useDisconnect();
+  const publicClient = usePublicClient();
+
+  // Wallet Balances (Real on-chain)
+  const [usdcBalance, setUsdcBalance] = useState<number>(0);
+  const [eurcBalance, setEurcBalance] = useState<number>(0);
 
   // Profile States
   const [profile, setProfile] = useState<{
@@ -41,6 +48,29 @@ export function Header() {
   const [formAvatar, setFormAvatar] = useState('');
   const [formDiscord, setFormDiscord] = useState('');
   const [formTwitter, setFormTwitter] = useState('');
+
+  // Fetch real on-chain USDC & EURC wallet balances
+  const fetchWalletBalances = async () => {
+    if (!userAddress || !publicClient) return;
+    try {
+      const usdcRaw = await publicClient.readContract({
+        address: USDC_ADDRESS as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [userAddress],
+      });
+      const eurcRaw = await publicClient.readContract({
+        address: EURC_ADDRESS as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [userAddress],
+      });
+      setUsdcBalance(Number(formatUnits(usdcRaw as bigint, 6)));
+      setEurcBalance(Number(formatUnits(eurcRaw as bigint, 6)));
+    } catch (err) {
+      console.error('Header balance fetch error:', err);
+    }
+  };
 
   // Fetch Profile & Airdrop Stats
   const fetchProfileAndStats = async () => {
@@ -100,6 +130,16 @@ export function Header() {
   useEffect(() => {
     if (isConnected && userAddress) {
       fetchProfileAndStats();
+      fetchWalletBalances();
+
+      // Listen for window storage changes (e.g. from Page or CircleBridge updates)
+      const handleStorageSync = () => {
+        fetchWalletBalances();
+      };
+      window.addEventListener('storage', handleStorageSync);
+
+      // Setup 10-second automatic polling for real on-chain balance updates
+      const interval = setInterval(fetchWalletBalances, 10000);
 
       // Realtime listener for stats & profile updates - Bulletproof JS filtered
       const channel = supabase.channel(`header_updates_${userAddress}`)
@@ -124,13 +164,17 @@ export function Header() {
         .subscribe();
 
       return () => {
+        window.removeEventListener('storage', handleStorageSync);
+        clearInterval(interval);
         supabase.removeChannel(channel);
       };
     } else {
       setProfile(null);
       setPoints(0);
+      setUsdcBalance(0);
+      setEurcBalance(0);
     }
-  }, [isConnected, userAddress]);
+  }, [isConnected, userAddress, publicClient]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,6 +255,23 @@ export function Header() {
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/60 rounded-full px-4 py-2 flex items-center gap-2 shadow-sm font-semibold text-xs text-blue-700 animate-pulse">
               <Award size={14} className="text-blue-600" />
               <span>Airdrop: <strong className="font-extrabold text-blue-600">{points.toFixed(2)}</strong> ARCL</span>
+            </div>
+          )}
+
+          {/* Real USDC & EURC Wallet Balances Display */}
+          {isConnected && (
+            <div className="hidden sm:flex items-center gap-3 bg-slate-50 border border-slate-200/60 rounded-full px-4 py-2 font-semibold text-xs text-slate-700 shadow-sm">
+              <div className="flex items-center gap-1">
+                <span>🔵</span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase">USDC:</span>
+                <span className="font-extrabold text-slate-800">{usdcBalance.toFixed(2)}</span>
+              </div>
+              <div className="w-[1px] h-3 bg-slate-200" />
+              <div className="flex items-center gap-1">
+                <span>🟣</span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase">EURC:</span>
+                <span className="font-extrabold text-slate-800">{eurcBalance.toFixed(2)}</span>
+              </div>
             </div>
           )}
 
