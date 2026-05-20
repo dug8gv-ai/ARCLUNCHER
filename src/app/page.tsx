@@ -21,6 +21,7 @@ const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => m
 import { TransactionHistory } from '@/components/TransactionHistory';
 import { SocialPay } from '@/components/SocialPay';
 import CircleBridge from '@/components/financial-layer/CircleBridge';
+import UserGuide from '@/components/UserGuide';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -51,7 +52,7 @@ export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'bridge'>('launcher');
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'bridge' | 'guide'>('launcher');
   const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
   // Daily Locks State (V2 Upgraded)
@@ -829,6 +830,21 @@ export default function Home() {
               Trade
             </button>
 
+            {/* Guide (New) Tab */}
+            <button 
+              onClick={() => {
+                setCurrentView('guide');
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'guide'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Info size={16} className={currentView === 'guide' ? 'text-blue-600' : 'text-slate-400'} />
+              User Guide
+            </button>
+
             {/* Social Pay (New) Tab */}
             <button 
               onClick={() => {
@@ -1209,6 +1225,13 @@ export default function Home() {
             {currentView === 'bridge' && (
               <div className="animate-in fade-in duration-200">
                 <CircleBridge />
+              </div>
+            )}
+
+            {/* GUIDE VIEW */}
+            {currentView === 'guide' && (
+              <div className="animate-in fade-in duration-200">
+                <UserGuide />
               </div>
             )}
           </main>
