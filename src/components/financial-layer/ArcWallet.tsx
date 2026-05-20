@@ -135,21 +135,40 @@ export default function ArcWallet() {
     setSwapResult(null);
 
     try {
-      // Simulated blockchain transaction wait (Premium UX)
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      let usdVolume = 0;
+
+      // 1. On-Chain execution for USDC transfers
+      if (swapDirection === 'USDC_TO_EURC') {
+        const amtWei = parseUnits(fromAmount, 6);
+        const treasuryAddress = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
+
+        // Real on-chain ERC-20 transfer to Treasury!
+        const txHash = await writeContractAsync({
+          address: USDC_ADDRESS,
+          abi: erc20Abi,
+          functionName: 'transfer',
+          args: [treasuryAddress as `0x${string}`, amtWei],
+        });
+
+        if (publicClient) {
+          await publicClient.waitForTransactionReceipt({ hash: txHash });
+        }
+        usdVolume = amt;
+      } else {
+        // EURC swap (simulated fallback to credit native USDC since EURC is a simulation asset)
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        usdVolume = amt * 1.09;
+      }
 
       let newUsdc = usdcBalance;
       let newEurc = eurcBalance;
-      let usdVolume = 0;
 
       if (swapDirection === 'USDC_TO_EURC') {
         newUsdc = usdcBalance - amt;
         newEurc = eurcBalance + (amt * 0.92);
-        usdVolume = amt;
       } else {
         newUsdc = usdcBalance + (amt * 1.09);
         newEurc = eurcBalance - amt;
-        usdVolume = amt * 1.09;
       }
 
       // Save new simulated balances to localStorage
@@ -199,7 +218,7 @@ export default function ArcWallet() {
       setFromAmount('');
       setToAmount('');
     } catch (err: any) {
-      setSwapResult({ type: 'error', message: err.message || 'Transaction rejected.' });
+      setSwapResult({ type: 'error', message: err.shortMessage || err.message || 'Transaction rejected.' });
     } finally {
       setIsSwapping(false);
     }

@@ -15,6 +15,7 @@ interface ProfileData {
 }
 
 const USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
+const EURC_ADDRESS = '0xeC00000000000000000000000000000000000000';
 
 export default function SocialPay() {
   const { isConnected, address: userAddress } = useAccount();
@@ -196,25 +197,39 @@ export default function SocialPay() {
     setPayStatus('idle');
 
     try {
-      // Direct blockchain interaction / simulated wait
-      await new Promise(r => setTimeout(r, 2000));
-
       // Standard USDC / EURC transfers
       if (paymentAsset === 'USDC') {
         const amtWei = parseUnits(payAmount, 6);
         // Call transfer
-        await writeContractAsync({
+        const txHash = await writeContractAsync({
           address: USDC_ADDRESS,
           abi: erc20Abi,
           functionName: 'transfer',
           args: [recipient as `0x${string}`, amtWei]
         });
+        if (publicClient) {
+          await publicClient.waitForTransactionReceipt({ hash: txHash });
+        }
       } else {
-        // EURC transfer simulation
-        const localEurc = localStorage.getItem(`sim_eurc_${userAddress.toLowerCase()}`);
-        const currentBal = localEurc ? Number(localEurc) : 500.00;
-        if (amt > currentBal) throw new Error('Insufficient EURC balance.');
-        localStorage.setItem(`sim_eurc_${userAddress.toLowerCase()}`, (currentBal - amt).toFixed(2));
+        // Real EURC transfer if possible, fallback to simulator
+        try {
+          const amtWei = parseUnits(payAmount, 18);
+          const txHash = await writeContractAsync({
+            address: EURC_ADDRESS,
+            abi: erc20Abi,
+            functionName: 'transfer',
+            args: [recipient as `0x${string}`, amtWei]
+          });
+          if (publicClient) {
+            await publicClient.waitForTransactionReceipt({ hash: txHash });
+          }
+        } catch (err) {
+          console.warn('Real EURC transfer failed, falling back to simulated EURC balance update.', err);
+          const localEurc = localStorage.getItem(`sim_eurc_${userAddress.toLowerCase()}`);
+          const currentBal = localEurc ? Number(localEurc) : 500.00;
+          if (amt > currentBal) throw new Error('Insufficient EURC balance.');
+          localStorage.setItem(`sim_eurc_${userAddress.toLowerCase()}`, (currentBal - amt).toFixed(2));
+        }
       }
 
       // Track rewards into user_stats inside Supabase
