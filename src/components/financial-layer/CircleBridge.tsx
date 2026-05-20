@@ -64,6 +64,19 @@ export default function CircleBridge() {
   const fetchBalances = async () => {
     if (!userAddress || !publicClient) return;
     setIsFetchingBalances(true);
+
+    let usdcVal = 0;
+    let eurcVal = 0;
+
+    // Fetch Native Balance (Since ARC Testnet uses USDC as native token)
+    try {
+      const nativeBal = await publicClient.getBalance({ address: userAddress });
+      usdcVal += Number(formatUnits(nativeBal, 18));
+    } catch (err) {
+      console.error('Native balance fetch error:', err);
+    }
+
+    // Fetch ERC20 USDC
     try {
       const usdcRaw = await publicClient.readContract({
         address: USDC_ADDRESS as `0x${string}`,
@@ -71,17 +84,26 @@ export default function CircleBridge() {
         functionName: 'balanceOf',
         args: [userAddress],
       });
+      usdcVal += Number(formatUnits(usdcRaw as bigint, 6));
+    } catch (err) {
+      console.error('USDC ERC20 fetch error:', err);
+    }
+
+    // Fetch ERC20 EURC
+    try {
       const eurcRaw = await publicClient.readContract({
         address: EURC_ADDRESS as `0x${string}`,
         abi: erc20Abi,
         functionName: 'balanceOf',
         args: [userAddress],
       });
-      setRealUsdcBalance(Number(formatUnits(usdcRaw as bigint, 6)));
-      setRealEurcBalance(Number(formatUnits(eurcRaw as bigint, 6)));
+      eurcVal += Number(formatUnits(eurcRaw as bigint, 6));
     } catch (err) {
-      console.error('Balance fetch error:', err);
+      console.error('EURC ERC20 fetch error:', err);
     }
+
+    setRealUsdcBalance(usdcVal);
+    setRealEurcBalance(eurcVal);
     setIsFetchingBalances(false);
   };
 
