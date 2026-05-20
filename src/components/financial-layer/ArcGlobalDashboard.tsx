@@ -31,6 +31,7 @@ export default function ArcGlobalDashboard() {
   // Dashboard routing states
   const [currentTab, setCurrentTab] = useState<'wallet' | 'social-pay' | 'leaderboard' | 'bridge' | 'earn' | 'trade' | 'circle-hub'>('wallet');
   const [selectedToken, setSelectedToken] = useState<any>(null);
+  const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
   // Profile Dropdown States
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -362,7 +363,14 @@ export default function ArcGlobalDashboard() {
           <main className="space-y-8">
             
             {/* ARC WALLET TAB */}
-            {currentTab === 'wallet' && <ArcWallet />}
+            {currentTab === 'wallet' && (
+              <ArcWallet 
+                onSwitchToBridge={(token) => {
+                  setBridgeInitialToken(token);
+                  setCurrentTab('bridge');
+                }} 
+              />
+            )}
 
             {/* SOCIAL PAY TAB */}
             {currentTab === 'social-pay' && <SocialPay />}
@@ -379,7 +387,7 @@ export default function ArcGlobalDashboard() {
             )}
 
             {/* CIRCLE CCTP BRIDGE */}
-            {currentTab === 'bridge' && <CircleBridge />}
+            {currentTab === 'bridge' && <CircleBridge initialToken={bridgeInitialToken} />}
 
             {/* CIRCLE HUB TAB */}
             {currentTab === 'circle-hub' && <CircleHub />}

@@ -19,6 +19,7 @@ const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => m
 });
 import { TransactionHistory } from '@/components/TransactionHistory';
 import { SocialPay } from '@/components/SocialPay';
+import CircleBridge from '@/components/financial-layer/CircleBridge';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -46,7 +47,8 @@ export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn'>('launcher');
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'bridge'>('launcher');
+  const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
   // Daily Locks State
   const [lockerTab, setLockerTab] = useState<'lock' | 'my_locks'>('lock');
@@ -588,6 +590,26 @@ export default function Home() {
               </span>
             </button>
 
+            {/* Circle Bridge Tab */}
+            <button 
+              onClick={() => {
+                setCurrentView('bridge');
+              }}
+              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'bridge'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <Coins size={16} className={currentView === 'bridge' ? 'text-blue-600' : 'text-slate-400'} />
+                <span>Circle Bridge</span>
+              </div>
+              <span className="text-[9px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
+                Live
+              </span>
+            </button>
+
             {/* Airdrop Rules modal opener */}
             <button 
               onClick={() => setIsRulesOpen(true)}
@@ -823,6 +845,13 @@ export default function Home() {
                     <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">Stake ARCL points or locks to earn direct USDC gas rebates.</p>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* CIRCLE CCTP BRIDGE VIEW */}
+            {currentView === 'bridge' && (
+              <div className="animate-in fade-in duration-200">
+                <CircleBridge initialToken={bridgeInitialToken} />
               </div>
             )}
           </main>

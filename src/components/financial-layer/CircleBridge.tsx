@@ -20,12 +20,14 @@ const NETWORKS = {
     name: 'Ethereum Sepolia',
     chainId: 11155111,
     usdcAddress: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+    eurcAddress: '0x08210F9170F89Ab7658F0B5E3fF39b0E03C594D4',
     domainId: 0,
   },
   BASE: {
     name: 'Base Testnet',
     chainId: 84532,
     usdcAddress: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+    eurcAddress: '0x808456652fdb597867f38412077A9182bf77359F',
     domainId: 6,
   }
 };
@@ -45,28 +47,42 @@ const TOKEN_MESSENGER_ABI = [
   }
 ] as const;
 
-export default function CircleBridge() {
+export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?: 'USDC' | 'EURC' }) {
   const { isConnected, address: userAddress, chain } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
   // Bridge States
   const [sourceChain, setSourceChain] = useState<'SEPOLIA' | 'BASE'>('SEPOLIA');
+  const [selectedBridgeToken, setSelectedBridgeToken] = useState<'USDC' | 'EURC'>(initialToken);
   const [bridgeAmount, setBridgeAmount] = useState('');
   const [currentStepIdx, setCurrentStepIdx] = useState<number>(-1); // -1 = not started
   const [isBridging, setIsBridging] = useState(false);
+
+  // Sync initial token prop updates
+  useEffect(() => {
+    setSelectedBridgeToken(initialToken);
+  }, [initialToken]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Execution Mode: 'LIVE' or 'SANDBOX'
   const [execMode, setExecMode] = useState<'LIVE' | 'SANDBOX'>('SANDBOX');
 
   // Simulated CCTP Step Progression
-  const [steps, setSteps] = useState<CctpStep[]>([
-    { title: '1. Approve USDC', desc: 'Approve the CCTP contract to burn your USDC', status: 'pending' },
-    { title: '2. Burn USDC', desc: 'Call depositForBurn on source chain messenger', status: 'pending' },
-    { title: '3. Circle Attestation', desc: 'Retrieve off-chain attestation signature from Circle API', status: 'pending' },
-    { title: '4. Mint on Arc Chain', desc: 'Submit attestation to receive native USDC', status: 'pending' }
-  ]);
+  const [steps, setSteps] = useState<CctpStep[]>([]);
+
+  // Automatically update step titles and reset state when selected token changes
+  useEffect(() => {
+    const tokenName = selectedBridgeToken;
+    setSteps([
+      { title: `1. Approve ${tokenName}`, desc: `Approve the CCTP contract to burn your ${tokenName}`, status: 'pending' },
+      { title: `2. Burn ${tokenName}`, desc: 'Call depositForBurn on source chain messenger', status: 'pending' },
+      { title: '3. Circle Attestation', desc: 'Retrieve off-chain attestation signature from Circle API', status: 'pending' },
+      { title: `4. Mint on Arc Chain`, desc: `Submit attestation to receive native ${tokenName}`, status: 'pending' }
+    ]);
+    setCurrentStepIdx(-1);
+    setErrorMessage(null);
+  }, [selectedBridgeToken]);
 
   const updateStepStatus = (idx: number, status: 'pending' | 'active' | 'success' | 'failed') => {
     setSteps(prev => prev.map((s, i) => i === idx ? { ...s, status } : s));
@@ -89,16 +105,18 @@ export default function CircleBridge() {
     setCurrentStepIdx(0);
     setErrorMessage(null);
     
-    // Reset all steps to pending
+    // Reset all steps to pending for the active token
+    const tokenName = selectedBridgeToken;
     setSteps([
-      { title: '1. Approve USDC', desc: 'Approve the CCTP contract to burn your USDC', status: 'pending' },
-      { title: '2. Burn USDC', desc: 'Call depositForBurn on source chain messenger', status: 'pending' },
+      { title: `1. Approve ${tokenName}`, desc: `Approve the CCTP contract to burn your ${tokenName}`, status: 'pending' },
+      { title: `2. Burn ${tokenName}`, desc: 'Call depositForBurn on source chain messenger', status: 'pending' },
       { title: '3. Circle Attestation', desc: 'Retrieve off-chain attestation signature from Circle API', status: 'pending' },
-      { title: '4. Mint on Arc Chain', desc: 'Submit attestation to receive native USDC', status: 'pending' }
+      { title: `4. Mint on Arc Chain`, desc: `Submit attestation to receive native ${tokenName}`, status: 'pending' }
     ]);
 
     try {
       const activeNet = NETWORKS[sourceChain];
+      const tokenAddress = selectedBridgeToken === 'USDC' ? activeNet.usdcAddress : activeNet.eurcAddress;
 
       if (execMode === 'LIVE') {
         // Validate connected network
@@ -111,7 +129,7 @@ export default function CircleBridge() {
         // Step 1: Approve
         updateStepStatus(0, 'active');
         const approveTx = await writeContractAsync({
-          address: activeNet.usdcAddress as `0x${string}`,
+          address: tokenAddress as `0x${string}`,
           abi: erc20Abi,
           functionName: 'approve',
           args: [CCTP_MESSENGER, amtWei]
@@ -130,7 +148,7 @@ export default function CircleBridge() {
           address: CCTP_MESSENGER,
           abi: TOKEN_MESSENGER_ABI,
           functionName: 'depositForBurn',
-          args: [amtWei, activeNet.domainId, recipientBytes32, activeNet.usdcAddress as `0x${string}`]
+          args: [amtWei, activeNet.domainId, recipientBytes32, tokenAddress as `0x${string}`]
         });
 
         if (publicClient) {
@@ -176,11 +194,14 @@ export default function CircleBridge() {
         updateStepStatus(3, 'success');
       }
 
-      // Update simulated USDC balance in local storage
-      const localUsdc = localStorage.getItem(`sim_usdc_${userAddress.toLowerCase()}`);
-      const curBal = localUsdc ? Number(localUsdc) : 1000.00;
+      // Update simulated balance in local storage
+      const localKey = selectedBridgeToken === 'USDC' 
+        ? `sim_usdc_${userAddress.toLowerCase()}` 
+        : `sim_eurc_${userAddress.toLowerCase()}`;
+      const localVal = localStorage.getItem(localKey);
+      const curBal = localVal ? Number(localVal) : (selectedBridgeToken === 'USDC' ? 1000.00 : 500.00);
       const newBal = curBal + amt;
-      localStorage.setItem(`sim_usdc_${userAddress.toLowerCase()}`, newBal.toFixed(2));
+      localStorage.setItem(localKey, newBal.toFixed(2));
 
       // Trigger reward points +1 per 10 USDC volume transacted
       if (amt >= 10) {
@@ -272,12 +293,12 @@ export default function CircleBridge() {
         <div className="lg:col-span-6 space-y-6">
           <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
             
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-100 p-3 rounded-xl">
+             <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-100 p-3 rounded-xl">
               <Zap size={14} className="text-blue-500 shrink-0 animate-pulse" />
               <span>
                 {execMode === 'LIVE' 
-                  ? 'Executing LIVE CCTP smart contract calls on your wallet. Fast & secure cross-chain routing.' 
-                  : 'Sandbox interactive guide mode. Visualizes step-by-step USDC burn/mint flows on EVM.'}
+                  ? `Executing LIVE CCTP smart contract calls on your wallet. Fast & secure cross-chain routing for ${selectedBridgeToken}.` 
+                  : `Sandbox interactive guide mode. Visualizes step-by-step ${selectedBridgeToken} burn/mint flows on EVM.`}
               </span>
             </div>
 
@@ -311,6 +332,41 @@ export default function CircleBridge() {
                 </div>
               </div>
 
+              {/* Asset Selector */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Asset to Bridge</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBridgeToken('USDC')}
+                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex items-center justify-center gap-2 ${
+                      selectedBridgeToken === 'USDC'
+                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                    }`}
+                  >
+                    <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                      $
+                    </div>
+                    USDC Stablecoin
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBridgeToken('EURC')}
+                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex items-center justify-center gap-2 ${
+                      selectedBridgeToken === 'EURC'
+                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                    }`}
+                  >
+                    <div className="w-5 h-5 rounded-full bg-blue-650 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                      €
+                    </div>
+                    EURC Stablecoin
+                  </button>
+                </div>
+              </div>
+
               {/* Destination Chain Box */}
               <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
                 <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Destination Network (Locked)</span>
@@ -324,7 +380,7 @@ export default function CircleBridge() {
 
               {/* Input Amount */}
               <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Amount to Bridge (USDC)</span>
+                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Amount to Bridge ({selectedBridgeToken})</span>
                 <input
                   type="number"
                   placeholder="0.00"

@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase';
 const USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
 const EURC_ADDRESS = '0xeC00000000000000000000000000000000000000'; // Simulated EURC Address
 
-export default function ArcWallet() {
+export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (token: 'USDC' | 'EURC') => void }) {
   const { isConnected, address: userAddress } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
@@ -256,9 +256,19 @@ export default function ArcWallet() {
           <div className="absolute right-[-10px] bottom-[-20px] text-white/5 group-hover:scale-110 transition-transform duration-350 select-none">
             <DollarSign size={180} strokeWidth={1} />
           </div>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-6 z-10 relative">
             <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full border border-white/10">USDC (Base Token)</span>
-            <DollarSign size={20} className="text-blue-100" />
+            <div className="flex items-center gap-2">
+              {onSwitchToBridge && (
+                <button
+                  onClick={() => onSwitchToBridge('USDC')}
+                  className="px-3.5 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm border border-white/10 hover:scale-105 active:scale-95"
+                >
+                  Bridge ⚡
+                </button>
+              )}
+              <DollarSign size={20} className="text-blue-100" />
+            </div>
           </div>
           <div className="space-y-1">
             <span className="text-xs text-blue-100 font-semibold">Available Balance</span>
@@ -277,9 +287,19 @@ export default function ArcWallet() {
           <div className="absolute right-[-10px] bottom-[-20px] text-white/5 group-hover:scale-110 transition-transform duration-350 select-none">
             <Euro size={180} strokeWidth={1} />
           </div>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-6 z-10 relative">
             <span className="text-[10px] font-black uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/5">EURC (Euro Stable)</span>
-            <Euro size={20} className="text-slate-400" />
+            <div className="flex items-center gap-2">
+              {onSwitchToBridge && (
+                <button
+                  onClick={() => onSwitchToBridge('EURC')}
+                  className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
+                >
+                  Bridge ⚡
+                </button>
+              )}
+              <Euro size={20} className="text-slate-400" />
+            </div>
           </div>
           <div className="space-y-1">
             <span className="text-xs text-slate-350 font-semibold">Available Balance</span>
