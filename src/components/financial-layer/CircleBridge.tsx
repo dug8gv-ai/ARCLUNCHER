@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Coins, ShieldCheck, Flame, Loader2, Award, Zap, HelpCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { erc20Abi, parseUnits } from 'viem';
+import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi } from '@/lib/arcDefiAbi';
 
 interface CctpStep {
   title: string;
@@ -415,71 +416,62 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
       const outAmtVal = Number(outputAmount);
 
       if (execMode === 'LIVE') {
-        // LIVE Swap Smart Contract transfers
-        if (fromToken === 'USDC') {
-          const USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
-          const treasuryAddress = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
-          const amtWei = parseUnits(swapAmount, 6);
+        // LIVE Swap Smart Contract execution
+        const USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
+        const EURC_ADDRESS = '0xeC00000000000000000000000000000000000000';
+        
+        const tokenInAddress = fromToken === 'USDC' ? USDC_ADDRESS : EURC_ADDRESS;
+        const tokenOutAddress = fromToken === 'USDC' ? EURC_ADDRESS : USDC_ADDRESS;
+        
+        const amtWei = parseUnits(swapAmount, 6);
 
-          // Step 1: Approve Swap Router
-          updateStepStatus(0, 'active');
-          const approveTx = await writeContractAsync({
-            address: USDC_ADDRESS,
-            abi: erc20Abi,
-            functionName: 'approve',
-            args: [treasuryAddress, amtWei]
-          });
-          if (publicClient) {
-            await publicClient.waitForTransactionReceipt({ hash: approveTx });
-          }
-          updateStepStatus(0, 'success');
-          setCurrentStepIdx(1);
-
-          // Step 2: Execute Swap (Transfer USDC to Treasury)
-          updateStepStatus(1, 'active');
-          const swapTx = await writeContractAsync({
-            address: USDC_ADDRESS,
-            abi: erc20Abi,
-            functionName: 'transfer',
-            args: [treasuryAddress, amtWei]
-          });
-          if (publicClient) {
-            await publicClient.waitForTransactionReceipt({ hash: swapTx });
-          }
-          updateStepStatus(1, 'success');
-          setCurrentStepIdx(2);
-
-          // Step 3: Ledger verification
-          updateStepStatus(2, 'active');
-          await new Promise(r => setTimeout(r, 2000));
-          updateStepStatus(2, 'success');
-          setCurrentStepIdx(3);
-
-          // Step 4: Mint/Credit
-          updateStepStatus(3, 'active');
-          await new Promise(r => setTimeout(r, 1000));
-          updateStepStatus(3, 'success');
-        } else {
-          // EURC is a simulation asset on live, so we run highly polished simulations
-          updateStepStatus(0, 'active');
-          await new Promise(r => setTimeout(r, 1500));
-          updateStepStatus(0, 'success');
-          setCurrentStepIdx(1);
-
-          updateStepStatus(1, 'active');
-          await new Promise(r => setTimeout(r, 1500));
-          updateStepStatus(1, 'success');
-          setCurrentStepIdx(2);
-
-          updateStepStatus(2, 'active');
-          await new Promise(r => setTimeout(r, 2000));
-          updateStepStatus(2, 'success');
-          setCurrentStepIdx(3);
-
-          updateStepStatus(3, 'active');
-          await new Promise(r => setTimeout(r, 1000));
-          updateStepStatus(3, 'success');
+        // Step 1: Approve Swap Router
+        updateStepStatus(0, 'active');
+        const approveTx = await writeContractAsync({
+          address: tokenInAddress as `0x${string}`,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amtWei]
+        });
+        if (publicClient) {
+          await publicClient.waitForTransactionReceipt({ hash: approveTx });
         }
+        updateStepStatus(0, 'success');
+        setCurrentStepIdx(1);
+
+        // Step 2: Execute Swap
+        updateStepStatus(1, 'active');
+        const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20); // 20 mins deadline
+        const amountOutMin = BigInt(0); // 1:1 testnet without slippage bounds
+        
+        const swapTx = await writeContractAsync({
+          address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
+          abi: arcDefiRouterAbi,
+          functionName: 'swapExactTokensForTokens',
+          args: [
+            amtWei,
+            amountOutMin,
+            [tokenInAddress as `0x${string}`, tokenOutAddress as `0x${string}`],
+            userAddress as `0x${string}`,
+            deadline
+          ]
+        });
+        if (publicClient) {
+          await publicClient.waitForTransactionReceipt({ hash: swapTx });
+        }
+        updateStepStatus(1, 'success');
+        setCurrentStepIdx(2);
+
+        // Step 3: Ledger verification
+        updateStepStatus(2, 'active');
+        await new Promise(r => setTimeout(r, 2000));
+        updateStepStatus(2, 'success');
+        setCurrentStepIdx(3);
+
+        // Step 4: Mint/Credit
+        updateStepStatus(3, 'active');
+        await new Promise(r => setTimeout(r, 1000));
+        updateStepStatus(3, 'success');
       } else {
         // SANDBOX / SIMULATED FLOW
         // Step 1: Approve Router

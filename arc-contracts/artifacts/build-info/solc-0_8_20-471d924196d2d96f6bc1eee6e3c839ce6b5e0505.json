@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_20-471d924196d2d96f6bc1eee6e3c839ce6b5e0505",
+  "solcVersion": "0.8.20",
+  "solcLongVersion": "0.8.20+commit.a1b79de6",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/ArcDefiRouter.sol": "project/contracts/ArcDefiRouter.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/ArcDefiRouter.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ninterface IERC20 {\n    function transfer(address recipient, uint256 amount) external returns (bool);\n    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);\n    function balanceOf(address account) external view returns (uint256);\n}\n\ncontract ArcDefiRouter {\n    address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;\n    \n    struct LockInfo {\n        uint256 amount;\n        uint256 unlockTime;\n    }\n    \n    // Mapping from user => token => LockInfo\n    mapping(address => mapping(address => LockInfo)) public userLocks;\n\n    event Swap(address indexed user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);\n    event Burn(address indexed user, address token, uint256 amount);\n    event Lock(address indexed user, address token, uint256 amount, uint256 unlockTime);\n    event Unlock(address indexed user, address token, uint256 amount);\n\n    // Simple 1:1 Swap logic. \n    // WARNING: This contract MUST be funded with tokens to swap out.\n    function swapExactTokensForTokens(\n        uint256 amountIn,\n        uint256 amountOutMin,\n        address[] calldata path,\n        address to,\n        uint256 deadline\n    ) external returns (uint256[] memory amounts) {\n        require(block.timestamp <= deadline, \"EXPIRED\");\n        require(path.length == 2, \"ONLY_DIRECT_SWAP\");\n        \n        address tokenIn = path[0];\n        address tokenOut = path[1];\n        \n        // 1:1 Swap for simplicity in testing\n        uint256 amountOut = amountIn;\n        require(amountOut >= amountOutMin, \"INSUFFICIENT_OUTPUT_AMOUNT\");\n        \n        // Pull tokenIn from user\n        require(IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn), \"TRANSFER_IN_FAILED\");\n        \n        // Push tokenOut to user\n        require(IERC20(tokenOut).transfer(to, amountOut), \"TRANSFER_OUT_FAILED\");\n        \n        emit Swap(msg.sender, tokenIn, tokenOut, amountIn, amountOut);\n        \n        amounts = new uint256[](2);\n        amounts[0] = amountIn;\n        amounts[1] = amountOut;\n        return amounts;\n    }\n\n    // Burn tokens by sending them to DEAD address\n    function burn(address token, uint256 amount) external {\n        require(IERC20(token).transferFrom(msg.sender, DEAD_ADDRESS, amount), \"BURN_FAILED\");\n        emit Burn(msg.sender, token, amount);\n    }\n\n    // Lock tokens for a specific duration\n    function lock(address token, uint256 amount, uint256 durationInSeconds) external {\n        require(amount > 0, \"AMOUNT_ZERO\");\n        require(durationInSeconds > 0, \"DURATION_ZERO\");\n\n        // Transfer tokens to this contract\n        require(IERC20(token).transferFrom(msg.sender, address(this), amount), \"LOCK_TRANSFER_FAILED\");\n\n        LockInfo storage currentLock = userLocks[msg.sender][token];\n        \n        // If they already have a lock, add to it and extend duration\n        currentLock.amount += amount;\n        currentLock.unlockTime = block.timestamp + durationInSeconds;\n\n        emit Lock(msg.sender, token, amount, currentLock.unlockTime);\n    }\n\n    // Unlock and withdraw tokens\n    function unlock(address token) external {\n        LockInfo storage currentLock = userLocks[msg.sender][token];\n        require(currentLock.amount > 0, \"NO_LOCKED_TOKENS\");\n        require(block.timestamp >= currentLock.unlockTime, \"LOCKED\");\n\n        uint256 amountToSend = currentLock.amount;\n        currentLock.amount = 0;\n        currentLock.unlockTime = 0;\n\n        require(IERC20(token).transfer(msg.sender, amountToSend), \"UNLOCK_TRANSFER_FAILED\");\n\n        emit Unlock(msg.sender, token, amountToSend);\n    }\n\n    // Admin emergency withdrawal for unfunded tokens\n    function emergencyWithdraw(address token, uint256 amount) external {\n        require(IERC20(token).transfer(msg.sender, amount), \"WITHDRAW_FAILED\");\n    }\n}\n"
+      }
+    }
+  }
+}

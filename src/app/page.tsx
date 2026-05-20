@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
 import { parseUnits, erc20Abi } from 'viem';
 import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp } from 'lucide-react';
+import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi } from '@/lib/arcDefiAbi';
 import dynamic from 'next/dynamic';
 
 const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => mod.PriceChart), {
@@ -298,21 +299,32 @@ export default function Home() {
         else finalWorth = amt * 0.01;
       }
 
-      // 3. Perform on-chain transaction (Direct ERC-20 transfer to Treasury Address)
-      const adminAddress = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
+      // 3. Perform on-chain transaction (via ArcDefiRouter)
       const amountWei = parseUnits(lockAmount, decimals);
 
-      await triggerAlert("INITIATING LOCK", `Please confirm the wallet transaction to lock ${lockAmount} ${activeTicker} (worth ~$${finalWorth.toFixed(2)} USD).`, "info");
+      await triggerAlert("INITIATING LOCK", `Please confirm the wallet transaction to approve ${lockAmount} ${activeTicker} (worth ~$${finalWorth.toFixed(2)} USD).`, "info");
 
-      const txHash = await writeContractAsync({
+      const approveTx = await writeContractAsync({
         address: tokenContractAddress as `0x${string}`,
         abi: erc20Abi,
-        functionName: 'transfer',
-        args: [adminAddress as `0x${string}`, amountWei],
+        functionName: 'approve',
+        args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amountWei],
+      });
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: approveTx });
+      }
+
+      await triggerAlert("APPROVED", `Approval successful. Now confirming lock transaction.`, "info");
+
+      const lockTx = await writeContractAsync({
+        address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
+        abi: arcDefiRouterAbi,
+        functionName: 'lock',
+        args: [tokenContractAddress as `0x${string}`, amountWei, BigInt(30 * 24 * 60 * 60)],
       });
 
       if (publicClient) {
-        await publicClient.waitForTransactionReceipt({ hash: txHash });
+        await publicClient.waitForTransactionReceipt({ hash: lockTx });
       }
 
       // 4. Sandbox simulated balance deduction in local storage!
@@ -409,6 +421,18 @@ export default function Home() {
       if (!targetLock) {
         await triggerAlert("LOCK NOT FOUND", "Could not locate this locked asset record.", "error");
         return;
+      }
+
+      // On-chain unlock via ArcDefiRouter
+      await triggerAlert("INITIATING UNLOCK", `Please confirm the wallet transaction to unlock your asset.`, "info");
+      const unlockTx = await writeContractAsync({
+        address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
+        abi: arcDefiRouterAbi,
+        functionName: 'unlock',
+        args: [targetLock.token_address as `0x${string}`],
+      });
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: unlockTx });
       }
 
       // Update Database/Local Storage state to withdrawn
