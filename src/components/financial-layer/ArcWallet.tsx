@@ -6,6 +6,7 @@ import { erc20Abi, formatUnits, parseUnits } from 'viem';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftRight, TrendingUp, Wallet, ArrowDown, DollarSign, Euro, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import YieldSavings from './YieldSavings';
 
 // Mock contract or simulated EURC address on Arc Testnet
 const USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
@@ -20,6 +21,9 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
   const [usdcBalance, setUsdcBalance] = useState<number>(1000.00);
   const [eurcBalance, setEurcBalance] = useState<number>(500.00);
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
+
+  // Grow Wealth Yield Section toggling state
+  const [isYieldSectionOpen, setIsYieldSectionOpen] = useState(false);
 
   // Swap input states
   const [swapDirection, setSwapDirection] = useState<'USDC_TO_EURC' | 'EURC_TO_USDC'>('USDC_TO_EURC');
@@ -313,6 +317,42 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
           </div>
         </div>
 
+      </div>
+
+      {/* Grow Your Wealth Premium Yield Banner / Collapsible Panel */}
+      <div className="bg-gradient-to-r from-blue-900/5 via-indigo-900/5 to-purple-900/5 border border-blue-200/20 rounded-[32px] p-6 shadow-sm space-y-6">
+        <button
+          type="button"
+          onClick={() => setIsYieldSectionOpen(!isYieldSectionOpen)}
+          className="w-full text-left flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 cursor-pointer focus:outline-none"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-600 flex items-center justify-center shadow-sm">
+              <TrendingUp size={20} className="animate-pulse" />
+            </div>
+            <div>
+              <span className="text-[9px] uppercase font-black tracking-widest text-blue-600 bg-blue-500/15 border border-blue-500/10 px-2 py-0.5 rounded-full inline-block">Premium Grow Your Wealth</span>
+              <h4 className="font-extrabold text-slate-800 text-sm mt-1">Native Stablecoin Yields Available (Up to 8.5% APY)</h4>
+              <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Stake idle USDC & EURC inside secured high-yield vaults compounding live.</p>
+            </div>
+          </div>
+          <span className="text-xs font-black text-blue-600 hover:text-blue-750 bg-white border border-slate-200/50 px-3.5 py-2 rounded-xl shadow-sm transition-all select-none self-start sm:self-center">
+            {isYieldSectionOpen ? 'Hide Yield Panel' : 'Grow Wealth ⚡'}
+          </span>
+        </button>
+
+        <AnimatePresence>
+          {isYieldSectionOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden border-t border-slate-100 pt-6"
+            >
+              <YieldSavings />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* FX Swap Engine Widget */}

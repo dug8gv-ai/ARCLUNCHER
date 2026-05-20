@@ -5,6 +5,8 @@ import { useAccount, useSendTransaction, usePublicClient, useWriteContract } fro
 import { parseUnits, erc20Abi, isAddress } from 'viem';
 import { supabase } from '@/lib/supabase';
 import { Search, Send, QrCode, Copy, Check, Users, Loader2, DollarSign, Wallet, ArrowRight, UserCheck, Settings, CheckSquare, Plus, FileText } from 'lucide-react';
+import EscrowSystem from './EscrowSystem';
+import AutoPay from './AutoPay';
 
 interface ProfileData {
   wallet: string;
@@ -24,6 +26,7 @@ export default function SocialPay() {
   const { writeContractAsync } = useWriteContract();
 
   // Connected profile states
+  const [activeSubTab, setActiveSubTab] = useState<'instant' | 'escrow' | 'autopay'>('instant');
   const [myProfile, setMyProfile] = useState<ProfileData | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileName, setProfileName] = useState('');
@@ -319,234 +322,278 @@ export default function SocialPay() {
         
         {/* Left Section: Routing Form */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-5">
-              <h3 className="font-extrabold text-slate-800 text-sm">Send Secure Payments</h3>
-              <p className="text-[10px] text-slate-500 font-semibold">Input a username to find and send USDC or EURC funds.</p>
-            </div>
+          
+          {/* Sub-Tab Selector Capsule */}
+          <div className="flex gap-2 p-1 bg-slate-100/80 border border-slate-200/40 rounded-2xl max-w-lg mb-6">
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('instant')}
+              className={`flex-1 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                activeSubTab === 'instant' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              ⚡ Instant Pay
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('escrow')}
+              className={`flex-1 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                activeSubTab === 'escrow' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              🤝 Escrow Milestones
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('autopay')}
+              className={`flex-1 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                activeSubTab === 'autopay' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              📅 AutoPay Payroll
+            </button>
+          </div>
 
-            <form onSubmit={handleSendPayment} className="space-y-6">
-              
-              {/* Recipient Selection */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Recipient</label>
-                
-                {selectedRecipient ? (
-                  <div className="flex items-center justify-between p-4 bg-blue-50/40 border border-blue-200/50 rounded-2xl">
-                    <div className="flex items-center gap-3">
-                      <img src={selectedRecipient.avatar} className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200" alt="" />
-                      <div>
-                        <h4 className="font-black text-slate-800 text-xs">@{selectedRecipient.name}</h4>
-                        <p className="text-[9px] text-slate-400 font-mono mt-0.5">{selectedRecipient.wallet.slice(0, 10)}...{selectedRecipient.wallet.slice(-8)}</p>
+          {activeSubTab === 'instant' && (
+            <>
+              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="border-b border-slate-100 pb-5">
+                  <h3 className="font-extrabold text-slate-800 text-sm">Send Secure Payments</h3>
+                  <p className="text-[10px] text-slate-500 font-semibold">Input a username to find and send USDC or EURC funds.</p>
+                </div>
+
+                <form onSubmit={handleSendPayment} className="space-y-6">
+                  
+                  {/* Recipient Selection */}
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Recipient</label>
+                    
+                    {selectedRecipient ? (
+                      <div className="flex items-center justify-between p-4 bg-blue-50/40 border border-blue-200/50 rounded-2xl">
+                        <div className="flex items-center gap-3">
+                          <img src={selectedRecipient.avatar} className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200" alt="" />
+                          <div>
+                            <h4 className="font-black text-slate-800 text-xs">@{selectedRecipient.name}</h4>
+                            <p className="text-[9px] text-slate-400 font-mono mt-0.5">{selectedRecipient.wallet.slice(0, 10)}...{selectedRecipient.wallet.slice(-8)}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRecipient(null)}
+                          className="text-[10px] font-extrabold text-blue-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl hover:bg-slate-50"
+                        >
+                          Change
+                        </button>
                       </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRecipient(null)}
-                      className="text-[10px] font-extrabold text-blue-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl hover:bg-slate-50"
-                    >
-                      Change
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-3.5">
-                    {/* Search box */}
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-                      <input
-                        type="text"
-                        placeholder="Search custom @username (e.g. Frianowzki)..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-white transition-all"
-                      />
-                      {searchLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-blue-600 size-4" />}
-                    </div>
+                    ) : (
+                      <div className="space-y-3.5">
+                        {/* Search box */}
+                        <div className="relative">
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                          <input
+                            type="text"
+                            placeholder="Search custom @username (e.g. Frianowzki)..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-white transition-all"
+                          />
+                          {searchLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-blue-600 size-4" />}
+                        </div>
 
-                    {/* Results Dropdown */}
-                    {searchResults.length > 0 && (
-                      <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xl max-h-[200px] overflow-y-auto">
-                        {searchResults.map((p) => (
-                          <button
-                            key={p.wallet}
-                            type="button"
-                            onClick={() => {
-                              setSelectedRecipient(p);
-                              setSearchQuery('');
-                              setSearchResults([]);
+                        {/* Results Dropdown */}
+                        {searchResults.length > 0 && (
+                          <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xl max-h-[200px] overflow-y-auto">
+                            {searchResults.map((p) => (
+                              <button
+                                key={p.wallet}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedRecipient(p);
+                                  setSearchQuery('');
+                                  setSearchResults([]);
+                                }}
+                                className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 border-b border-slate-100 last:border-0 text-left cursor-pointer"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <img src={p.avatar} className="w-8 h-8 rounded-lg border border-slate-200" alt="" />
+                                  <div>
+                                    <span className="text-xs font-black text-slate-800 block">@{p.name}</span>
+                                    <span className="text-[8px] text-slate-400 font-mono block mt-0.5">{p.wallet}</span>
+                                  </div>
+                                </div>
+                                <ArrowRight size={14} className="text-slate-300" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-3">
+                          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Or Paste Custom Wallet</span>
+                          <hr className="flex-1 border-slate-100" />
+                        </div>
+
+                        {/* Wallet Input */}
+                        <div className="relative">
+                          <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                          <input
+                            type="text"
+                            placeholder="Paste recipient wallet address (0x...)"
+                            value={customWallet}
+                            onChange={(e) => {
+                              setCustomWallet(e.target.value);
+                              if (isAddress(e.target.value)) {
+                                setSelectedRecipient({
+                                  wallet: e.target.value.toLowerCase(),
+                                  name: 'Custom Address',
+                                  avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${e.target.value.toLowerCase()}`
+                                });
+                              }
                             }}
-                            className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 border-b border-slate-100 last:border-0 text-left cursor-pointer"
-                          >
-                            <div className="flex items-center gap-3">
-                              <img src={p.avatar} className="w-8 h-8 rounded-lg border border-slate-200" alt="" />
-                              <div>
-                                <span className="text-xs font-black text-slate-800 block">@{p.name}</span>
-                                <span className="text-[8px] text-slate-400 font-mono block mt-0.5">{p.wallet}</span>
-                              </div>
-                            </div>
-                            <ArrowRight size={14} className="text-slate-300" />
-                          </button>
-                        ))}
+                            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-white transition-all"
+                          />
+                        </div>
                       </div>
                     )}
 
-                    <div className="flex items-center gap-3">
-                      <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Or Paste Custom Wallet</span>
-                      <hr className="flex-1 border-slate-100" />
-                    </div>
+                  </div>
 
-                    {/* Wallet Input */}
-                    <div className="relative">
-                      <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  {/* Asset Select */}
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Asset</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentAsset('USDC')}
+                        className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
+                          paymentAsset === 'USDC'
+                            ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                            : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                        }`}
+                      >
+                        USDC Stablecoin
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentAsset('EURC')}
+                        className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
+                          paymentAsset === 'EURC'
+                            ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                            : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                        }`}
+                      >
+                        EURC Stablecoin
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Amount Box */}
+                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
+                    <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Amount to Send</span>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      step="any"
+                      required
+                      value={payAmount}
+                      disabled={isPaying}
+                      onChange={(e) => setPayAmount(e.target.value)}
+                      className="w-full bg-transparent text-3xl font-black font-mono text-slate-800 outline-none placeholder:text-slate-350"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isPaying}
+                    className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isPaying ? <Loader2 size={16} className="animate-spin" /> : <Send size={15} />}
+                    Send Funds Instantly
+                  </button>
+
+                  {/* Status Display */}
+                  {payStatus === 'success' && (
+                    <div className="p-4.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-2xl flex items-center gap-2">
+                      <CheckSquare size={16} /> Payment sent successfully and logged into user stats!
+                    </div>
+                  )}
+                  {payStatus === 'error' && (
+                    <div className="p-4.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-2xl flex items-center gap-2">
+                      ✕ Payment transaction failed.
+                    </div>
+                  )}
+
+                </form>
+
+              </div>
+
+              {/* Invoice Freelance Utility Box */}
+              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="border-b border-slate-100 pb-5">
+                  <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5"><FileText size={18} className="text-blue-500" /> Freelance Payment Request Generator</h3>
+                  <p className="text-[10px] text-slate-500 font-semibold">Generate structured shareable invoices prefilled with USDC parameters.</p>
+                </div>
+
+                <form onSubmit={handleGenerateInvoice} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Invoice description</label>
                       <input
                         type="text"
-                        placeholder="Paste recipient wallet address (0x...)"
-                        value={customWallet}
-                        onChange={(e) => {
-                          setCustomWallet(e.target.value);
-                          if (isAddress(e.target.value)) {
-                            setSelectedRecipient({
-                              wallet: e.target.value.toLowerCase(),
-                              name: 'Custom Address',
-                              avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${e.target.value.toLowerCase()}`
-                            });
-                          }
-                        }}
-                        className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-white transition-all"
+                        required
+                        placeholder="e.g. Design Services"
+                        value={invoiceReason}
+                        onChange={(e) => setInvoiceReason(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Request Amount (USDC)</label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="0.00"
+                        value={invoiceAmount}
+                        onChange={(e) => setInvoiceAmount(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
+
+                  <button
+                    type="submit"
+                    className="py-3 px-5 bg-slate-900 hover:bg-slate-850 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md cursor-pointer transition-all active:scale-98"
+                  >
+                    Generate Invoice Link
+                  </button>
+                </form>
+
+                {generatedInvoiceLink && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center animate-in fade-in slide-in-from-top-1 duration-150">
+                    <span className="text-[10.5px] font-mono text-slate-500 truncate mr-4">{generatedInvoiceLink}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedInvoiceLink);
+                        setCopiedInvoice(true);
+                        setTimeout(() => setCopiedInvoice(false), 2000);
+                      }}
+                      className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[10px] px-3.5 py-2 rounded-xl shadow-sm hover:scale-[1.02] active:scale-98 cursor-pointer transition-all"
+                    >
+                      {copiedInvoice ? <Check className="text-green-600" size={13} /> : 'Copy'}
+                    </button>
+                  </div>
                 )}
-
               </div>
+            </>
+          )}
 
-              {/* Asset Select */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Asset</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentAsset('USDC')}
-                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
-                      paymentAsset === 'USDC'
-                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
-                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
-                    }`}
-                  >
-                    USDC Stablecoin
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentAsset('EURC')}
-                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
-                      paymentAsset === 'EURC'
-                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
-                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
-                    }`}
-                  >
-                    EURC Stablecoin
-                  </button>
-                </div>
-              </div>
+          {activeSubTab === 'escrow' && (
+            <EscrowSystem />
+          )}
 
-              {/* Amount Box */}
-              <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
-                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Amount to Send</span>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  step="any"
-                  required
-                  value={payAmount}
-                  disabled={isPaying}
-                  onChange={(e) => setPayAmount(e.target.value)}
-                  className="w-full bg-transparent text-3xl font-black font-mono text-slate-800 outline-none placeholder:text-slate-350"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isPaying}
-                className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {isPaying ? <Loader2 size={16} className="animate-spin" /> : <Send size={15} />}
-                Send Funds Instantly
-              </button>
-
-              {/* Status Display */}
-              {payStatus === 'success' && (
-                <div className="p-4.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-2xl flex items-center gap-2">
-                  <CheckSquare size={16} /> Payment sent successfully and logged into user stats!
-                </div>
-              )}
-              {payStatus === 'error' && (
-                <div className="p-4.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-2xl flex items-center gap-2">
-                  ✕ Payment transaction failed.
-                </div>
-              )}
-
-            </form>
-
-          </div>
-
-          {/* Invoice Freelance Utility Box */}
-          <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-5">
-              <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5"><FileText size={18} className="text-blue-500" /> Freelance Payment Request Generator</h3>
-              <p className="text-[10px] text-slate-500 font-semibold">Generate structured shareable invoices prefilled with USDC parameters.</p>
-            </div>
-
-            <form onSubmit={handleGenerateInvoice} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Invoice description</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Design Services"
-                    value={invoiceReason}
-                    onChange={(e) => setInvoiceReason(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Request Amount (USDC)</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="0.00"
-                    value={invoiceAmount}
-                    onChange={(e) => setInvoiceAmount(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="py-3 px-5 bg-slate-900 hover:bg-slate-850 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md cursor-pointer transition-all active:scale-98"
-              >
-                Generate Invoice Link
-              </button>
-            </form>
-
-            {generatedInvoiceLink && (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center animate-in fade-in slide-in-from-top-1 duration-150">
-                <span className="text-[10.5px] font-mono text-slate-500 truncate mr-4">{generatedInvoiceLink}</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(generatedInvoiceLink);
-                    setCopiedInvoice(true);
-                    setTimeout(() => setCopiedInvoice(false), 2000);
-                  }}
-                  className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[10px] px-3.5 py-2 rounded-xl shadow-sm hover:scale-[1.02] active:scale-98 cursor-pointer transition-all"
-                >
-                  {copiedInvoice ? <Check className="text-green-600" size={13} /> : 'Copy'}
-                </button>
-              </div>
-            )}
-          </div>
+          {activeSubTab === 'autopay' && (
+            <AutoPay />
+          )}
         </div>
 
         {/* Right Section: Pay Me QR */}
