@@ -67,12 +67,21 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
   const [usdcBalance, setUsdcBalance] = useState<number>(1000.00);
   const [eurcBalance, setEurcBalance] = useState<number>(500.00);
 
+  // On-chain Real Wallet Balances
+  const [realUsdcBalance, setRealUsdcBalance] = useState<number>(0);
+  const [realEurcBalance, setRealEurcBalance] = useState<number>(0);
+  const [isFetchingRealBalances, setIsFetchingRealBalances] = useState(false);
+
   // General Transaction States
   const [currentStepIdx, setCurrentStepIdx] = useState<number>(-1); // -1 = not started
   const [isBridging, setIsBridging] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [execMode, setExecMode] = useState<'LIVE' | 'SANDBOX'>('SANDBOX');
   const [steps, setSteps] = useState<CctpStep[]>([]);
+
+  // Active balances (dynamic depending on execution mode)
+  const activeUsdcBalance = execMode === 'LIVE' ? realUsdcBalance : usdcBalance;
+  const activeEurcBalance = execMode === 'LIVE' ? realEurcBalance : eurcBalance;
 
   // Rates definition
   const fxRate = swapDirection === 'USDC_TO_EURC' ? 0.92 : 1.09;
@@ -81,6 +90,57 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
   useEffect(() => {
     setSelectedBridgeToken(initialToken);
   }, [initialToken]);
+
+  // Real balance fetcher
+  const fetchRealBalances = async () => {
+    if (!userAddress || !publicClient) return;
+    setIsFetchingRealBalances(true);
+    try {
+      let usdcAddress = '0x3600000000000000000000000000000000000000';
+      let eurcAddress = '0xeC00000000000000000000000000000000000000';
+      
+      if (bridgeMode === 'CROSS_CHAIN') {
+        const activeNet = NETWORKS[sourceChain];
+        usdcAddress = activeNet.usdcAddress;
+        eurcAddress = activeNet.eurcAddress;
+      }
+
+      const [usdcRaw, eurcRaw] = await Promise.all([
+        publicClient.readContract({
+          address: usdcAddress as `0x${string}`,
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [userAddress as `0x${string}`]
+        }).catch((e) => {
+          console.warn("USDC balance read failed:", e);
+          return BigInt(0);
+        }),
+        publicClient.readContract({
+          address: eurcAddress as `0x${string}`,
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [userAddress as `0x${string}`]
+        }).catch((e) => {
+          console.warn("EURC balance read failed:", e);
+          return BigInt(0);
+        })
+      ]);
+
+      setRealUsdcBalance(Number(usdcRaw) / 1e6);
+      setRealEurcBalance(Number(eurcRaw) / 1e6);
+    } catch (err) {
+      console.error("Error reading real on-chain balances:", err);
+    } finally {
+      setIsFetchingRealBalances(false);
+    }
+  };
+
+  // Fetch real balances when connected, on-chain mode, network/chain changes
+  useEffect(() => {
+    if (isConnected && userAddress && execMode === 'LIVE') {
+      fetchRealBalances();
+    }
+  }, [isConnected, userAddress, execMode, bridgeMode, sourceChain, chain]);
 
   // Balance syncing with localStorage (synchronizes with ArcWallet)
   useEffect(() => {
@@ -332,7 +392,7 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
 
     const fromToken = swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC';
     const toToken = swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC';
-    const balanceToCheck = fromToken === 'USDC' ? usdcBalance : eurcBalance;
+    const balanceToCheck = fromToken === 'USDC' ? activeUsdcBalance : activeEurcBalance;
 
     if (amt > balanceToCheck) {
       alert(`Insufficient ${fromToken} balance.`);
@@ -497,6 +557,11 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
 
       setIsBridging(false);
       setCurrentStepIdx(4);
+      
+      // Re-fetch live on-chain balances after successful LIVE swap
+      if (execMode === 'LIVE') {
+        fetchRealBalances();
+      }
     } catch (err: any) {
       console.error(err);
       if (currentStepIdx >= 0) {
@@ -764,10 +829,13 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
                 {/* Available Balance Indicator */}
                 <div className="flex justify-between items-center text-[10px] text-slate-500 font-extrabold uppercase px-1">
                   <span>Available Balance</span>
-                  <span className="text-blue-600 font-mono bg-blue-50/50 px-2 py-0.5 rounded-md border border-blue-100">
+                  <span className="text-blue-600 font-mono bg-blue-50/50 px-2 py-0.5 rounded-md border border-blue-100 flex items-center gap-1.5">
+                    {isFetchingRealBalances ? (
+                      <span className="w-2.5 h-2.5 border border-blue-600 border-t-transparent rounded-full animate-spin shrink-0"></span>
+                    ) : null}
                     {swapDirection === 'USDC_TO_EURC' 
-                      ? `${usdcBalance.toFixed(2)} USDC` 
-                      : `${eurcBalance.toFixed(2)} EURC`}
+                      ? `${activeUsdcBalance.toFixed(2)} USDC` 
+                      : `${activeEurcBalance.toFixed(2)} EURC`}
                   </span>
                 </div>
 
@@ -792,7 +860,7 @@ export default function CircleBridge({ initialToken = 'USDC' }: { initialToken?:
                       type="button"
                       disabled={isBridging}
                       onClick={() => {
-                        const bal = swapDirection === 'USDC_TO_EURC' ? usdcBalance : eurcBalance;
+                        const bal = swapDirection === 'USDC_TO_EURC' ? activeUsdcBalance : activeEurcBalance;
                         setSwapAmount(bal.toString());
                       }}
                       className="text-[9px] uppercase font-black px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-650 cursor-pointer shadow-sm shrink-0"
