@@ -387,7 +387,7 @@ export default function ArcGlobalDashboard() {
             )}
 
             {/* CIRCLE CCTP BRIDGE */}
-            {currentTab === 'bridge' && <CircleBridge initialToken={bridgeInitialToken} />}
+            {currentTab === 'bridge' && <CircleBridge />}
 
             {/* CIRCLE HUB TAB */}
             {currentTab === 'circle-hub' && <CircleHub />}

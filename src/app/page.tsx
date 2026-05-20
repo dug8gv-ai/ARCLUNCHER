@@ -1083,7 +1083,7 @@ export default function Home() {
             {/* CIRCLE CCTP BRIDGE VIEW */}
             {currentView === 'bridge' && (
               <div className="animate-in fade-in duration-200">
-                <CircleBridge initialToken={bridgeInitialToken} />
+                <CircleBridge />
               </div>
             )}
           </main>
