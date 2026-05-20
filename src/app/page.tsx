@@ -843,7 +843,8 @@ export default function Home() {
 
             {/* Airdrop Rules modal opener */}
             <button 
-              onClick={() => setIsRulesOpen(true)}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setIsRulesOpen(true); setIsLockerOpen(false); }}
               className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all hover:text-slate-800 border border-transparent"
             >
               <HelpCircle size={16} className="text-slate-400" />
@@ -854,7 +855,7 @@ export default function Home() {
 
         {/* Bottom Sidebar Locked Liquidity card */}
         <div 
-          onClick={() => setIsLockerOpen(true)}
+          onClick={(e) => { e.stopPropagation(); setIsLockerOpen(true); setIsRulesOpen(false); }}
           className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 rounded-3xl p-5 space-y-3.5 shadow-sm cursor-pointer group transition-all"
         >
           <div className="flex items-center justify-between">
