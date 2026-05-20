@@ -44,6 +44,12 @@ export default function CircleBridge() {
   const [collectedFeesEURC, setCollectedFeesEURC] = useState<number>(0);
   const [isWithdrawingFees, setIsWithdrawingFees] = useState(false);
 
+  // Admin Liquidity States
+  const [adminUsdcAmount, setAdminUsdcAmount] = useState('');
+  const [adminEurcAmount, setAdminEurcAmount] = useState('');
+  const [isAdminAddingLiquidity, setIsAdminAddingLiquidity] = useState(false);
+  const [isAdminRemovingLiquidity, setIsAdminRemovingLiquidity] = useState(false);
+
   // Transaction States
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -301,6 +307,147 @@ export default function CircleBridge() {
     setIsWithdrawingFees(false);
   };
 
+  const handleAddLiquidity = async () => {
+    if (!isConnected || !userAddress) return;
+    const usdcAmt = Number(adminUsdcAmount);
+    const eurcAmt = Number(adminEurcAmount);
+    if (usdcAmt <= 0 && eurcAmt <= 0) {
+      setErrorMessage('Please enter a valid amount of USDC or EURC');
+      return;
+    }
+
+    setIsProcessing(true);
+    setIsAdminAddingLiquidity(true);
+    setCurrentStepIdx(0);
+    setErrorMessage(null);
+    setTxSuccess(false);
+
+    setSteps([
+      { title: '1. Approve USDC', desc: 'Approve the pool to spend your USDC', status: 'pending' },
+      { title: '2. Approve EURC', desc: 'Approve the pool to spend your EURC', status: 'pending' },
+      { title: '3. Add Liquidity', desc: 'Add stablecoin reserves to the pool', status: 'pending' },
+    ]);
+
+    try {
+      const usdcWei = parseUnits(adminUsdcAmount || '0', 6);
+      const eurcWei = parseUnits(adminEurcAmount || '0', 6);
+
+      // Step 1: Approve USDC (if > 0)
+      updateStepStatus(0, 'active');
+      if (usdcAmt > 0) {
+        const approveTx = await writeContractAsync({
+          address: USDC_ADDRESS as `0x${string}`,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [ARC_LIQUIDITY_POOL_ADDRESS as `0x${string}`, usdcWei],
+        });
+        if (publicClient) {
+          await publicClient.waitForTransactionReceipt({ hash: approveTx });
+        }
+      }
+      updateStepStatus(0, 'success');
+      setCurrentStepIdx(1);
+
+      // Step 2: Approve EURC (if > 0)
+      updateStepStatus(1, 'active');
+      if (eurcAmt > 0) {
+        const approveTx = await writeContractAsync({
+          address: EURC_ADDRESS as `0x${string}`,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [ARC_LIQUIDITY_POOL_ADDRESS as `0x${string}`, eurcWei],
+        });
+        if (publicClient) {
+          await publicClient.waitForTransactionReceipt({ hash: approveTx });
+        }
+      }
+      updateStepStatus(1, 'success');
+      setCurrentStepIdx(2);
+
+      // Step 3: Add Liquidity
+      updateStepStatus(2, 'active');
+      const addTx = await writeContractAsync({
+        address: ARC_LIQUIDITY_POOL_ADDRESS as `0x${string}`,
+        abi: arcLiquidityPoolAbi,
+        functionName: 'addLiquidity',
+        args: [usdcWei, eurcWei],
+      });
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: addTx });
+      }
+      updateStepStatus(2, 'success');
+
+      setTxSuccess(true);
+      setAdminUsdcAmount('');
+      setAdminEurcAmount('');
+      await fetchBalances();
+      await fetchPoolReserves();
+      window.dispatchEvent(new Event('storage'));
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.shortMessage || err.message || 'Add liquidity failed');
+      if (currentStepIdx >= 0 && currentStepIdx < steps.length) {
+        updateStepStatus(currentStepIdx, 'failed');
+      }
+    } finally {
+      setIsProcessing(false);
+      setIsAdminAddingLiquidity(false);
+    }
+  };
+
+  const handleRemoveLiquidity = async () => {
+    if (!isConnected || !userAddress) return;
+    const usdcAmt = Number(adminUsdcAmount);
+    const eurcAmt = Number(adminEurcAmount);
+    if (usdcAmt <= 0 && eurcAmt <= 0) {
+      setErrorMessage('Please enter a valid amount of USDC or EURC to remove');
+      return;
+    }
+
+    setIsProcessing(true);
+    setIsAdminRemovingLiquidity(true);
+    setCurrentStepIdx(0);
+    setErrorMessage(null);
+    setTxSuccess(false);
+
+    setSteps([
+      { title: '1. Remove Liquidity', desc: 'Withdraw stablecoin reserves from the pool', status: 'pending' },
+    ]);
+
+    try {
+      const usdcWei = parseUnits(adminUsdcAmount || '0', 6);
+      const eurcWei = parseUnits(adminEurcAmount || '0', 6);
+
+      updateStepStatus(0, 'active');
+      const removeTx = await writeContractAsync({
+        address: ARC_LIQUIDITY_POOL_ADDRESS as `0x${string}`,
+        abi: arcLiquidityPoolAbi,
+        functionName: 'removeLiquidity',
+        args: [usdcWei, eurcWei],
+      });
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: removeTx });
+      }
+      updateStepStatus(0, 'success');
+
+      setTxSuccess(true);
+      setAdminUsdcAmount('');
+      setAdminEurcAmount('');
+      await fetchBalances();
+      await fetchPoolReserves();
+      window.dispatchEvent(new Event('storage'));
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.shortMessage || err.message || 'Remove liquidity failed');
+      if (currentStepIdx >= 0 && currentStepIdx < steps.length) {
+        updateStepStatus(currentStepIdx, 'failed');
+      }
+    } finally {
+      setIsProcessing(false);
+      setIsAdminRemovingLiquidity(false);
+    }
+  };
+
   const resetState = () => {
     setSteps([]);
     setCurrentStepIdx(-1);
@@ -310,6 +457,8 @@ export default function CircleBridge() {
     setOutputAmount('');
     setBurnAmount('');
     setBurnTokenAddress('');
+    setAdminUsdcAmount('');
+    setAdminEurcAmount('');
   };
 
   return (
@@ -480,6 +629,64 @@ export default function CircleBridge() {
                     <>💰 Claim Collected Fees</>
                   )}
                 </button>
+              </div>
+            )}
+
+            {/* Admin Liquidity Panel */}
+            {userAddress?.toLowerCase() === '0x218b09a7d9ff6d69082ac605bb27029bc321b5c3' && (
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-3.5 space-y-3 animate-in slide-in-from-bottom-2 duration-200">
+                <div className="flex items-center justify-between text-[9px] font-black text-purple-800 uppercase tracking-widest">
+                  <span>💧 Admin Liquidity Controls</span>
+                  <span className="bg-purple-100 px-1.5 py-0.5 rounded text-[8px] text-purple-700 font-bold uppercase">Admin</span>
+                </div>
+                
+                <div className="flex gap-2">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[9px] font-bold text-purple-700 uppercase">USDC Amount</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={adminUsdcAmount}
+                      onChange={(e) => setAdminUsdcAmount(e.target.value)}
+                      className="w-full bg-white border border-purple-100 rounded-lg py-2 px-3 text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-slate-400"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[9px] font-bold text-purple-700 uppercase">EURC Amount</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={adminEurcAmount}
+                      onChange={(e) => setAdminEurcAmount(e.target.value)}
+                      className="w-full bg-white border border-purple-100 rounded-lg py-2 px-3 text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleAddLiquidity}
+                    disabled={isAdminAddingLiquidity || isProcessing || (!adminUsdcAmount && !adminEurcAmount)}
+                    className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-[9px] uppercase tracking-wider transition-all disabled:opacity-40 cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    {isAdminAddingLiquidity ? (
+                      <><Loader2 size={10} className="animate-spin" /> Adding...</>
+                    ) : (
+                      <>➕ Add Liquidity</>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleRemoveLiquidity}
+                    disabled={isAdminRemovingLiquidity || isProcessing || (!adminUsdcAmount && !adminEurcAmount)}
+                    className="flex-1 py-2.5 bg-pink-500 hover:bg-pink-600 text-white rounded-xl font-bold text-[9px] uppercase tracking-wider transition-all disabled:opacity-40 cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    {isAdminRemovingLiquidity ? (
+                      <><Loader2 size={10} className="animate-spin" /> Removing...</>
+                    ) : (
+                      <>➖ Remove Liquidity</>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 

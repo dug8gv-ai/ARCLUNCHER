@@ -128,12 +128,9 @@ export default function Home() {
       setEurcWalletBalance(Number(formatUnits(eurcRaw as bigint, 6)));
     } catch (err) {
       console.error("Error fetching wallet stable balances on-chain:", err);
-      // Fallback to localStorage simulation just in case RPC/Contract fails or wallet doesn't support
-      const wallet = userAddress.toLowerCase();
-      const storedUsdc = localStorage.getItem(`sim_usdc_${wallet}`);
-      const storedEurc = localStorage.getItem(`sim_eurc_${wallet}`);
-      setUsdcWalletBalance(storedUsdc ? Number(storedUsdc) : 1000.00);
-      setEurcWalletBalance(storedEurc ? Number(storedEurc) : 1000.00);
+      // On error, show 0 — no fake balances
+      setUsdcWalletBalance(0);
+      setEurcWalletBalance(0);
     } finally {
       setIsFetchingWalletBalances(false);
     }
