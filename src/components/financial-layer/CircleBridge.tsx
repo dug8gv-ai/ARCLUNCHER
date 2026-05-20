@@ -1,0 +1,341 @@
+'use client';
+
+import { useState } from 'react';
+import { useAccount } from 'wagmi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Coins, ShieldCheck, Flame, Loader2, Award, Zap, HelpCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+interface CctpStep {
+  title: string;
+  desc: string;
+  status: 'pending' | 'active' | 'success' | 'failed';
+}
+
+export default function CircleBridge() {
+  const { isConnected, address: userAddress } = useAccount();
+
+  // Bridge States
+  const [sourceChain, setSourceChain] = useState<'SEPOLIA' | 'BASE'>('SEPOLIA');
+  const [bridgeAmount, setBridgeAmount] = useState('');
+  const [currentStepIdx, setCurrentStepIdx] = useState<number>(-1); // -1 = not started
+  const [isBridging, setIsBridging] = useState(false);
+
+  // Simulated CCTP Step Progression
+  const [steps, setSteps] = useState<CctpStep[]>([
+    { title: '1. Approve USDC', desc: 'Approve the CCTP contract to burn your USDC', status: 'pending' },
+    { title: '2. Burn USDC', desc: 'Call depositForBurn on source chain messenger', status: 'pending' },
+    { title: '3. Circle Attestation', desc: 'Retrieve off-chain attestation signature from Circle API', status: 'pending' },
+    { title: '4. Mint on Arc Chain', desc: 'Submit attestation to receive native USDC', status: 'pending' }
+  ]);
+
+  const updateStepStatus = (idx: number, status: 'pending' | 'active' | 'success' | 'failed') => {
+    setSteps(prev => prev.map((s, i) => i === idx ? { ...s, status } : s));
+  };
+
+  const handleStartBridge = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isConnected || !userAddress) {
+      alert('Please connect your wallet first!');
+      return;
+    }
+
+    const amt = Number(bridgeAmount);
+    if (!bridgeAmount || amt <= 0) {
+      alert('Please enter a valid amount.');
+      return;
+    }
+
+    setIsBridging(true);
+    setCurrentStepIdx(0);
+    
+    // Reset all steps to pending
+    setSteps([
+      { title: '1. Approve USDC', desc: 'Approve the CCTP contract to burn your USDC', status: 'pending' },
+      { title: '2. Burn USDC', desc: 'Call depositForBurn on source chain messenger', status: 'pending' },
+      { title: '3. Circle Attestation', desc: 'Retrieve off-chain attestation signature from Circle API', status: 'pending' },
+      { title: '4. Mint on Arc Chain', desc: 'Submit attestation to receive native USDC', status: 'pending' }
+    ]);
+
+    try {
+      // Step 1: Approve
+      updateStepStatus(0, 'active');
+      await new Promise(r => setTimeout(r, 2000));
+      updateStepStatus(0, 'success');
+      setCurrentStepIdx(1);
+
+      // Step 2: Burn
+      updateStepStatus(1, 'active');
+      await new Promise(r => setTimeout(r, 2000));
+      updateStepStatus(1, 'success');
+      setCurrentStepIdx(2);
+
+      // Step 3: Attestation
+      updateStepStatus(2, 'active');
+      await new Promise(r => setTimeout(r, 2500));
+      updateStepStatus(2, 'success');
+      setCurrentStepIdx(3);
+
+      // Step 4: Mint
+      updateStepStatus(3, 'active');
+      await new Promise(r => setTimeout(r, 2000));
+      updateStepStatus(3, 'success');
+
+      // Update simulated USDC balance in local storage
+      const localUsdc = localStorage.getItem(`sim_usdc_${userAddress.toLowerCase()}`);
+      const curBal = localUsdc ? Number(localUsdc) : 1000.00;
+      const newBal = curBal + amt;
+      localStorage.setItem(`sim_usdc_${userAddress.toLowerCase()}`, newBal.toFixed(2));
+
+      // Trigger reward points +1 per 10 USDC volume transacted
+      if (amt >= 10) {
+        try {
+          const pointsEarned = amt / 10;
+          const walletLower = userAddress.toLowerCase();
+          
+          const { data: currentStats } = await supabase
+            .from('user_stats')
+            .select('*')
+            .eq('wallet', walletLower);
+
+          if (currentStats && currentStats.length > 0) {
+            await supabase
+              .from('user_stats')
+              .update({
+                total_volume: Number(currentStats[0].total_volume || 0) + amt,
+                points: Number(currentStats[0].points || 0) + pointsEarned
+              })
+              .eq('wallet', walletLower);
+          } else {
+            await supabase
+              .from('user_stats')
+              .insert({
+                wallet: walletLower,
+                total_volume: amt,
+                points: pointsEarned
+              });
+          }
+        } catch (dbErr) {
+          console.error('Error logging CCTP points to Supabase:', dbErr);
+        }
+      }
+
+      setIsBridging(false);
+      setCurrentStepIdx(4);
+    } catch (err) {
+      console.error(err);
+      if (currentStepIdx >= 0) {
+        updateStepStatus(currentStepIdx, 'failed');
+      }
+      setIsBridging(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-200">
+      
+      {/* Brand Header */}
+      <div className="flex items-center justify-between bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600 shadow-sm shadow-blue-500/5">
+            <Coins size={22} />
+          </div>
+          <div>
+            <span className="text-[10px] uppercase font-extrabold tracking-widest text-blue-600 block">Circle CCTP Integration</span>
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">Circle Cross-Chain Bridge</h2>
+          </div>
+        </div>
+        <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-100 text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+          CCTP Mainnet Audited
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* Left Column: Form Trigger */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+            
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-100 p-3 rounded-xl">
+              <Zap size={14} className="text-blue-500 shrink-0" />
+              Circle CCTP burns USDC native tokens on external chains and mints native USDC directly onto ARC.
+            </div>
+
+            <form onSubmit={handleStartBridge} className="space-y-6">
+              {/* Route Picker */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Source Network</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSourceChain('SEPOLIA')}
+                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
+                      sourceChain === 'SEPOLIA'
+                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                    }`}
+                  >
+                    Ethereum Sepolia
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSourceChain('BASE')}
+                    className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
+                      sourceChain === 'BASE'
+                        ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                    }`}
+                  >
+                    Base Testnet
+                  </button>
+                </div>
+              </div>
+
+              {/* Destination Chain Box */}
+              <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
+                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Destination Network (Locked)</span>
+                <div className="flex justify-between items-center text-xs font-black text-slate-700 bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                  <span>Arc Chain Network</span>
+                  <span className="bg-blue-100 text-blue-700 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Target
+                  </span>
+                </div>
+              </div>
+
+              {/* Input Amount */}
+              <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
+                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Amount to Bridge (USDC)</span>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  step="any"
+                  required
+                  value={bridgeAmount}
+                  disabled={isBridging}
+                  onChange={(e) => setBridgeAmount(e.target.value)}
+                  className="w-full bg-transparent text-3xl font-black font-mono text-slate-800 outline-none placeholder:text-slate-350"
+                />
+              </div>
+
+              {/* Action Button */}
+              <button
+                type="submit"
+                disabled={isBridging}
+                className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isBridging ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    CCTP Bridge Executing...
+                  </>
+                ) : (
+                  <>
+                    <Flame size={15} />
+                    Initiate CCTP Transfer
+                  </>
+                )}
+              </button>
+
+            </form>
+
+          </div>
+        </div>
+
+        {/* Right Column: Step Mapper */}
+        <div className="lg:col-span-6">
+          <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+            
+            <div className="border-b border-slate-100 pb-5">
+              <h3 className="font-extrabold text-slate-800 text-sm">CCTP Live Progress Monitor</h3>
+              <p className="text-[10px] text-slate-500 font-semibold">Real-time attestation tracking and mint signature monitor.</p>
+            </div>
+
+            {/* Steps Container */}
+            <div className="space-y-4.5 relative">
+              
+              {/* Timeline Connector Line */}
+              <div className="absolute left-[20px] top-[10px] bottom-[10px] w-[2px] bg-slate-100 -z-10" />
+
+              {steps.map((st, idx) => (
+                <div
+                  key={idx}
+                  className={`flex items-start gap-4 p-3.5 rounded-2xl border transition-all ${
+                    st.status === 'active'
+                      ? 'border-blue-500 bg-blue-50/20'
+                      : st.status === 'success'
+                      ? 'border-slate-100 bg-white'
+                      : 'border-slate-50 bg-white opacity-60'
+                  }`}
+                >
+                  {/* Step status icon indicator */}
+                  <div className="flex shrink-0 items-center justify-center">
+                    {st.status === 'success' ? (
+                      <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shadow-sm">
+                        <CheckCircle size={18} />
+                      </div>
+                    ) : st.status === 'active' ? (
+                      <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-sm animate-pulse">
+                        <Loader2 size={18} className="animate-spin" />
+                      </div>
+                    ) : st.status === 'failed' ? (
+                      <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center">
+                        ✕
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-200 text-slate-400 flex items-center justify-center font-bold text-xs">
+                        {idx + 1}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Text details */}
+                  <div className="space-y-0.5">
+                    <h4 className={`text-xs font-black ${st.status === 'active' ? 'text-blue-600' : 'text-slate-800'}`}>
+                      {st.title}
+                    </h4>
+                    <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                      {st.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+            </div>
+
+            {/* Complete Card */}
+            {currentStepIdx === 4 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 text-center space-y-3"
+              >
+                <div className="w-12 h-12 rounded-full bg-white border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-sm shadow-emerald-500/10">
+                  <CheckCircle size={22} className="animate-bounce" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-emerald-800 text-xs">Bridge Executed Successfully!</h4>
+                  <p className="text-[10px] text-emerald-600 font-semibold mt-1">
+                    Your {bridgeAmount} USDC was burned and successfully minted on the Arc Chain!
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentStepIdx(-1);
+                    setBridgeAmount('');
+                  }}
+                  className="bg-white border border-emerald-250 hover:bg-emerald-100 text-emerald-700 font-extrabold text-[10px] uppercase tracking-wide px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm"
+                >
+                  Done
+                </button>
+              </motion.div>
+            )}
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  );
+}

@@ -1,0 +1,434 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useAccount, useDisconnect } from 'wagmi';
+import { 
+  Wallet, Send, Trophy, Coins, HelpCircle, ChevronDown, 
+  Settings, LogOut, Layers, Rocket, TrendingUp, HelpCircle as HelpIcon, ArrowRight
+} from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+// Import Financial Layer Components
+import ArcWallet from './ArcWallet';
+import CircleBridge from './CircleBridge';
+import SocialPay from './SocialPay';
+import AirdropTracker from './AirdropTracker';
+
+// Dynamic Load for PriceChart to avoid SSR issues
+import dynamic from 'next/dynamic';
+const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => mod.PriceChart), {
+  ssr: false,
+});
+import { TradingPanel } from '@/components/TradingPanel';
+import { Leaderboard } from '@/components/Leaderboard';
+
+export default function ArcGlobalDashboard() {
+  const { isConnected, address: userAddress } = useAccount();
+  const { disconnect } = useDisconnect();
+
+  // Dashboard routing states
+  const [currentTab, setCurrentTab] = useState<'wallet' | 'social-pay' | 'leaderboard' | 'bridge' | 'earn' | 'trade'>('wallet');
+  const [selectedToken, setSelectedToken] = useState<any>(null);
+
+  // Profile Dropdown States
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [myProfile, setMyProfile] = useState<{ name: string; avatar: string } | null>(null);
+
+  // Locked values
+  const [totalLockedUSD, setTotalLockedUSD] = useState<number>(0);
+
+  const fetchProfile = async () => {
+    if (!userAddress) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('name, avatar')
+        .eq('wallet', userAddress.toLowerCase())
+        .single();
+      if (data && !error) {
+        setMyProfile({
+          name: data.name || 'Anonymous',
+          avatar: data.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${userAddress.toLowerCase()}`
+        });
+      } else {
+        setMyProfile({
+          name: 'Anonymous',
+          avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${userAddress.toLowerCase()}`
+        });
+      }
+    } catch (e) {
+      setMyProfile({
+        name: 'Anonymous',
+        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${userAddress.toLowerCase()}`
+      });
+    }
+  };
+
+  const fetchTotalLocked = async () => {
+    try {
+      let locksData: any[] = [];
+      const { data, error } = await supabase
+        .from('liquidity_locks')
+        .select('*');
+      
+      if (!error && data) {
+        locksData = data;
+      } else {
+        const local = localStorage.getItem('arclauncher_locks');
+        locksData = local ? JSON.parse(local) : [];
+      }
+
+      const activeLocks = locksData.filter((l: any) => !l.is_withdrawn);
+      const totalAmount = activeLocks.reduce((acc: number, l: any) => {
+        let worth = Number(l.amount);
+        if (l.usdc_worth != null) {
+           worth = Number(l.usdc_worth);
+        } else if (l.asset_type === 'TOKEN') {
+           worth = Number(l.amount) * 0.01;
+        }
+        return acc + worth;
+      }, 0);
+      setTotalLockedUSD(totalAmount);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (isConnected && userAddress) {
+      fetchProfile();
+      fetchTotalLocked();
+
+      // Listen for profile changes
+      const channel = supabase.channel(`dashboard_global_profile_${userAddress.toLowerCase()}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+          filter: `wallet=eq.${userAddress.toLowerCase()}`
+        }, () => {
+          fetchProfile();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      setMyProfile(null);
+    }
+  }, [isConnected, userAddress]);
+
+  // Handle Leaderboard selection
+  const handleSelectToken = (token: any) => {
+    setSelectedToken(token);
+    if (token) {
+      const newUrl = `${window.location.origin}/dashboard?token=${token.token_address.toLowerCase()}`;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+      setCurrentTab('trade');
+    } else {
+      const newUrl = `${window.location.origin}/dashboard`;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+    }
+  };
+
+  // Pre-fill URL parsing
+  const handlePreFillToken = (address: string) => {
+    const fetchTokenAndSelect = async () => {
+      try {
+        const { data } = await supabase
+          .from('token_launches')
+          .select('*')
+          .eq('token_address', address.toLowerCase())
+          .single();
+        if (data) {
+          setSelectedToken(data);
+          setCurrentTab('trade');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchTokenAndSelect();
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payTo = params.get('payTo');
+    const token = params.get('token');
+    
+    if (payTo) {
+      setCurrentTab('social-pay');
+    } else if (token) {
+      handlePreFillToken(token);
+    }
+  }, []);
+
+  return (
+    <div className="min-h-screen flex bg-[#f4f7fc] text-slate-800 antialiased selection:bg-blue-100">
+      
+      {/* SIDEBAR NAVIGATION - LUXURY BLUE & WHITE BRANDED */}
+      <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-slate-100 p-6 space-y-8 sticky top-0 h-screen justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] z-30">
+        <div className="space-y-8">
+          {/* Brand header */}
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm shadow-blue-500/10">
+              <Layers className="text-blue-600" size={20} />
+            </div>
+            <div>
+              <span className="text-sm font-black tracking-wide text-slate-900 block">ARC GLOBAL</span>
+              <span className="text-[9px] block font-extrabold text-blue-600 tracking-widest mt-[-2px] uppercase">FINANCIAL</span>
+            </div>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="space-y-1.5">
+            {/* Arc Wallet Tab */}
+            <button
+              onClick={() => setCurrentTab('wallet')}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentTab === 'wallet'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Wallet size={16} className={currentTab === 'wallet' ? 'text-blue-600' : 'text-slate-400'} />
+              Arc Wallet
+            </button>
+
+            {/* Social Pay Tab */}
+            <button
+              onClick={() => setCurrentTab('social-pay')}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentTab === 'social-pay'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Send size={16} className={currentTab === 'social-pay' ? 'text-blue-600' : 'text-slate-400'} />
+              Social Pay
+            </button>
+
+            {/* Leaderboard Tab */}
+            <button
+              onClick={() => setCurrentTab('leaderboard')}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentTab === 'leaderboard'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Trophy size={16} className={currentTab === 'leaderboard' ? 'text-blue-600' : 'text-slate-400'} />
+              Leaderboard
+            </button>
+
+            {/* Circle Bridge Tab */}
+            <button
+              onClick={() => setCurrentTab('bridge')}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentTab === 'bridge'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Coins size={16} className={currentTab === 'bridge' ? 'text-blue-600' : 'text-slate-400'} />
+              Circle CCTP Bridge
+            </button>
+
+            {/* Earn Tab (Soon Glow Badge) */}
+            <button
+              onClick={() => setCurrentTab('earn')}
+              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentTab === 'earn'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <Coins size={16} className={currentTab === 'earn' ? 'text-blue-600' : 'text-slate-400'} />
+                <span>Earn Tab</span>
+              </div>
+              <span className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-200/50 animate-pulse">
+                Soon
+              </span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Bottom Lock Info Card */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-3xl p-5 space-y-3.5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Locked Liquidity</span>
+            <span className="bg-blue-100 text-blue-700 border border-blue-200/50 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+              Secure
+            </span>
+          </div>
+          <div>
+            <h4 className="text-2xl font-black text-slate-900 tracking-tight">
+              ${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h4>
+          </div>
+        </div>
+      </aside>
+
+      {/* VIEWPORT CONTROLLER */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 w-full space-y-6">
+          
+          {/* HEADER LAYER WITH AIRDROP WIDGET */}
+          <header className="glass-panel px-6 py-4 mb-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40 bg-white/90 backdrop-blur-md">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-sm">
+                <Layers className="text-blue-600 animate-spin" style={{ animationDuration: '6s' }} />
+              </div>
+              <div>
+                <h1 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+                  ARC GLOBAL <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full font-bold">PRO</span>
+                </h1>
+                <p className="text-xs text-slate-500 hidden md:block font-semibold">Decentralized Multi-Asset Financial Hub</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 justify-end w-full md:w-auto">
+              {/* Point Tracker Widget */}
+              <AirdropTracker onTokenPreFilled={handlePreFillToken} />
+
+              {/* Profile setup details */}
+              {isConnected && myProfile && (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-800 px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold cursor-pointer"
+                  >
+                    <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-350 bg-white">
+                      <img src={myProfile.avatar} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <span className="max-w-[80px] truncate text-slate-700">@{myProfile.name}</span>
+                    <ChevronDown size={14} className="text-slate-400" />
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2.5 w-44 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 text-xs font-medium text-slate-700 animate-in fade-in slide-in-from-top-1">
+                      <button
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          setCurrentTab('social-pay');
+                        }}
+                        className="w-full px-4 py-2 hover:bg-slate-50 flex items-center gap-2 text-left cursor-pointer transition-colors"
+                      >
+                        <Settings size={13} className="text-slate-500" />
+                        Profile Settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          disconnect();
+                        }}
+                        className="w-full px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2 text-left cursor-pointer transition-colors border-t border-slate-100"
+                      >
+                        <LogOut size={13} />
+                        Disconnect
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <ConnectButton />
+            </div>
+          </header>
+
+          {/* MAIN RENDER ENGINE */}
+          <main className="space-y-8">
+            
+            {/* ARC WALLET TAB */}
+            {currentTab === 'wallet' && <ArcWallet />}
+
+            {/* SOCIAL PAY TAB */}
+            {currentTab === 'social-pay' && <SocialPay />}
+
+            {/* LEADERBOARD VIEW */}
+            {currentTab === 'leaderboard' && (
+              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
+                <div className="mb-4">
+                  <h3 className="text-lg font-black text-slate-900">ARC MEME LEADERBOARD</h3>
+                  <p className="text-xs text-slate-500 font-semibold mt-0.5">Click any active launch to open its charts and trade desks.</p>
+                </div>
+                <Leaderboard onSelectToken={handleSelectToken} />
+              </div>
+            )}
+
+            {/* CIRCLE CCTP BRIDGE */}
+            {currentTab === 'bridge' && <CircleBridge />}
+
+            {/* EARN TAB COMING SOON */}
+            {currentTab === 'earn' && (
+              <div className="bg-white border border-slate-200/80 rounded-[32px] p-8 shadow-sm text-center max-w-xl mx-auto space-y-6 animate-in fade-in py-12">
+                <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto animate-bounce">
+                  <Coins size={32} />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-black text-slate-900 flex items-center justify-center gap-2">
+                    ARCL Earn Layer
+                  </h2>
+                  <p className="text-xs text-slate-500 font-semibold max-w-sm mx-auto leading-relaxed">
+                    Staking stablecoins, delegating liquid positions, and cross-chain referral yield claims are releasing shortly.
+                  </p>
+                </div>
+                <div className="bg-blue-50/50 border border-blue-100 px-4 py-2.5 rounded-2xl text-[10.5px] font-black uppercase text-blue-600 tracking-wider inline-block">
+                  🔒 Coming Soon in V2.0 release
+                </div>
+              </div>
+            )}
+
+            {/* TRADING VIEW (ACTIVATED BY LEADERBOARD OR URL TOKEN) */}
+            {currentTab === 'trade' && selectedToken && (
+              <div className="space-y-8 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between bg-white border border-slate-200/80 rounded-[28px] p-5 shadow-sm">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center">
+                      {selectedToken.image_url ? (
+                        <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <TrendingUp className="text-slate-400" size={18} />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-slate-800 text-base flex items-center gap-1.5">
+                        {selectedToken.name}
+                        <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
+                      </h3>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">{selectedToken.token_address}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedToken(null);
+                      setCurrentTab('leaderboard');
+                    }}
+                    className="text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-extrabold px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm"
+                  >
+                    ← View Other Markets
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-1">
+                    <TradingPanel token={selectedToken} />
+                  </div>
+                  <div className="lg:col-span-2 space-y-8">
+                    <PriceChart selectedToken={selectedToken} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </main>
+
+        </div>
+      </div>
+
+    </div>
+  );
+}
