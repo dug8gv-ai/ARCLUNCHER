@@ -5,7 +5,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useDisconnect } from 'wagmi';
 import { 
   Wallet, Send, Trophy, Coins, HelpCircle, ChevronDown, 
-  Settings, LogOut, Layers, Rocket, TrendingUp, HelpCircle as HelpIcon, ArrowRight
+  Settings, LogOut, Layers, Rocket, TrendingUp, HelpCircle as HelpIcon, ArrowRight, CreditCard
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -14,6 +14,7 @@ import ArcWallet from './ArcWallet';
 import CircleBridge from './CircleBridge';
 import SocialPay from './SocialPay';
 import AirdropTracker from './AirdropTracker';
+import CircleHub from './CircleHub';
 
 // Dynamic Load for PriceChart to avoid SSR issues
 import dynamic from 'next/dynamic';
@@ -28,7 +29,7 @@ export default function ArcGlobalDashboard() {
   const { disconnect } = useDisconnect();
 
   // Dashboard routing states
-  const [currentTab, setCurrentTab] = useState<'wallet' | 'social-pay' | 'leaderboard' | 'bridge' | 'earn' | 'trade'>('wallet');
+  const [currentTab, setCurrentTab] = useState<'wallet' | 'social-pay' | 'leaderboard' | 'bridge' | 'earn' | 'trade' | 'circle-hub'>('wallet');
   const [selectedToken, setSelectedToken] = useState<any>(null);
 
   // Profile Dropdown States
@@ -236,6 +237,24 @@ export default function ArcGlobalDashboard() {
               Circle CCTP Bridge
             </button>
 
+            {/* Circle Developer Hub Tab */}
+            <button
+              onClick={() => setCurrentTab('circle-hub')}
+              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentTab === 'circle-hub'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <CreditCard size={16} className={currentTab === 'circle-hub' ? 'text-blue-600' : 'text-slate-400'} />
+                <span>Circle Hub</span>
+              </div>
+              <span className="text-[9px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
+                New
+              </span>
+            </button>
+
             {/* Earn Tab (Soon Glow Badge) */}
             <button
               onClick={() => setCurrentTab('earn')}
@@ -361,6 +380,9 @@ export default function ArcGlobalDashboard() {
 
             {/* CIRCLE CCTP BRIDGE */}
             {currentTab === 'bridge' && <CircleBridge />}
+
+            {/* CIRCLE HUB TAB */}
+            {currentTab === 'circle-hub' && <CircleHub />}
 
             {/* EARN TAB COMING SOON */}
             {currentTab === 'earn' && (
