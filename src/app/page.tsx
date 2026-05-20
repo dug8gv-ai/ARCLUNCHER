@@ -114,14 +114,6 @@ export default function Home() {
     let usdcVal = 0;
     let eurcVal = 0;
 
-    // Fetch Native Balance (Since ARC Testnet uses USDC as native token)
-    try {
-      const nativeBal = await publicClient.getBalance({ address: userAddress });
-      usdcVal += Number(formatUnits(nativeBal, 18));
-    } catch (err) {
-      console.error('Native balance fetch error:', err);
-    }
-
     // Fetch ERC20 USDC
     try {
       const usdcRaw = await publicClient.readContract({
