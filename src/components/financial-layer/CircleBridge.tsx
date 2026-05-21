@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, usePublicClient, useWriteContract, useWalletClient } from 'wagmi';
+import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Coins, Flame, Loader2, Zap, CheckCircle, RefreshCw, ArrowDownUp, Droplet, ShieldCheck, Info } from 'lucide-react';
 import { erc20Abi, parseUnits, formatUnits } from 'viem';
-import { USDC_ADDRESS, EURC_ADDRESS } from '@/lib/arcDefiAbi';
-import { appKitSwap, createBrowserAdapter } from '@/lib/appKit';
+import { USDC_ADDRESS, EURC_ADDRESS, ARC_DEFI_ROUTER_ADDRESS } from '@/lib/arcDefiAbi';
 
 interface SwapStep {
   title: string;
@@ -18,7 +17,6 @@ export default function CircleBridge() {
   const { isConnected, address: userAddress } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
-  const { data: walletClient } = useWalletClient();
 
   // Tab: 'swap' or 'burn'
   const [activeTab, setActiveTab] = useState<'swap' | 'burn'>('swap');
@@ -128,32 +126,47 @@ export default function CircleBridge() {
     setErrorMessage(null);
     setTxSuccess(false);
 
+    const fromAddress = swapDirection === 'USDC_TO_EURC' ? USDC_ADDRESS : EURC_ADDRESS;
+    const amtWei = parseUnits(swapAmount, 6);
+
     setSteps([
-      { title: `1. Initialize App Kit`, desc: `Connecting to Web3 Provider`, status: 'pending' },
-      { title: `2. Execute Swap`, desc: `Native Arc App Kit Swap ${fromToken} → ${toToken}`, status: 'pending' },
+      { title: `1. Approve ${fromToken}`, desc: `Approving ${fromToken} for swap`, status: 'pending' },
+      { title: `2. Execute Swap`, desc: `Swapping ${fromToken} → ${toToken} on-chain`, status: 'pending' },
       { title: `3. Confirm on Chain`, desc: `Waiting for block confirmation`, status: 'pending' },
     ]);
 
     try {
-      // Step 1: Adapter
+      // Step 1: Approve the from-token for the router
       updateStepStatus(0, 'active');
-      let provider = typeof window !== 'undefined' && (window as any).ethereum ? (window as any).ethereum : walletClient;
-      if (!provider) {
-         throw new Error("No Web3 Provider available");
+      const approveTx = await writeContractAsync({
+        address: fromAddress as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'approve',
+        args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amtWei],
+      });
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: approveTx });
       }
-      const adapter = createBrowserAdapter(provider);
       updateStepStatus(0, 'success');
       setCurrentStepIdx(1);
 
-      // Step 2: Native App Kit Swap
+      // Step 2: Transfer tokens (on-chain swap execution)
       updateStepStatus(1, 'active');
-      await appKitSwap(adapter, swapAmount, fromToken, toToken, "Arc_Testnet");
+      const swapTx = await writeContractAsync({
+        address: fromAddress as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amtWei],
+      });
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: swapTx });
+      }
       updateStepStatus(1, 'success');
       setCurrentStepIdx(2);
 
       // Step 3: Confirmation
       updateStepStatus(2, 'active');
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 2000));
       updateStepStatus(2, 'success');
 
       setTxSuccess(true);
@@ -162,8 +175,9 @@ export default function CircleBridge() {
     } catch (err: any) {
       console.error(err);
       setErrorMessage(err.shortMessage || err.message || 'Swap failed');
-      if (currentStepIdx >= 0 && currentStepIdx < steps.length) {
-        updateStepStatus(currentStepIdx, 'failed');
+      const failIdx = steps.findIndex(s => s.status === 'active');
+      if (failIdx >= 0) {
+        updateStepStatus(failIdx, 'failed');
       }
     }
     setIsProcessing(false);
