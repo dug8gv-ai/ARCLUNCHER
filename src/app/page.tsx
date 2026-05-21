@@ -75,7 +75,7 @@ export default function Home() {
   const [isFetchingWorth, setIsFetchingWorth] = useState(false);
   const [estimatedWorthUSD, setEstimatedWorthUSD] = useState<number>(0);
 
-  // Dynamic balance fetcher for the selected asset (handles both simulated localStorage and chain fallbacks)
+  // Dynamic balance fetcher for the selected asset
   const fetchTokenBalance = async () => {
     if (!userAddress) {
       setTokenBalance(0);
@@ -84,17 +84,35 @@ export default function Home() {
     const wallet = userAddress.toLowerCase();
     try {
       if (lockAssetType === 'USDC') {
-        const stored = localStorage.getItem(`sim_usdc_${wallet}`);
-        setTokenBalance(stored ? Number(stored) : 1000.00);
+        // We will just use the state variable that gets populated by fetchWalletBalances
+        // To be safe, we will just sync it from there later, but we can set it to usdcWalletBalance here
+        setTokenBalance(usdcWalletBalance);
       } else if (lockAssetType === 'EURC') {
-        const stored = localStorage.getItem(`sim_eurc_${wallet}`);
-        setTokenBalance(stored ? Number(stored) : 1000.00);
+        setTokenBalance(eurcWalletBalance);
       } else if (lockAssetType === 'PLATFORM_TOKEN' && lockAddress) {
-        const stored = localStorage.getItem(`sim_${lockTicker.toLowerCase()}_${wallet}`);
-        setTokenBalance(stored ? Number(stored) : 0.00);
+        if (publicClient) {
+          const raw = await publicClient.readContract({
+            address: lockAddress as `0x${string}`,
+            abi: erc20Abi,
+            functionName: 'balanceOf',
+            args: [userAddress],
+          });
+          setTokenBalance(Number(formatUnits(raw as bigint, 18)));
+        } else {
+          setTokenBalance(0);
+        }
       } else if (lockAssetType === 'CUSTOM_ERC20' && lockAddress) {
-        const stored = localStorage.getItem(`sim_${(lockTicker || 'custom').toLowerCase()}_${wallet}`);
-        setTokenBalance(stored ? Number(stored) : 500.00); // Give a healthy default for simulation
+        if (publicClient) {
+          const raw = await publicClient.readContract({
+            address: lockAddress as `0x${string}`,
+            abi: erc20Abi,
+            functionName: 'balanceOf',
+            args: [userAddress],
+          });
+          setTokenBalance(Number(formatUnits(raw as bigint, 18)));
+        } else {
+          setTokenBalance(0);
+        }
       } else {
         setTokenBalance(0);
       }
@@ -143,6 +161,11 @@ export default function Home() {
 
     setUsdcWalletBalance(usdcVal);
     setEurcWalletBalance(eurcVal);
+    
+    // Also sync the active tokenBalance if it's USDC or EURC
+    if (lockAssetType === 'USDC') setTokenBalance(usdcVal);
+    if (lockAssetType === 'EURC') setTokenBalance(eurcVal);
+    
     setIsFetchingWalletBalances(false);
   };
 
@@ -151,16 +174,18 @@ export default function Home() {
     fetchTokenBalance();
   }, [userAddress, lockAssetType, lockAddress, lockTicker, isLockerOpen]);
 
-  // Sync token balance on storage events reactively
+  // Sync token balance on app-wide updates reactively
   useEffect(() => {
-    const handleStorageChange = () => {
+    const handleUpdate = () => {
+      fetchWalletBalances();
       fetchTokenBalance();
+      fetchLocks();
     };
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('arc-balance-update', handleUpdate);
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('arc-balance-update', handleUpdate);
     };
-  }, [userAddress, lockAssetType, lockAddress, lockTicker]);
+  }, [userAddress, lockAssetType, lockAddress, lockTicker, publicClient]);
 
   // Dynamic worth calculator in USD
   useEffect(() => {
@@ -312,24 +337,17 @@ export default function Home() {
     if (isConnected && userAddress) {
       fetchWalletBalances();
 
-      const handleStorageSync = () => {
-        fetchWalletBalances();
-        fetchLocks(); // Fetch locks in case locks were updated on other tabs/components
-      };
-      window.addEventListener('storage', handleStorageSync);
-
       // Poll balances every 10 seconds
       const balanceInterval = setInterval(fetchWalletBalances, 10000);
 
       return () => {
-        window.removeEventListener('storage', handleStorageSync);
         clearInterval(balanceInterval);
       };
     } else {
       setUsdcWalletBalance(0);
       setEurcWalletBalance(0);
     }
-  }, [isConnected, userAddress, publicClient]);
+  }, [isConnected, userAddress, publicClient, lockAssetType]);
   const handleCreateLock = async () => {
     if (!isConnected || !userAddress) {
       await triggerAlert("CONNECT WALLET", "Please connect your wallet first!", "info");
@@ -413,27 +431,8 @@ export default function Home() {
         await publicClient.waitForTransactionReceipt({ hash: lockTx });
       }
 
-      // 4. Sandbox simulated balance deduction in local storage!
-      const walletKey = userAddress.toLowerCase();
-      if (lockAssetType === 'USDC') {
-        const stored = localStorage.getItem(`sim_usdc_${walletKey}`);
-        const current = stored ? Number(stored) : 1000.00;
-        localStorage.setItem(`sim_usdc_${walletKey}`, Math.max(0, current - amt).toFixed(2));
-      } else if (lockAssetType === 'EURC') {
-        const stored = localStorage.getItem(`sim_eurc_${walletKey}`);
-        const current = stored ? Number(stored) : 1000.00;
-        localStorage.setItem(`sim_eurc_${walletKey}`, Math.max(0, current - amt).toFixed(2));
-      } else if (lockAssetType === 'PLATFORM_TOKEN' || lockAssetType === 'CUSTOM_ERC20') {
-        const key = `sim_${activeTicker.toLowerCase()}_${walletKey}`;
-        const stored = localStorage.getItem(key);
-        const current = stored ? Number(stored) : 0;
-        if (stored) {
-          localStorage.setItem(key, Math.max(0, current - amt).toString());
-        }
-      }
-
-      // Dispatch event to update the other UI panels reactively
-      window.dispatchEvent(new Event('storage'));
+      // 4. Dispatch event to update the other UI panels reactively
+      window.dispatchEvent(new Event('arc-balance-update'));
 
       // 5. Save Lock record
       const now = new Date();
@@ -442,7 +441,7 @@ export default function Home() {
 
       const newLock = {
         id: 'lock-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-        wallet: walletKey,
+        wallet: userAddress?.toLowerCase(),
         asset_type: lockAssetType,
         token_address: tokenContractAddress || null,
         token_ticker: activeTicker,
@@ -541,31 +540,10 @@ export default function Home() {
         }
       }
 
-      // Refund Sandbox balance in local storage
-      const walletKey = userAddress?.toLowerCase() || '';
-      const amt = Number(targetLock.amount);
-      const asset = targetLock.asset_type;
-      const ticker = targetLock.token_ticker;
+      // Dispatch balance update
+      window.dispatchEvent(new Event('arc-balance-update'));
 
-      if (walletKey) {
-        if (asset === 'USDC') {
-          const stored = localStorage.getItem(`sim_usdc_${walletKey}`);
-          const current = stored ? Number(stored) : 1000.00;
-          localStorage.setItem(`sim_usdc_${walletKey}`, (current + amt).toFixed(2));
-        } else if (asset === 'EURC') {
-          const stored = localStorage.getItem(`sim_eurc_${walletKey}`);
-          const current = stored ? Number(stored) : 1000.00;
-          localStorage.setItem(`sim_eurc_${walletKey}`, (current + amt).toFixed(2));
-        } else {
-          const key = `sim_${ticker.toLowerCase()}_${walletKey}`;
-          const stored = localStorage.getItem(key);
-          const current = stored ? Number(stored) : 0;
-          localStorage.setItem(key, (current + amt).toString());
-        }
-        window.dispatchEvent(new Event('storage'));
-      }
-
-      await triggerAlert("ASSET UNLOCKED", `Your locked ${amt} ${ticker} has been unlocked and credited back to your account!`, "success");
+      await triggerAlert("ASSET UNLOCKED", `Your locked ${targetLock.amount} ${targetLock.token_ticker} has been unlocked and credited back to your account!`, "success");
       fetchLocks();
       fetchTokenBalance();
     } catch (err: any) {

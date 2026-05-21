@@ -11,21 +11,27 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey = process.env.CIRCLE_API_KEY;
+    const entitySecret = process.env.CIRCLE_ENTITY_SECRET;
 
     if (!apiKey) {
       return NextResponse.json({ error: 'Circle API key is missing in server environment.' }, { status: 500 });
+    }
+
+    if (!entitySecret) {
+      return NextResponse.json({ error: 'Circle Entity Secret is missing in server environment.' }, { status: 500 });
     }
 
     // 1. Try real Circle Programmable Wallets API call
     try {
       const idempotencyKey = crypto.randomUUID();
       
-      // Let's create a Developer-Controlled Wallet Set or Wallet
+      // Create a Developer-Controlled Wallet using Circle W3S API
       const response = await fetch('https://api.circle.com/v1/w3s/developer/wallets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
+          'X-Entity-Secret': entitySecret,
           'X-User-Id': username,
         },
         body: JSON.stringify({

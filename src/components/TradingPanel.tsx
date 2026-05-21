@@ -26,7 +26,7 @@ const ARC_LAUNCHER_ABI = [
 ];
 
 const ARC_LAUNCHER_ADDRESS = process.env.NEXT_PUBLIC_LAUNCHER_ADDRESS || '0xC3A4a3C1a30009D63F7FaCe3609eA9C5A0157c00'; 
-const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x3600000000000000000000000000000000000000'; 
+const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'; 
 
 export function TradingPanel({ token }: TradingPanelProps) {
   const { isConnected, address: userAddress } = useAccount();

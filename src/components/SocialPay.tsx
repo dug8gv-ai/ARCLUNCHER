@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
+import { useAccount, useSendTransaction, usePublicClient, useWriteContract, useWalletClient } from 'wagmi';
 import { parseUnits, erc20Abi, isAddress } from 'viem';
 import { supabase } from '@/lib/supabase';
 import { Search, Send, QrCode, Copy, Check, Users, Loader2, DollarSign, Wallet, ArrowRight, Info, HelpCircle } from 'lucide-react';
+import { USDC_ADDRESS } from '@/lib/arcDefiAbi';
+import { appKitSend, createBrowserAdapter } from '@/lib/appKit';
 
 interface RecipientProfile {
   wallet: string;
@@ -19,6 +21,7 @@ export function SocialPay() {
   const publicClient = usePublicClient();
   const { sendTransactionAsync } = useSendTransaction();
   const { writeContractAsync } = useWriteContract();
+  const { data: walletClient } = useWalletClient();
 
   // Connected Profile (For QR code & link)
   const [myProfile, setMyProfile] = useState<RecipientProfile | null>(null);
@@ -308,7 +311,7 @@ export function SocialPay() {
         let symbol = 'TOKEN';
 
         if (selectedAssetType === 'USDC') {
-          tokenAddress = '0x3600000000000000000000000000000000000000';
+          tokenAddress = USDC_ADDRESS;
           decimals = 6;
           symbol = 'USDC';
         } else if (selectedAssetType === 'LAUNCHED') {
@@ -329,13 +332,26 @@ export function SocialPay() {
 
         const amtWei = parseUnits(sendAmount, decimals);
 
-        // Standard ERC-20 transfer: straight to target wallet!
-        txHash = await writeContractAsync({
-          address: tokenAddress as `0x${string}`,
-          abi: erc20Abi,
-          functionName: 'transfer',
-          args: [recipient as `0x${string}`, amtWei]
-        });
+        if (selectedAssetType === 'USDC') {
+          // Arc App Kit Native Send for USDC
+          let provider = typeof window !== 'undefined' && (window as any).ethereum ? (window as any).ethereum : walletClient;
+          if (!provider) {
+             throw new Error("No Web3 Provider available");
+          }
+          const adapter = createBrowserAdapter(provider);
+          
+          await appKitSend(adapter, sendAmount, "USDC", recipient, "Arc_Testnet");
+          // Wait briefly for indexer sync or block confirmation
+          await new Promise(r => setTimeout(r, 1500));
+        } else {
+          // Standard ERC-20 transfer for others
+          txHash = await writeContractAsync({
+            address: tokenAddress as `0x${string}`,
+            abi: erc20Abi,
+            functionName: 'transfer',
+            args: [recipient as `0x${string}`, amtWei]
+          });
+        }
       }
 
       if (publicClient && txHash) {
@@ -346,6 +362,9 @@ export function SocialPay() {
       setTxStatus('success');
       setSendAmount('');
       triggerAlert('PAYMENT SENT', `Successfully sent ${sendAmount} to ${selectedRecipient?.name || 'custom recipient'}!`, 'success');
+      
+      // Dispatch app-wide balance update event
+      window.dispatchEvent(new Event('arc-balance-update'));
 
       // Add point trigger for Social Payment volume tracker if sending USDC
       if (selectedAssetType === 'USDC') {
