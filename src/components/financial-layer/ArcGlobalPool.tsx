@@ -19,6 +19,10 @@ export function ArcGlobalPool() {
   const [userStaked, setUserStaked] = useState({ usdc: 0, eurc: 0, withdrawnUsdc: 0, withdrawnEurc: 0, withdrawalStartTime: 0 });
   const [claimable, setClaimable] = useState({ usdc: 0, eurc: 0 });
   const [collectedFees, setCollectedFees] = useState({ usdc: 0, eurc: 0 });
+  
+  // Wallet Balances
+  const [realUsdcBalance, setRealUsdcBalance] = useState<number>(0);
+  const [realEurcBalance, setRealEurcBalance] = useState<number>(0);
 
   const [liquidityAmount, setLiquidityAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -55,8 +59,18 @@ export function ArcGlobalPool() {
         eurc: Number(formatUnits(feesEurc as bigint, 6)),
       });
 
-      // Get user stake
+      // Get user stake and balances
       if (userAddress) {
+        // Balances
+        const usdcBal = await publicClient.readContract({
+          address: USDC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [userAddress],
+        });
+        const eurcBal = await publicClient.readContract({
+          address: EURC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [userAddress],
+        });
+        setRealUsdcBalance(Number(formatUnits(usdcBal as bigint, 6)));
+        setRealEurcBalance(Number(formatUnits(eurcBal as bigint, 6)));
+
         const stake = await publicClient.readContract({
           address: poolAddr, abi: arcPoolAbi, functionName: 'userStakes', args: [userAddress],
         }) as [bigint, bigint, bigint, bigint, bigint];
@@ -98,6 +112,15 @@ export function ArcGlobalPool() {
     const amt = Number(liquidityAmount);
     if (!liquidityAmount || amt <= 0) {
       setErrorMessage('Enter a valid amount');
+      return;
+    }
+
+    if (amt > realUsdcBalance) {
+      setErrorMessage('Insufficient USDC balance');
+      return;
+    }
+    if (amt > realEurcBalance) {
+      setErrorMessage('Insufficient EURC balance');
       return;
     }
 
@@ -272,7 +295,10 @@ export function ArcGlobalPool() {
 
             <div className="space-y-4">
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase mb-2">USDC Amount</p>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase">USDC Amount</p>
+                  <p className="text-xs font-bold text-slate-500">Balance: <span className="text-slate-800 font-black">{realUsdcBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></p>
+                </div>
                 <div className="flex items-center">
                   <input
                     type="number"
@@ -292,7 +318,10 @@ export function ArcGlobalPool() {
               </div>
 
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 opacity-75 pointer-events-none">
-                <p className="text-xs font-semibold text-slate-500 uppercase mb-2">EURC Required (1:1)</p>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase">EURC Required (1:1)</p>
+                  <p className="text-xs font-bold text-slate-500">Balance: <span className="text-slate-800 font-black">{realEurcBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></p>
+                </div>
                 <div className="flex items-center">
                   <input
                     type="text"
