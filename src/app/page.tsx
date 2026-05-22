@@ -20,9 +20,8 @@ const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => m
 });
 import { TransactionHistory } from '@/components/TransactionHistory';
 import { SocialPay } from '@/components/SocialPay';
-import CircleBridge from '@/components/financial-layer/CircleBridge';
+import ArcWallet from '@/components/financial-layer/ArcWallet';
 import UserGuide from '@/components/UserGuide';
-import { ArcGlobalPool } from '@/components/financial-layer/ArcGlobalPool';
 import { DeveloperGuide } from '@/components/DeveloperGuide';
 import { FreelanceHub } from '@/components/FreelanceHub';
 
@@ -55,7 +54,7 @@ export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'bridge' | 'guide' | 'arc-pool' | 'dev-guide' | 'gigs'>('launcher');
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'dev-guide' | 'gigs'>('launcher');
   const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
   // Daily Locks State (V2 Upgraded)
@@ -914,40 +913,20 @@ export default function Home() {
               </span>
             </button>
 
-            {/* Circle Bridge Tab */}
+            {/* Global Wallet Tab */}
             <button 
               onClick={() => {
-                setCurrentView('bridge');
+                setCurrentView('wallet');
               }}
               className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
-                currentView === 'bridge'
+                currentView === 'wallet'
                   ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
                   : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
               }`}
             >
               <div className="flex items-center gap-3.5">
-                <Coins size={16} className={currentView === 'bridge' ? 'text-blue-600' : 'text-slate-400'} />
-                <span>Circle Bridge</span>
-              </div>
-              <span className="text-[9px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
-                Live
-              </span>
-            </button>
-
-            {/* Arc Global LP Tab */}
-            <button 
-              onClick={() => {
-                setCurrentView('arc-pool');
-              }}
-              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
-                currentView === 'arc-pool'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
-              }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <Layers size={16} className={currentView === 'arc-pool' ? 'text-blue-600' : 'text-slate-400'} />
-                <span>Arc Global LP</span>
+                <Coins size={16} className={currentView === 'wallet' ? 'text-blue-600' : 'text-slate-400'} />
+                <span>Global Wallet</span>
               </div>
               <span className="text-[9px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
                 Live
@@ -1259,16 +1238,15 @@ export default function Home() {
               </div>
             )}
 
-            {/* CIRCLE CCTP BRIDGE VIEW */}
-            {currentView === 'bridge' && (
+            {/* GLOBAL WALLET VIEW */}
+            {currentView === 'wallet' && (
               <div className="animate-in fade-in duration-200">
-                <CircleBridge />
+                <ArcWallet />
               </div>
             )}
 
             {/* GUIDE VIEW */}
             {currentView === 'guide' && <UserGuide />}
-            {currentView === 'arc-pool' && <ArcGlobalPool />}
             {currentView === 'dev-guide' && <DeveloperGuide />}
           </main>
         </div>
