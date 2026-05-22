@@ -11,7 +11,6 @@ import { supabase } from '@/lib/supabase';
 
 // Import Financial Layer Components
 import ArcWallet from './ArcWallet';
-import CircleBridge from './CircleBridge';
 import SocialPay from './SocialPay';
 import AirdropTracker from './AirdropTracker';
 import CircleHub from './CircleHub';
@@ -387,7 +386,7 @@ export default function ArcGlobalDashboard() {
             )}
 
             {/* CIRCLE CCTP BRIDGE */}
-            {currentTab === 'bridge' && <CircleBridge />}
+            {/* Bridge Tab Removed in favor of direct swap */}
 
             {/* CIRCLE HUB TAB */}
             {currentTab === 'circle-hub' && <CircleHub />}
