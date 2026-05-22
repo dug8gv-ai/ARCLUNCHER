@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useSendTransaction, usePublicClient, useWriteContract, useWalletClient } from 'wagmi';
 import { parseUnits, erc20Abi, isAddress } from 'viem';
 import { supabase } from '@/lib/supabase';
-import { Search, Send, QrCode, Copy, Check, Users, Loader2, DollarSign, Wallet, ArrowRight, Info, HelpCircle } from 'lucide-react';
+import { Search, Send, QrCode, Copy, Check, Users, Loader2, DollarSign, Wallet, ArrowRight, Info, HelpCircle, History, ExternalLink, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { USDC_ADDRESS } from '@/lib/arcDefiAbi';
 import { appKitSend, createBrowserAdapter } from '@/lib/appKit';
 
@@ -62,6 +62,74 @@ export function SocialPay() {
   const triggerAlert = (title: string, message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setAlertInfo({ title, message, type });
   };
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState<'pay' | 'history'>('pay');
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const fetchHistory = async () => {
+    if (!userAddress) return;
+    try {
+      setHistoryLoading(true);
+      const walletLower = userAddress.toLowerCase();
+      // Fetch transactions where user is sender or receiver
+      const { data, error } = await supabase
+        .from('social_transactions')
+        .select('*')
+        .or(`sender_wallet.eq.${walletLower},receiver_wallet.eq.${walletLower}`)
+        .order('created_at', { ascending: false });
+        
+      if (!error && data) {
+        // Fetch profiles for the counterparties
+        const counterparties = new Set<string>();
+        data.forEach(tx => {
+          if (tx.sender_wallet !== walletLower) counterparties.add(tx.sender_wallet);
+          if (tx.receiver_wallet !== walletLower) counterparties.add(tx.receiver_wallet);
+        });
+
+        let profilesMap: Record<string, any> = {};
+        if (counterparties.size > 0) {
+          const { data: profData } = await supabase
+            .from('profiles')
+            .select('*')
+            .in('wallet', Array.from(counterparties));
+          if (profData) {
+            profData.forEach(p => {
+              profilesMap[p.wallet] = p;
+            });
+          }
+        }
+
+        const enrichedHistory = data.map(tx => {
+          const isSent = tx.sender_wallet === walletLower;
+          const counterpartyWallet = isSent ? tx.receiver_wallet : tx.sender_wallet;
+          const profile = profilesMap[counterpartyWallet] || { 
+            name: 'Anonymous', 
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${counterpartyWallet}` 
+          };
+          return {
+            ...tx,
+            isSent,
+            counterpartyProfile: profile,
+            counterpartyWallet
+          };
+        });
+        
+        setHistory(enrichedHistory);
+      }
+    } catch (err) {
+      console.error('Error fetching history:', err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'history' && userAddress) {
+      fetchHistory();
+    }
+  }, [activeTab, userAddress]);
 
   // Fetch tokens list from platform Launches
   const fetchLaunchedTokens = async () => {
@@ -360,6 +428,23 @@ export function SocialPay() {
 
       setSuccessTxHash(txHash);
       setTxStatus('success');
+
+      // Save to history
+      try {
+        const tokenSymbol = selectedAssetType === 'USDC' ? 'USDC' : 
+                            selectedAssetType === 'LAUNCHED' ? selectedMemeToken?.ticker : 
+                            selectedAssetType === 'CUSTOM' ? customTokenSymbol : 'NATIVE';
+        await supabase.from('social_transactions').insert({
+          sender_wallet: userAddress?.toLowerCase(),
+          receiver_wallet: recipient.toLowerCase(),
+          amount: Number(sendAmount),
+          asset_type: tokenSymbol,
+          tx_hash: txHash
+        });
+      } catch (err) {
+        console.error("Failed to save social transaction to db:", err);
+      }
+
       setSendAmount('');
       triggerAlert('PAYMENT SENT', `Successfully sent ${sendAmount} to ${selectedRecipient?.name || 'custom recipient'}!`, 'success');
       
@@ -418,17 +503,95 @@ export function SocialPay() {
       <div className="lg:col-span-8 space-y-6">
         <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
           
-          {/* Header */}
-          <div className="flex items-center gap-3.5 border-b border-slate-100 pb-5">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600 shadow-sm shadow-blue-500/5">
-              <Send size={22} />
+          {/* Header & Tabs */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600 shadow-sm shadow-blue-500/5">
+                <Send size={22} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-900">Arc Social Pay</h2>
+                <p className="text-xs text-slate-500 font-semibold">Send funds to friends by name or address.</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-black text-slate-900">Arc Social Pay</h2>
-              <p className="text-xs text-slate-500 font-semibold">Send USDC, native gas, or meme tokens directly to friends by name or address.</p>
+
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+              <button
+                onClick={() => setActiveTab('pay')}
+                className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${
+                  activeTab === 'pay' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Send Payment
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-black transition-all ${
+                  activeTab === 'history' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <History size={14} /> History
+              </button>
             </div>
           </div>
 
+          {activeTab === 'history' ? (
+            <div className="space-y-4 min-h-[400px]">
+              {historyLoading ? (
+                <div className="flex flex-col items-center justify-center h-40 gap-3 text-slate-400">
+                  <Loader2 className="animate-spin size-6" />
+                  <span className="text-xs font-bold uppercase tracking-widest">Loading History...</span>
+                </div>
+              ) : history.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-40 text-center space-y-2">
+                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-2">
+                    <History size={20} className="text-slate-300" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-600">No transactions yet</p>
+                  <p className="text-xs text-slate-400">Payments you send or receive will appear here.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {history.map(tx => (
+                    <div key={tx.id} className="flex items-center justify-between p-4 border border-slate-100 rounded-2xl bg-slate-50 hover:bg-slate-100/50 transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0 ${tx.isSent ? 'bg-slate-800' : 'bg-emerald-500'}`}>
+                          {tx.isSent ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                              {tx.isSent ? 'Sent to' : 'Received from'}
+                            </span>
+                            <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                              <img src={tx.counterpartyProfile.avatar} alt="" className="w-4 h-4 rounded-full" />
+                              <span className="text-[10px] font-bold text-slate-700">{tx.counterpartyProfile.name}</span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] text-slate-400 font-mono mt-1 block">
+                            {new Date(tx.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-base font-black ${tx.isSent ? 'text-slate-800' : 'text-emerald-600'}`}>
+                          {tx.isSent ? '-' : '+'}{tx.amount} <span className="text-xs">{tx.asset_type}</span>
+                        </div>
+                        <a 
+                          href={`https://testnet.arc.network/tx/${tx.tx_hash}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="text-[10px] text-blue-500 hover:text-blue-600 font-semibold flex items-center gap-1 justify-end mt-1"
+                        >
+                          View TX <ExternalLink size={10} />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
           <form onSubmit={handleSendPayment} className="space-y-6">
             
             {/* Step 1: Select Recipient */}
@@ -719,6 +882,7 @@ export function SocialPay() {
             </button>
 
           </form>
+          )}
 
         </div>
       </div>

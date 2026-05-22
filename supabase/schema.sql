@@ -105,3 +105,16 @@ CREATE TABLE IF NOT EXISTS liquidity_locks (
 -- Enable Supabase real-time on locks
 ALTER PUBLICATION supabase_realtime ADD TABLE liquidity_locks;
 
+-- Table for tracking Social Pay Transactions
+CREATE TABLE IF NOT EXISTS social_transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    sender_wallet TEXT NOT NULL,
+    receiver_wallet TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    asset_type TEXT NOT NULL,
+    tx_hash TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Supabase real-time on social transactions
+ALTER PUBLICATION supabase_realtime ADD TABLE social_transactions;
