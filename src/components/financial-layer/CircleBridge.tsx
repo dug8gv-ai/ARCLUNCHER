@@ -95,7 +95,7 @@ export default function CircleBridge() {
       return;
     }
     const amt = Number(swapAmount);
-    if (amt <= 2) {
+    if (amt < 3) {
       setOutputAmount('0.00');
       return;
     }
@@ -138,8 +138,8 @@ export default function CircleBridge() {
       return;
     }
     const amt = Number(swapAmount);
-    if (!swapAmount || amt <= 2) {
-      setErrorMessage('Amount must be greater than the $2 flat fee.');
+    if (!swapAmount || amt < 3) {
+      setErrorMessage('Minimum swap amount is 3 to cover the flat fee.');
       return;
     }
     if (amt > activeFromBalance) {
@@ -394,13 +394,22 @@ export default function CircleBridge() {
             </div>
             
             {/* Verified Alert */}
-             <div className="flex items-center justify-center gap-2 text-[9px] font-bold text-blue-500 uppercase tracking-widest my-2 bg-blue-50/50 p-2 rounded-lg border border-blue-100">
-                <ShieldCheck size={14} /> Powered by Arc App Kit Native Swap
+             <div className="flex flex-col gap-2 my-3">
+               <div className="flex items-center justify-center gap-2 text-[9px] font-bold text-blue-500 uppercase tracking-widest bg-blue-50/50 p-2 rounded-lg border border-blue-100">
+                  <ShieldCheck size={14} /> Powered by Arc App Kit Native Swap
+               </div>
+               <div className="flex items-start gap-2 bg-slate-50 border border-slate-200 p-3 rounded-xl">
+                 <Info size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                 <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
+                   <strong>Swap Fee:</strong> A flat fee of $2 is applied per swap (soon to be reduced to $0.3).<br/>
+                   <strong>Minimum Amount:</strong> You must swap at least 3 USDC or 3 EURC.
+                 </p>
+               </div>
             </div>
 
             <button
               onClick={handleSwap}
-              disabled={isProcessing || !swapAmount || Number(swapAmount) <= 0 || Number(swapAmount) > activeFromBalance}
+              disabled={isProcessing || !swapAmount || Number(swapAmount) < 3 || Number(swapAmount) > activeFromBalance}
               className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[11px] tracking-widest uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer disabled:opacity-40 active:scale-[0.98]"
             >
               Swap Now
