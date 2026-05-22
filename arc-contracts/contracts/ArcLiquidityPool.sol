@@ -19,8 +19,8 @@ contract ArcLiquidityPool {
     uint256 public reserveUSDC;
     uint256 public reserveEURC;
     
-    // Flat fee: 2 tokens (2e6 for 6 decimal tokens like USDC/EURC)
-    uint256 public constant FLAT_FEE = 2e6; // $2
+    // Flat fee: 0.1 tokens (100000 for 6 decimal tokens like USDC/EURC)
+    uint256 public constant FLAT_FEE = 100000; // 0.1 tokens (6 decimals)
     
     uint256 public collectedFeesUSDC;
     uint256 public collectedFeesEURC;

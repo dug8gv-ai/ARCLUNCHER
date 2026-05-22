@@ -95,14 +95,14 @@ export default function CircleBridge() {
       return;
     }
     const amt = Number(swapAmount);
-    if (amt < 3) {
+    if (amt <= 0) {
       setOutputAmount('0.00');
       return;
     }
-    // Try to get on-chain estimate from pool
+    // Try to get on-chain estimate from pool (send amt + 2 so the contract swaps exactly amt)
     const fetchEstimate = async () => {
       if (!publicClient) {
-        setOutputAmount(((amt - 2) * fxRate).toFixed(2));
+        setOutputAmount((amt * fxRate).toFixed(2));
         return;
       }
       try {
@@ -110,11 +110,11 @@ export default function CircleBridge() {
           address: ARC_GLOBAL_POOL_ADDRESS as `0x${string}`,
           abi: arcPoolAbi,
           functionName: 'getSwapEstimate',
-          args: [swapDirection === 'USDC_TO_EURC', parseUnits(swapAmount, 6)],
+          args: [swapDirection === 'USDC_TO_EURC', parseUnits(String(amt + 0.1), 6)],
         });
         setOutputAmount(Number(formatUnits(estimate as bigint, 6)).toFixed(2));
       } catch {
-        setOutputAmount(((amt - 2) * fxRate).toFixed(2));
+        setOutputAmount((amt * fxRate).toFixed(2));
       }
     };
     fetchEstimate();
@@ -138,14 +138,16 @@ export default function CircleBridge() {
       return;
     }
     const amt = Number(swapAmount);
-    if (!swapAmount || amt < 3) {
-      setErrorMessage('Minimum swap amount is 3 to cover the flat fee.');
+    if (!swapAmount || amt <= 0) {
+      setErrorMessage('Amount must be greater than 0.');
       return;
     }
-    if (amt > activeFromBalance) {
-      setErrorMessage(`Insufficient ${fromToken} balance`);
+    const totalAmount = amt + 0.1;
+    if (totalAmount > activeFromBalance) {
+      setErrorMessage(`Insufficient ${fromToken} balance. You need ${totalAmount} ${fromToken} (including 0.1 fee).`);
       return;
     }
+
 
     setIsProcessing(true);
     setCurrentStepIdx(0);
@@ -153,7 +155,7 @@ export default function CircleBridge() {
     setTxSuccess(false);
 
     const fromAddress = swapDirection === 'USDC_TO_EURC' ? USDC_ADDRESS : EURC_ADDRESS;
-    const amtWei = parseUnits(swapAmount, 6);
+    const totalAmountWei = parseUnits(String(totalAmount), 6);
     const poolAddr = ARC_GLOBAL_POOL_ADDRESS as `0x${string}`;
 
     setSteps([
@@ -169,7 +171,7 @@ export default function CircleBridge() {
         address: fromAddress as `0x${string}`,
         abi: erc20Abi,
         functionName: 'approve',
-        args: [poolAddr, amtWei],
+        args: [poolAddr, totalAmountWei],
       });
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash: approveTx });
@@ -184,7 +186,7 @@ export default function CircleBridge() {
         address: poolAddr,
         abi: arcPoolAbi,
         functionName: swapFn,
-        args: [amtWei],
+        args: [totalAmountWei],
       });
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash: swapTx });
@@ -401,15 +403,15 @@ export default function CircleBridge() {
                <div className="flex items-start gap-2 bg-slate-50 border border-slate-200 p-3 rounded-xl">
                  <Info size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
                  <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                   <strong>Swap Fee:</strong> A flat fee of $2 is applied per swap (soon to be reduced to $0.3).<br/>
-                   <strong>Minimum Amount:</strong> You must swap at least 3 USDC or 3 EURC.
+                   <strong>Swap Fee:</strong> A flat fee of 0.1 {fromToken} is added to your swap amount.<br/>
+                   <strong>Total Deducted:</strong> {swapAmount ? Number(swapAmount) + 0.1 : 0.1} {fromToken}
                  </p>
                </div>
             </div>
 
             <button
               onClick={handleSwap}
-              disabled={isProcessing || !swapAmount || Number(swapAmount) < 3 || Number(swapAmount) > activeFromBalance}
+              disabled={isProcessing || !swapAmount || Number(swapAmount) <= 0 || (Number(swapAmount) + 0.1) > activeFromBalance}
               className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[11px] tracking-widest uppercase transition-all shadow-lg shadow-blue-500/25 cursor-pointer disabled:opacity-40 active:scale-[0.98]"
             >
               Swap Now
