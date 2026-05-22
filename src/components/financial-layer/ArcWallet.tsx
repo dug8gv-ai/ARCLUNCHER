@@ -13,7 +13,7 @@ type AssetType = 'USDC' | 'EURC' | 'cirBTC';
 
 const ASSET_CONFIG = {
   USDC: { address: USDC_ADDRESS, decimals: 6, icon: <DollarSign size={13} className="text-blue-600" />, rateToUSDC: 1 },
-  EURC: { address: EURC_ADDRESS, decimals: 18, icon: <Euro size={13} className="text-slate-600" />, rateToUSDC: 1.09 },
+  EURC: { address: EURC_ADDRESS, decimals: 6, icon: <Euro size={13} className="text-slate-600" />, rateToUSDC: 1.09 },
   cirBTC: { address: CIRBTC_ADDRESS, decimals: 8, icon: <Bitcoin size={13} className="text-orange-500" />, rateToUSDC: 65000 },
 };
 
@@ -52,7 +52,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
 
       setVaultReserves({
         USDC: Number(formatUnits(vUSDC as bigint, 6)),
-        EURC: Number(formatUnits(vEURC as bigint, 18)),
+        EURC: Number(formatUnits(vEURC as bigint, 6)),
         cirBTC: Number(formatUnits(vBTC as bigint, 8)),
       });
 
@@ -67,7 +67,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
 
       setBalances({
         USDC: Number(formatUnits(uUSDC as bigint, 6)),
-        EURC: Number(formatUnits(uEURC as bigint, 18)),
+        EURC: Number(formatUnits(uEURC as bigint, 6)),
         cirBTC: Number(formatUnits(uBTC as bigint, 8)),
       });
 
