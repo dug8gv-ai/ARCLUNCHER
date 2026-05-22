@@ -11,7 +11,7 @@ import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
 import { parseUnits, formatUnits, erc20Abi } from 'viem';
-import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp } from 'lucide-react';
+import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp, Briefcase } from 'lucide-react';
 import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi, USDC_ADDRESS, EURC_ADDRESS } from '@/lib/arcDefiAbi';
 import dynamic from 'next/dynamic';
 
@@ -24,6 +24,7 @@ import CircleBridge from '@/components/financial-layer/CircleBridge';
 import UserGuide from '@/components/UserGuide';
 import { ArcGlobalPool } from '@/components/financial-layer/ArcGlobalPool';
 import { DeveloperGuide } from '@/components/DeveloperGuide';
+import { FreelanceHub } from '@/components/FreelanceHub';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -54,7 +55,7 @@ export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'bridge' | 'guide' | 'arc-pool' | 'dev-guide'>('launcher');
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'bridge' | 'guide' | 'arc-pool' | 'dev-guide' | 'gigs'>('launcher');
   const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
   // Daily Locks State (V2 Upgraded)
@@ -840,6 +841,21 @@ export default function Home() {
               Social Pay
             </button>
 
+            {/* Arc Gigs (New) Tab */}
+            <button 
+              onClick={() => {
+                setCurrentView('gigs');
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'gigs'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Briefcase size={16} className={currentView === 'gigs' ? 'text-blue-600' : 'text-slate-400'} />
+              Arc Gigs
+            </button>
+
             {/* Dedicated Leaderboard Tab */}
             <button 
               onClick={() => setCurrentView('leaderboard')}
@@ -1183,6 +1199,13 @@ export default function Home() {
             {currentView === 'social-pay' && (
               <div className="animate-in fade-in duration-200">
                 <SocialPay />
+              </div>
+            )}
+
+            {/* FREELANCE HUB (GIGS) VIEW */}
+            {currentView === 'gigs' && (
+              <div className="animate-in fade-in duration-200">
+                <FreelanceHub />
               </div>
             )}
 

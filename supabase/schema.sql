@@ -118,3 +118,18 @@ CREATE TABLE IF NOT EXISTS social_transactions (
 
 -- Enable Supabase real-time on social transactions
 ALTER PUBLICATION supabase_realtime ADD TABLE social_transactions;
+
+-- Table for tracking Freelance Gigs
+CREATE TABLE IF NOT EXISTS freelance_gigs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    client_wallet TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    budget NUMERIC NOT NULL,
+    status TEXT DEFAULT 'OPEN', -- 'OPEN', 'IN_PROGRESS', 'COMPLETED'
+    freelancer_wallet TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Supabase real-time on freelance gigs
+ALTER PUBLICATION supabase_realtime ADD TABLE freelance_gigs;
