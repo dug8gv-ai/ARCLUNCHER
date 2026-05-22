@@ -1,5 +1,5 @@
 export const ARC_DEFI_ROUTER_ADDRESS = '0x9D70C92BaeEe37fccd5Cf29A3be069234b54Fa5E';
-export const ARC_GLOBAL_POOL_ADDRESS = '0xB2236F4C1C95e82323639Cd473C41b41712e45fC';
+export const ARC_GLOBAL_POOL_ADDRESS = '0xcA12baf07ABC4DfE54D68E137dCDa9eb480E0268';
 import poolAbiRaw from './arcPoolAbi.json';
 export const arcPoolAbi = poolAbiRaw;
 

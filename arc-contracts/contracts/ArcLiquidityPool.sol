@@ -152,13 +152,13 @@ contract ArcLiquidityPool {
     // ========== PUBLIC: SWAP FUNCTIONS ==========
     
     function swapUSDCtoEURC(uint256 usdcAmountIn) external returns (uint256 eurcAmountOut) {
-        require(usdcAmountIn > FLAT_FEE, "Amount must be greater than 2 USDC fee");
+        require(usdcAmountIn > FLAT_FEE, "Amount must be greater than fee");
         require(reserveUSDC > 0 && reserveEURC > 0, "Liquidity run out - pool is empty");
         
         uint256 amountAfterFee = usdcAmountIn - FLAT_FEE;
         
-        // Constant product: x * y = k
-        eurcAmountOut = (amountAfterFee * reserveEURC) / (reserveUSDC + amountAfterFee);
+        // Fixed rate: 1 USDC = 0.9174 EURC
+        eurcAmountOut = (amountAfterFee * 9174) / 10000;
         
         require(eurcAmountOut > 0 && eurcAmountOut < reserveEURC, "Liquidity run out - insufficient EURC in pool");
         
@@ -175,12 +175,13 @@ contract ArcLiquidityPool {
     }
     
     function swapEURCtoUSDC(uint256 eurcAmountIn) external returns (uint256 usdcAmountOut) {
-        require(eurcAmountIn > FLAT_FEE, "Amount must be greater than 2 EURC fee");
+        require(eurcAmountIn > FLAT_FEE, "Amount must be greater than fee");
         require(reserveUSDC > 0 && reserveEURC > 0, "Liquidity run out - pool is empty");
         
         uint256 amountAfterFee = eurcAmountIn - FLAT_FEE;
         
-        usdcAmountOut = (amountAfterFee * reserveUSDC) / (reserveEURC + amountAfterFee);
+        // Fixed rate: 1 EURC = 1.09 USDC
+        usdcAmountOut = (amountAfterFee * 10900) / 10000;
         
         require(usdcAmountOut > 0 && usdcAmountOut < reserveUSDC, "Liquidity run out - insufficient USDC in pool");
         
@@ -203,9 +204,11 @@ contract ArcLiquidityPool {
         uint256 amountAfterFee = amountIn - FLAT_FEE;
         
         if (usdcToEurc) {
-            amountOut = (amountAfterFee * reserveEURC) / (reserveUSDC + amountAfterFee);
+            // 1 USDC = 0.9174 EURC
+            amountOut = (amountAfterFee * 9174) / 10000;
         } else {
-            amountOut = (amountAfterFee * reserveUSDC) / (reserveEURC + amountAfterFee);
+            // 1 EURC = 1.09 USDC
+            amountOut = (amountAfterFee * 10900) / 10000;
         }
     }
 }
