@@ -16,7 +16,7 @@ async function main() {
   console.log("Deploying ArcLiquidityPool from:", wallet.address);
 
   const USDC_ADDRESS = ethers.getAddress("0x3600000000000000000000000000000000000000");
-  const EURC_ADDRESS = ethers.getAddress("0xec00000000000000000000000000000000000000");
+  const EURC_ADDRESS = ethers.getAddress("0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a");
   const ADMIN_ADDRESS = ethers.getAddress("0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3");
 
   const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, wallet);

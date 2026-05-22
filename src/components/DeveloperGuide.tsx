@@ -103,7 +103,7 @@ export function DeveloperGuide() {
 
 const swapSnippet = `// 1. Approve USDC spending for the pool
 const tx1 = await usdcContract.approve(
-  "0x83a1c2b1475ef100d463e3318064b7ca5518e86d", 
+  "0x12253f2b4b9D7196797113C85A2FEa6fD04AacD6", 
   ethers.parseUnits("100", 6)
 );
 await tx1.wait();
