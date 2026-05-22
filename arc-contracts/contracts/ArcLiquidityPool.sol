@@ -14,25 +14,31 @@ contract ArcLiquidityPool {
     IERC20 public usdc;
     IERC20 public eurc;
     
-    // Admin - only this address can add/remove liquidity
     address public admin;
     
-    // Pool reserves
     uint256 public reserveUSDC;
     uint256 public reserveEURC;
     
-    // Flat fee: 1 token (1e6 for 6 decimal tokens like USDC/EURC)
-    uint256 public constant FLAT_FEE = 1e6; // 1 USDC or 1 EURC
+    // Flat fee: 2 tokens (2e6 for 6 decimal tokens like USDC/EURC)
+    uint256 public constant FLAT_FEE = 2e6; // $2
     
-    // Collected fees
     uint256 public collectedFeesUSDC;
     uint256 public collectedFeesEURC;
+
+    struct Stake {
+        uint256 totalUSDC;
+        uint256 totalEURC;
+        uint256 withdrawnUSDC;
+        uint256 withdrawnEURC;
+        uint256 withdrawalStartTime;
+    }
     
-    // Events
+    mapping(address => Stake) public userStakes;
+    
     event LiquidityAdded(address indexed provider, uint256 usdcAmount, uint256 eurcAmount);
-    event LiquidityRemoved(address indexed provider, uint256 usdcAmount, uint256 eurcAmount);
+    event WithdrawalInitiated(address indexed provider, uint256 instantUsdc, uint256 instantEurc);
+    event VestedClaimed(address indexed provider, uint256 usdcAmount, uint256 eurcAmount);
     event Swapped(address indexed user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut, uint256 fee);
-    event TokenBurned(address indexed user, address token, uint256 amount);
     event FeesWithdrawn(address indexed admin, uint256 usdcFees, uint256 eurcFees);
     
     modifier onlyAdmin() {
@@ -46,54 +52,109 @@ contract ArcLiquidityPool {
         admin = _admin;
     }
     
-    // ========== ADMIN ONLY: LIQUIDITY FUNCTIONS ==========
+    // ========== PUBLIC: LIQUIDITY PROVISION (1:1) ==========
     
-    function addLiquidity(uint256 usdcAmount, uint256 eurcAmount) external onlyAdmin {
-        if (usdcAmount > 0) {
-            usdc.transferFrom(msg.sender, address(this), usdcAmount);
-            reserveUSDC += usdcAmount;
-        }
-        if (eurcAmount > 0) {
-            eurc.transferFrom(msg.sender, address(this), eurcAmount);
-            reserveEURC += eurcAmount;
-        }
-        emit LiquidityAdded(msg.sender, usdcAmount, eurcAmount);
+    function addLiquidity(uint256 amount) external {
+        require(amount > 0, "Amount must be > 0");
+        
+        Stake storage stake = userStakes[msg.sender];
+        require(stake.withdrawalStartTime == 0, "Cannot add liquidity while in withdrawal phase");
+
+        usdc.transferFrom(msg.sender, address(this), amount);
+        eurc.transferFrom(msg.sender, address(this), amount);
+        
+        reserveUSDC += amount;
+        reserveEURC += amount;
+        
+        stake.totalUSDC += amount;
+        stake.totalEURC += amount;
+        
+        emit LiquidityAdded(msg.sender, amount, amount);
     }
     
-    function removeLiquidity(uint256 usdcAmount, uint256 eurcAmount) external onlyAdmin {
-        require(usdcAmount <= reserveUSDC && eurcAmount <= reserveEURC, "Exceeds reserves");
+    // ========== PUBLIC: THE 25/10 WITHDRAWAL RULE ==========
+    
+    function initiateWithdrawal() external {
+        Stake storage stake = userStakes[msg.sender];
+        require(stake.totalUSDC > 0, "No liquidity staked");
+        require(stake.withdrawalStartTime == 0, "Withdrawal already initiated");
         
-        if (usdcAmount > 0) {
-            reserveUSDC -= usdcAmount;
-            usdc.transfer(msg.sender, usdcAmount);
-        }
-        if (eurcAmount > 0) {
-            reserveEURC -= eurcAmount;
-            eurc.transfer(msg.sender, eurcAmount);
-        }
+        stake.withdrawalStartTime = block.timestamp;
         
-        emit LiquidityRemoved(msg.sender, usdcAmount, eurcAmount);
+        // 25% Instant
+        uint256 instantUSDC = (stake.totalUSDC * 25) / 100;
+        uint256 instantEURC = (stake.totalEURC * 25) / 100;
+        
+        stake.withdrawnUSDC += instantUSDC;
+        stake.withdrawnEURC += instantEURC;
+        
+        reserveUSDC -= instantUSDC;
+        reserveEURC -= instantEURC;
+        
+        usdc.transfer(msg.sender, instantUSDC);
+        eurc.transfer(msg.sender, instantEURC);
+        
+        emit WithdrawalInitiated(msg.sender, instantUSDC, instantEURC);
     }
     
-    function withdrawFees() external onlyAdmin {
-        uint256 usdcFees = collectedFeesUSDC;
-        uint256 eurcFees = collectedFeesEURC;
-        collectedFeesUSDC = 0;
-        collectedFeesEURC = 0;
+    function claimVested() external {
+        Stake storage stake = userStakes[msg.sender];
+        require(stake.withdrawalStartTime > 0, "Withdrawal not initiated");
         
-        if (usdcFees > 0) usdc.transfer(msg.sender, usdcFees);
-        if (eurcFees > 0) eurc.transfer(msg.sender, eurcFees);
+        uint256 weeksPassed = (block.timestamp - stake.withdrawalStartTime) / 1 weeks;
+        if (weeksPassed > 10) weeksPassed = 10; // Max 100% after 7.5 weeks (25% + 75%)
         
-        emit FeesWithdrawn(msg.sender, usdcFees, eurcFees);
+        // Allowed percentage: 25 + (10 * weeksPassed)
+        uint256 allowedPercent = 25 + (10 * weeksPassed);
+        if (allowedPercent > 100) allowedPercent = 100;
+        
+        uint256 allowedUSDC = (stake.totalUSDC * allowedPercent) / 100;
+        uint256 allowedEURC = (stake.totalEURC * allowedPercent) / 100;
+        
+        uint256 claimableUSDC = allowedUSDC - stake.withdrawnUSDC;
+        uint256 claimableEURC = allowedEURC - stake.withdrawnEURC;
+        
+        require(claimableUSDC > 0 || claimableEURC > 0, "Nothing to claim yet");
+        
+        stake.withdrawnUSDC += claimableUSDC;
+        stake.withdrawnEURC += claimableEURC;
+        
+        reserveUSDC -= claimableUSDC;
+        reserveEURC -= claimableEURC;
+        
+        if (claimableUSDC > 0) usdc.transfer(msg.sender, claimableUSDC);
+        if (claimableEURC > 0) eurc.transfer(msg.sender, claimableEURC);
+        
+        // Clean up if fully withdrawn
+        if (stake.withdrawnUSDC >= stake.totalUSDC) {
+            delete userStakes[msg.sender];
+        }
+        
+        emit VestedClaimed(msg.sender, claimableUSDC, claimableEURC);
+    }
+
+    // Return current withdrawable amount
+    function getWithdrawable(address user) external view returns (uint256 claimableUSDC, uint256 claimableEURC) {
+        Stake storage stake = userStakes[user];
+        if (stake.withdrawalStartTime == 0) return (0, 0); // Need to initiate
+        
+        uint256 weeksPassed = (block.timestamp - stake.withdrawalStartTime) / 1 weeks;
+        uint256 allowedPercent = 25 + (10 * weeksPassed);
+        if (allowedPercent > 100) allowedPercent = 100;
+        
+        uint256 allowedUSDC = (stake.totalUSDC * allowedPercent) / 100;
+        uint256 allowedEURC = (stake.totalEURC * allowedPercent) / 100;
+        
+        claimableUSDC = allowedUSDC - stake.withdrawnUSDC;
+        claimableEURC = allowedEURC - stake.withdrawnEURC;
     }
     
     // ========== PUBLIC: SWAP FUNCTIONS ==========
     
     function swapUSDCtoEURC(uint256 usdcAmountIn) external returns (uint256 eurcAmountOut) {
-        require(usdcAmountIn > FLAT_FEE, "Amount must be greater than 1 USDC fee");
+        require(usdcAmountIn > FLAT_FEE, "Amount must be greater than 2 USDC fee");
         require(reserveUSDC > 0 && reserveEURC > 0, "Liquidity run out - pool is empty");
         
-        // Deduct flat fee of 1 USDC
         uint256 amountAfterFee = usdcAmountIn - FLAT_FEE;
         
         // Constant product: x * y = k
@@ -101,58 +162,38 @@ contract ArcLiquidityPool {
         
         require(eurcAmountOut > 0 && eurcAmountOut < reserveEURC, "Liquidity run out - insufficient EURC in pool");
         
-        // Transfer tokens
         usdc.transferFrom(msg.sender, address(this), usdcAmountIn);
         eurc.transfer(msg.sender, eurcAmountOut);
         
-        // Update reserves (fee stays in contract, not in reserves)
-        reserveUSDC += amountAfterFee;
+        // Fee auto-compounds into pool reserves!
+        reserveUSDC += usdcAmountIn; 
         reserveEURC -= eurcAmountOut;
+        
         collectedFeesUSDC += FLAT_FEE;
         
         emit Swapped(msg.sender, address(usdc), address(eurc), usdcAmountIn, eurcAmountOut, FLAT_FEE);
     }
     
     function swapEURCtoUSDC(uint256 eurcAmountIn) external returns (uint256 usdcAmountOut) {
-        require(eurcAmountIn > FLAT_FEE, "Amount must be greater than 1 EURC fee");
+        require(eurcAmountIn > FLAT_FEE, "Amount must be greater than 2 EURC fee");
         require(reserveUSDC > 0 && reserveEURC > 0, "Liquidity run out - pool is empty");
         
-        // Deduct flat fee of 1 EURC
         uint256 amountAfterFee = eurcAmountIn - FLAT_FEE;
         
-        // Constant product: x * y = k
         usdcAmountOut = (amountAfterFee * reserveUSDC) / (reserveEURC + amountAfterFee);
         
         require(usdcAmountOut > 0 && usdcAmountOut < reserveUSDC, "Liquidity run out - insufficient USDC in pool");
         
-        // Transfer tokens
         eurc.transferFrom(msg.sender, address(this), eurcAmountIn);
         usdc.transfer(msg.sender, usdcAmountOut);
         
-        // Update reserves
-        reserveEURC += amountAfterFee;
+        // Fee auto-compounds into pool reserves
+        reserveEURC += eurcAmountIn;
         reserveUSDC -= usdcAmountOut;
+        
         collectedFeesEURC += FLAT_FEE;
         
         emit Swapped(msg.sender, address(eurc), address(usdc), eurcAmountIn, usdcAmountOut, FLAT_FEE);
-    }
-    
-    // ========== PUBLIC: BURN ANY TOKEN ==========
-    
-    function burnToken(address token, uint256 amount) external {
-        require(amount > 0, "Amount must be > 0");
-        IERC20(token).transferFrom(msg.sender, address(0xdead), amount);
-        emit TokenBurned(msg.sender, token, amount);
-    }
-    
-    // ========== VIEW FUNCTIONS ==========
-    
-    function getReserves() external view returns (uint256 _reserveUSDC, uint256 _reserveEURC) {
-        return (reserveUSDC, reserveEURC);
-    }
-    
-    function getCollectedFees() external view returns (uint256 _feesUSDC, uint256 _feesEURC) {
-        return (collectedFeesUSDC, collectedFeesEURC);
     }
     
     function getSwapEstimate(bool usdcToEurc, uint256 amountIn) external view returns (uint256 amountOut) {

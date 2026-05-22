@@ -22,6 +22,8 @@ import { TransactionHistory } from '@/components/TransactionHistory';
 import { SocialPay } from '@/components/SocialPay';
 import CircleBridge from '@/components/financial-layer/CircleBridge';
 import UserGuide from '@/components/UserGuide';
+import { ArcGlobalPool } from '@/components/financial-layer/ArcGlobalPool';
+import { DeveloperGuide } from '@/components/DeveloperGuide';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -52,7 +54,7 @@ export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'bridge' | 'guide'>('launcher');
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'bridge' | 'guide' | 'arc-pool' | 'dev-guide'>('launcher');
   const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
   // Daily Locks State (V2 Upgraded)
@@ -916,6 +918,41 @@ export default function Home() {
               </span>
             </button>
 
+            {/* Arc Global LP Tab */}
+            <button 
+              onClick={() => {
+                setCurrentView('arc-pool');
+              }}
+              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'arc-pool'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <Layers size={16} className={currentView === 'arc-pool' ? 'text-blue-600' : 'text-slate-400'} />
+                <span>Arc Global LP</span>
+              </div>
+              <span className="text-[9px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
+                Live
+              </span>
+            </button>
+
+            {/* Developer Guide Tab */}
+            <button 
+              onClick={() => {
+                setCurrentView('dev-guide');
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'dev-guide'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <ShieldCheck size={16} className={currentView === 'dev-guide' ? 'text-blue-600' : 'text-slate-400'} />
+              Developer Guide
+            </button>
+
             {/* Airdrop Rules modal opener */}
             <button 
               type="button"
@@ -1207,11 +1244,9 @@ export default function Home() {
             )}
 
             {/* GUIDE VIEW */}
-            {currentView === 'guide' && (
-              <div className="animate-in fade-in duration-200">
-                <UserGuide />
-              </div>
-            )}
+            {currentView === 'guide' && <UserGuide />}
+            {currentView === 'arc-pool' && <ArcGlobalPool />}
+            {currentView === 'dev-guide' && <DeveloperGuide />}
           </main>
         </div>
       </div>

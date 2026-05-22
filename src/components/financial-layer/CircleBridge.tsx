@@ -5,7 +5,7 @@ import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Coins, Flame, Loader2, Zap, CheckCircle, RefreshCw, ArrowDownUp, Droplet, ShieldCheck, Info } from 'lucide-react';
 import { erc20Abi, parseUnits, formatUnits } from 'viem';
-import { USDC_ADDRESS, EURC_ADDRESS, ARC_DEFI_ROUTER_ADDRESS } from '@/lib/arcDefiAbi';
+import { USDC_ADDRESS, EURC_ADDRESS, ARC_DEFI_ROUTER_ADDRESS, ARC_GLOBAL_POOL_ADDRESS, arcPoolAbi } from '@/lib/arcDefiAbi';
 
 interface SwapStep {
   title: string;
@@ -42,8 +42,10 @@ export default function CircleBridge() {
   const [currentStepIdx, setCurrentStepIdx] = useState<number>(-1);
   const [txSuccess, setTxSuccess] = useState(false);
 
-  // FX Rate
+  // FX Rate & Tokens
   const fxRate = swapDirection === 'USDC_TO_EURC' ? 0.92 : 1.09;
+  const fromToken = swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC';
+  const toToken = swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC';
 
   // Fetch real on-chain balances
   const fetchBalances = async () => {
@@ -93,27 +95,51 @@ export default function CircleBridge() {
       return;
     }
     const amt = Number(swapAmount);
-    const estimated = amt * fxRate;
-    setOutputAmount(estimated.toFixed(2));
-  }, [swapAmount, swapDirection, fxRate]);
+    if (amt <= 2) {
+      setOutputAmount('0.00');
+      return;
+    }
+    // Try to get on-chain estimate from pool
+    const fetchEstimate = async () => {
+      if (!publicClient) {
+        setOutputAmount(((amt - 2) * fxRate).toFixed(2));
+        return;
+      }
+      try {
+        const estimate = await publicClient.readContract({
+          address: ARC_GLOBAL_POOL_ADDRESS as `0x${string}`,
+          abi: arcPoolAbi,
+          functionName: 'getSwapEstimate',
+          args: [swapDirection === 'USDC_TO_EURC', parseUnits(swapAmount, 6)],
+        });
+        setOutputAmount(Number(formatUnits(estimate as bigint, 6)).toFixed(2));
+      } catch {
+        setOutputAmount(((amt - 2) * fxRate).toFixed(2));
+      }
+    };
+    fetchEstimate();
+  }, [swapAmount, swapDirection, fxRate, publicClient]);
 
-  const fromToken = swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC';
-  const toToken = swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC';
+  // Real balances (no localStorage offsets)
   const activeFromBalance = swapDirection === 'USDC_TO_EURC' ? realUsdcBalance : realEurcBalance;
 
   const updateStepStatus = (idx: number, status: SwapStep['status']) => {
-    setSteps(prev => prev.map((s, i) => i === idx ? { ...s, status } : s));
+    setSteps(prev => {
+      const newSteps = [...prev];
+      if (newSteps[idx]) newSteps[idx].status = status;
+      return newSteps;
+    });
   };
 
-  // ========== HANDLE SWAP ==========
+  // ========== HANDLE SWAP (REAL ON-CHAIN) ==========
   const handleSwap = async () => {
     if (!isConnected || !userAddress) {
       setErrorMessage('Please connect your wallet first!');
       return;
     }
     const amt = Number(swapAmount);
-    if (!swapAmount || amt <= 0) {
-      setErrorMessage('Enter a valid amount');
+    if (!swapAmount || amt <= 2) {
+      setErrorMessage('Amount must be greater than the $2 flat fee.');
       return;
     }
     if (amt > activeFromBalance) {
@@ -128,21 +154,22 @@ export default function CircleBridge() {
 
     const fromAddress = swapDirection === 'USDC_TO_EURC' ? USDC_ADDRESS : EURC_ADDRESS;
     const amtWei = parseUnits(swapAmount, 6);
+    const poolAddr = ARC_GLOBAL_POOL_ADDRESS as `0x${string}`;
 
     setSteps([
-      { title: `1. Approve ${fromToken}`, desc: `Approving ${fromToken} for swap`, status: 'pending' },
-      { title: `2. Execute Swap`, desc: `Swapping ${fromToken} → ${toToken} on-chain`, status: 'pending' },
-      { title: `3. Confirm on Chain`, desc: `Waiting for block confirmation`, status: 'pending' },
+      { title: `1. Approve ${fromToken}`, desc: `Authorizing ${fromToken} for pool`, status: 'pending' },
+      { title: `2. Execute Swap`, desc: `Converting ${fromToken} → ${toToken} on-chain`, status: 'pending' },
+      { title: `3. Finalize`, desc: `Confirming & refreshing balances`, status: 'pending' },
     ]);
 
     try {
-      // Step 1: Approve the from-token for the router
+      // Step 1: Approve the POOL contract (not the old router)
       updateStepStatus(0, 'active');
       const approveTx = await writeContractAsync({
         address: fromAddress as `0x${string}`,
         abi: erc20Abi,
         functionName: 'approve',
-        args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amtWei],
+        args: [poolAddr, amtWei],
       });
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash: approveTx });
@@ -150,13 +177,14 @@ export default function CircleBridge() {
       updateStepStatus(0, 'success');
       setCurrentStepIdx(1);
 
-      // Step 2: Transfer tokens (on-chain swap execution)
+      // Step 2: Real on-chain swap via ArcLiquidityPool contract
       updateStepStatus(1, 'active');
+      const swapFn = swapDirection === 'USDC_TO_EURC' ? 'swapUSDCtoEURC' : 'swapEURCtoUSDC';
       const swapTx = await writeContractAsync({
-        address: fromAddress as `0x${string}`,
-        abi: erc20Abi,
-        functionName: 'transfer',
-        args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amtWei],
+        address: poolAddr,
+        abi: arcPoolAbi,
+        functionName: swapFn,
+        args: [amtWei],
       });
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash: swapTx });
@@ -164,13 +192,12 @@ export default function CircleBridge() {
       updateStepStatus(1, 'success');
       setCurrentStepIdx(2);
 
-      // Step 3: Confirmation
+      // Step 3: Refresh real balances
       updateStepStatus(2, 'active');
-      await new Promise(r => setTimeout(r, 2000));
+      await fetchBalances();
       updateStepStatus(2, 'success');
 
       setTxSuccess(true);
-      await fetchBalances();
       window.dispatchEvent(new Event('arc-balance-update'));
     } catch (err: any) {
       console.error(err);
