@@ -4,76 +4,73 @@ import { useState, useEffect } from 'react';
 import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
 import { erc20Abi, formatUnits, parseUnits } from 'viem';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftRight, TrendingUp, Wallet, ArrowDown, DollarSign, Euro, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeftRight, TrendingUp, Wallet, ArrowDown, DollarSign, Euro, RefreshCw, CheckCircle2, AlertCircle, Bitcoin, Database } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import YieldSavings from './YieldSavings';
+import { USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS, ARC_GLOBAL_VAULT_ADDRESS, arcVaultAbi } from '@/lib/arcDefiAbi';
 
-// Mock contract or simulated EURC address on Arc Testnet
-const USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
-const EURC_ADDRESS = '0xeC00000000000000000000000000000000000000'; // Simulated EURC Address
+type AssetType = 'USDC' | 'EURC' | 'cirBTC';
+
+const ASSET_CONFIG = {
+  USDC: { address: USDC_ADDRESS, decimals: 6, icon: <DollarSign size={13} className="text-blue-600" />, rateToUSDC: 1 },
+  EURC: { address: EURC_ADDRESS, decimals: 18, icon: <Euro size={13} className="text-slate-600" />, rateToUSDC: 1.09 },
+  cirBTC: { address: CIRBTC_ADDRESS, decimals: 8, icon: <Bitcoin size={13} className="text-orange-500" />, rateToUSDC: 65000 },
+};
 
 export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (token: 'USDC' | 'EURC') => void }) {
   const { isConnected, address: userAddress } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
-  // Balance states (Starts with simulated fallbacks)
-  const [usdcBalance, setUsdcBalance] = useState<number>(1000.00);
-  const [eurcBalance, setEurcBalance] = useState<number>(500.00);
+  // User Balances
+  const [balances, setBalances] = useState({ USDC: 0, EURC: 0, cirBTC: 0 });
+  // Vault Reserves
+  const [vaultReserves, setVaultReserves] = useState({ USDC: 0, EURC: 0, cirBTC: 0 });
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
 
-  // Grow Wealth Yield Section toggling state
   const [isYieldSectionOpen, setIsYieldSectionOpen] = useState(false);
 
-  // Swap input states
-  const [swapDirection, setSwapDirection] = useState<'USDC_TO_EURC' | 'EURC_TO_USDC'>('USDC_TO_EURC');
+  const [fromAsset, setFromAsset] = useState<AssetType>('USDC');
+  const [toAsset, setToAsset] = useState<AssetType>('EURC');
   const [fromAmount, setFromAmount] = useState('');
   const [toAmount, setToAmount] = useState('');
-  const [fxRate, setFxRate] = useState(0.92); // 1 USDC = 0.92 EURC
+  const [fxRate, setFxRate] = useState(0); 
   const [isSwapping, setIsSwapping] = useState(false);
   const [swapResult, setSwapResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Fetch balances (combines on-chain read & simulated local state)
   const fetchBalances = async () => {
-    if (!isConnected || !userAddress || !publicClient) return;
+    if (!publicClient) return;
     
     setIsLoadingBalances(true);
     try {
-      // 1. Fetch on-chain USDC Balance (6 Decimals)
-      let usdcVal = 0;
-      try {
-        const usdcRaw = await publicClient.readContract({
-          address: USDC_ADDRESS,
-          abi: erc20Abi,
-          functionName: 'balanceOf',
-          args: [userAddress],
-        }) as bigint;
-        usdcVal = Number(formatUnits(usdcRaw, 6));
-      } catch (err) {
-        console.warn('Could not fetch USDC on-chain balance, using simulated.', err);
-        // Fallback to local storage or defaults
-        const stored = localStorage.getItem(`sim_usdc_${userAddress.toLowerCase()}`);
-        usdcVal = stored ? Number(stored) : 1000.00;
-      }
+      // Fetch Vault Reserves (Zero-delay)
+      const [vUSDC, vEURC, vBTC] = await Promise.all([
+        publicClient.readContract({ address: USDC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`] }),
+        publicClient.readContract({ address: EURC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`] }),
+        publicClient.readContract({ address: CIRBTC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`] }),
+      ]);
 
-      // 2. Fetch on-chain EURC Balance (18 Decimals)
-      let eurcVal = 0;
-      try {
-        const eurcRaw = await publicClient.readContract({
-          address: EURC_ADDRESS,
-          abi: erc20Abi,
-          functionName: 'balanceOf',
-          args: [userAddress],
-        }) as bigint;
-        eurcVal = Number(formatUnits(eurcRaw, 18));
-      } catch (err) {
-        // Fallback to local storage or defaults
-        const stored = localStorage.getItem(`sim_eurc_${userAddress.toLowerCase()}`);
-        eurcVal = stored ? Number(stored) : 500.00;
-      }
+      setVaultReserves({
+        USDC: Number(formatUnits(vUSDC as bigint, 6)),
+        EURC: Number(formatUnits(vEURC as bigint, 18)),
+        cirBTC: Number(formatUnits(vBTC as bigint, 8)),
+      });
 
-      setUsdcBalance(usdcVal);
-      setEurcBalance(eurcVal);
+      if (!isConnected || !userAddress) return;
+
+      // Fetch User Balances
+      const [uUSDC, uEURC, uBTC] = await Promise.all([
+        publicClient.readContract({ address: USDC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [userAddress] }),
+        publicClient.readContract({ address: EURC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [userAddress] }),
+        publicClient.readContract({ address: CIRBTC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [userAddress] }),
+      ]);
+
+      setBalances({
+        USDC: Number(formatUnits(uUSDC as bigint, 6)),
+        EURC: Number(formatUnits(uEURC as bigint, 18)),
+        cirBTC: Number(formatUnits(uBTC as bigint, 8)),
+      });
+
     } catch (e) {
       console.error('Error fetching balances:', e);
     } finally {
@@ -82,35 +79,31 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
   };
 
   useEffect(() => {
-    if (isConnected && userAddress) {
-      // Load initial local simulation values if they exist
-      const localUsdc = localStorage.getItem(`sim_usdc_${userAddress.toLowerCase()}`);
-      const localEurc = localStorage.getItem(`sim_eurc_${userAddress.toLowerCase()}`);
-      if (localUsdc) setUsdcBalance(Number(localUsdc));
-      if (localEurc) setEurcBalance(Number(localEurc));
-
-      fetchBalances();
-    }
-  }, [isConnected, userAddress]);
+    fetchBalances();
+    const handler = () => fetchBalances();
+    window.addEventListener('arc-balance-update', handler);
+    return () => window.removeEventListener('arc-balance-update', handler);
+  }, [isConnected, userAddress, publicClient]);
 
   // Adjust rates depending on direction
   useEffect(() => {
-    if (swapDirection === 'USDC_TO_EURC') {
-      setFxRate(0.92);
-      if (fromAmount) {
-        setToAmount((Number(fromAmount) * 0.92).toFixed(2));
-      } else {
-        setToAmount('');
-      }
+    const rateFrom = ASSET_CONFIG[fromAsset].rateToUSDC;
+    const rateTo = ASSET_CONFIG[toAsset].rateToUSDC;
+    const rate = rateFrom / rateTo;
+    setFxRate(rate);
+
+    if (fromAmount) {
+      setToAmount((Number(fromAmount) * rate).toFixed(fromAsset === 'cirBTC' || toAsset === 'cirBTC' ? 8 : 2));
     } else {
-      setFxRate(1.09);
-      if (fromAmount) {
-        setToAmount((Number(fromAmount) * 1.09).toFixed(2));
-      } else {
-        setToAmount('');
-      }
+      setToAmount('');
     }
-  }, [swapDirection, fromAmount]);
+  }, [fromAsset, toAsset, fromAmount]);
+
+  const handleSwapToggle = () => {
+    setFromAsset(toAsset);
+    setToAsset(fromAsset);
+    setFromAmount(toAmount);
+  };
 
   const handleSwap = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,13 +118,8 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
       return;
     }
 
-    // Check balance
-    if (swapDirection === 'USDC_TO_EURC' && amt > usdcBalance) {
-      setSwapResult({ type: 'error', message: 'Insufficient USDC balance.' });
-      return;
-    }
-    if (swapDirection === 'EURC_TO_USDC' && amt > eurcBalance) {
-      setSwapResult({ type: 'error', message: 'Insufficient EURC balance.' });
+    if (amt > balances[fromAsset]) {
+      setSwapResult({ type: 'error', message: `Insufficient ${fromAsset} balance.` });
       return;
     }
 
@@ -139,86 +127,53 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
     setSwapResult(null);
 
     try {
-      let usdVolume = 0;
-
-      // 1. On-Chain execution for USDC transfers
-      if (swapDirection === 'USDC_TO_EURC') {
-        const amtWei = parseUnits(fromAmount, 6);
-        const treasuryAddress = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
-
-        // Real on-chain ERC-20 transfer to Treasury!
-        const txHash = await writeContractAsync({
-          address: USDC_ADDRESS,
-          abi: erc20Abi,
-          functionName: 'transfer',
-          args: [treasuryAddress as `0x${string}`, amtWei],
-        });
-
-        if (publicClient) {
-          await publicClient.waitForTransactionReceipt({ hash: txHash });
-        }
-        usdVolume = amt;
-      } else {
-        // EURC swap (simulated fallback to credit native USDC since EURC is a simulation asset)
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        usdVolume = amt * 1.09;
-      }
-
-      let newUsdc = usdcBalance;
-      let newEurc = eurcBalance;
-
-      if (swapDirection === 'USDC_TO_EURC') {
-        newUsdc = usdcBalance - amt;
-        newEurc = eurcBalance + (amt * 0.92);
-      } else {
-        newUsdc = usdcBalance + (amt * 1.09);
-        newEurc = eurcBalance - amt;
-      }
-
-      // Save new simulated balances to localStorage
-      localStorage.setItem(`sim_usdc_${userAddress.toLowerCase()}`, newUsdc.toFixed(2));
-      localStorage.setItem(`sim_eurc_${userAddress.toLowerCase()}`, newEurc.toFixed(2));
+      const amtWei = parseUnits(fromAmount, ASSET_CONFIG[fromAsset].decimals);
       
-      setUsdcBalance(newUsdc);
-      setEurcBalance(newEurc);
+      // 1. Approve Vault
+      const approveTx = await writeContractAsync({
+        address: ASSET_CONFIG[fromAsset].address as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'approve',
+        args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`, amtWei],
+      });
+      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: approveTx });
 
-      // Trigger reward points +1 per 10 USDC swapped volume
+      // 2. Execute Swap (Single-Hop Atomic)
+      const swapTx = await writeContractAsync({
+        address: ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`,
+        abi: arcVaultAbi,
+        functionName: 'executeSwap',
+        args: [ASSET_CONFIG[fromAsset].address, ASSET_CONFIG[toAsset].address, amtWei],
+      });
+      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: swapTx });
+
+      // Sync trigger
+      await fetchBalances();
+      window.dispatchEvent(new Event('arc-balance-update'));
+
+      // Log volume for rewards
+      const usdVolume = amt * ASSET_CONFIG[fromAsset].rateToUSDC;
       if (usdVolume >= 10) {
         try {
           const pointsEarned = usdVolume / 10;
           const walletLower = userAddress.toLowerCase();
           
-          const { data: currentStats } = await supabase
-            .from('user_stats')
-            .select('*')
-            .eq('wallet', walletLower);
+          const { data: currentStats } = await supabase.from('user_stats').select('*').eq('wallet', walletLower);
 
           if (currentStats && currentStats.length > 0) {
-            await supabase
-              .from('user_stats')
-              .update({
-                total_volume: Number(currentStats[0].total_volume || 0) + usdVolume,
-                points: Number(currentStats[0].points || 0) + pointsEarned
-              })
-              .eq('wallet', walletLower);
+            await supabase.from('user_stats').update({
+              total_volume: Number(currentStats[0].total_volume || 0) + usdVolume,
+              points: Number(currentStats[0].points || 0) + pointsEarned
+            }).eq('wallet', walletLower);
           } else {
-            await supabase
-              .from('user_stats')
-              .insert({
-                wallet: walletLower,
-                total_volume: usdVolume,
-                points: pointsEarned
-              });
+            await supabase.from('user_stats').insert({ wallet: walletLower, total_volume: usdVolume, points: pointsEarned });
           }
         } catch (dbErr) {
           console.error('Error logging points to Supabase:', dbErr);
         }
       }
 
-      setSwapResult({
-        type: 'success',
-        message: `Successfully swapped ${fromAmount} ${swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC'} for ${toAmount} ${swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC'}!`,
-      });
+      setSwapResult({ type: 'success', message: `Successfully swapped ${fromAmount} ${fromAsset} for ~${toAmount} ${toAsset}!` });
       setFromAmount('');
       setToAmount('');
     } catch (err: any) {
@@ -243,7 +198,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
           </div>
         </div>
         <button 
-          onClick={fetchBalances} 
+          onClick={() => { fetchBalances(); window.dispatchEvent(new Event('arc-balance-update')); }} 
           disabled={isLoadingBalances}
           className="p-3.5 hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all text-slate-500 hover:text-slate-800 disabled:opacity-50"
           title="Refresh Balances"
@@ -253,7 +208,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
       </div>
 
       {/* Balance Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* USDC CARD */}
         <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 border border-blue-650 rounded-[32px] p-6 text-white shadow-xl shadow-blue-500/10 relative overflow-hidden group">
@@ -261,28 +216,16 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             <DollarSign size={180} strokeWidth={1} />
           </div>
           <div className="flex justify-between items-center mb-6 z-10 relative">
-            <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full border border-white/10">USDC (Base Token)</span>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full border border-white/10">USDC</span>
             <div className="flex items-center gap-2">
-              {onSwitchToBridge && (
-                <button
-                  onClick={() => onSwitchToBridge('USDC')}
-                  className="px-3.5 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm border border-white/10 hover:scale-105 active:scale-95"
-                >
-                  Bridge ⚡
-                </button>
-              )}
               <DollarSign size={20} className="text-blue-100" />
             </div>
           </div>
           <div className="space-y-1">
             <span className="text-xs text-blue-100 font-semibold">Available Balance</span>
             <h3 className="text-3xl font-black tracking-tight font-mono">
-              ${usdcBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ${balances.USDC.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h3>
-          </div>
-          <div className="mt-6 flex justify-between items-center text-[10px] text-blue-100 border-t border-white/10 pt-4 font-bold">
-            <span>Decimals: 6</span>
-            <span>Arc Testnet Network</span>
           </div>
         </div>
 
@@ -292,67 +235,61 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             <Euro size={180} strokeWidth={1} />
           </div>
           <div className="flex justify-between items-center mb-6 z-10 relative">
-            <span className="text-[10px] font-black uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/5">EURC (Euro Stable)</span>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/5">EURC</span>
             <div className="flex items-center gap-2">
-              {onSwitchToBridge && (
-                <button
-                  onClick={() => onSwitchToBridge('EURC')}
-                  className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
-                >
-                  Bridge ⚡
-                </button>
-              )}
               <Euro size={20} className="text-slate-400" />
             </div>
           </div>
           <div className="space-y-1">
             <span className="text-xs text-slate-350 font-semibold">Available Balance</span>
             <h3 className="text-3xl font-black tracking-tight font-mono">
-              €{eurcBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              €{balances.EURC.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h3>
           </div>
-          <div className="mt-6 flex justify-between items-center text-[10px] text-slate-400 border-t border-white/5 pt-4 font-bold">
-            <span>Decimals: 18</span>
-            <span>Arc Testnet Network</span>
+        </div>
+
+        {/* cirBTC CARD */}
+        <div className="bg-gradient-to-br from-orange-500 via-orange-400 to-amber-500 border border-orange-600 rounded-[32px] p-6 text-white shadow-xl shadow-orange-500/10 relative overflow-hidden group">
+          <div className="absolute right-[-10px] bottom-[-20px] text-white/10 group-hover:scale-110 transition-transform duration-350 select-none">
+            <Bitcoin size={180} strokeWidth={1} />
+          </div>
+          <div className="flex justify-between items-center mb-6 z-10 relative">
+            <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full border border-white/20 text-orange-900">cirBTC</span>
+            <div className="flex items-center gap-2">
+              <Bitcoin size={20} className="text-orange-100" />
+            </div>
+          </div>
+          <div className="space-y-1 z-10 relative">
+            <span className="text-xs text-orange-100 font-semibold">Available Balance</span>
+            <h3 className="text-3xl font-black tracking-tight font-mono">
+              ₿{balances.cirBTC.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 8 })}
+            </h3>
           </div>
         </div>
 
       </div>
 
-      {/* Grow Your Wealth Premium Yield Banner / Collapsible Panel */}
-      <div className="bg-gradient-to-r from-blue-900/5 via-indigo-900/5 to-purple-900/5 border border-blue-200/20 rounded-[32px] p-6 shadow-sm space-y-6">
-        <button
-          type="button"
-          onClick={() => setIsYieldSectionOpen(!isYieldSectionOpen)}
-          className="w-full text-left flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 cursor-pointer focus:outline-none"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-600 flex items-center justify-center shadow-sm">
-              <TrendingUp size={20} className="animate-pulse" />
-            </div>
-            <div>
-              <span className="text-[9px] uppercase font-black tracking-widest text-blue-600 bg-blue-500/15 border border-blue-500/10 px-2 py-0.5 rounded-full inline-block">Premium Grow Your Wealth</span>
-              <h4 className="font-extrabold text-slate-800 text-sm mt-1">Native Stablecoin Yields Available (Up to 8.5% APY)</h4>
-              <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Stake idle USDC & EURC inside secured high-yield vaults compounding live.</p>
-            </div>
+      {/* Vault Reserve Stats (V4 Feature) */}
+      <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <Database size={16} className="text-indigo-600" />
+          <h4 className="font-extrabold text-slate-800 text-sm">Public Vault Reserves</h4>
+          <span className="text-[9px] uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-bold ml-2 border border-indigo-100">Zero-Delay Live</span>
+        </div>
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">USDC</p>
+            <p className="text-lg font-black text-slate-800 font-mono">{vaultReserves.USDC.toLocaleString()}</p>
           </div>
-          <span className="text-xs font-black text-blue-600 hover:text-blue-750 bg-white border border-slate-200/50 px-3.5 py-2 rounded-xl shadow-sm transition-all select-none self-start sm:self-center">
-            {isYieldSectionOpen ? 'Hide Yield Panel' : 'Grow Wealth ⚡'}
-          </span>
-        </button>
-
-        <AnimatePresence>
-          {isYieldSectionOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden border-t border-slate-100 pt-6"
-            >
-              <YieldSavings />
-            </motion.div>
-          )}
-        </AnimatePresence>
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">EURC</p>
+            <p className="text-lg font-black text-slate-800 font-mono">{vaultReserves.EURC.toLocaleString()}</p>
+          </div>
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">cirBTC</p>
+            <p className="text-lg font-black text-slate-800 font-mono">{vaultReserves.cirBTC.toLocaleString(undefined, {maximumFractionDigits: 8})}</p>
+          </div>
+        </div>
       </div>
 
       {/* FX Swap Engine Widget */}
@@ -362,8 +299,8 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             <ArrowLeftRight size={18} />
           </div>
           <div>
-            <h4 className="font-extrabold text-slate-800 text-sm">Isolated FX Swap Engine</h4>
-            <p className="text-[10px] text-slate-500 font-semibold">Swap USDC directly to simulated EURC at zero slippage.</p>
+            <h4 className="font-extrabold text-slate-800 text-sm">Vault Swap Engine (V4)</h4>
+            <p className="text-[10px] text-slate-500 font-semibold">Atomic single-hop execution. 0.1 flat fee per swap.</p>
           </div>
         </div>
 
@@ -372,11 +309,11 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
           <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
             <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
               <span>From Asset</span>
-              <span className="cursor-pointer text-blue-600" onClick={() => setFromAmount(swapDirection === 'USDC_TO_EURC' ? usdcBalance.toFixed(2) : eurcBalance.toFixed(2))}>
-                Max: {swapDirection === 'USDC_TO_EURC' ? usdcBalance.toFixed(2) : eurcBalance.toFixed(2)}
+              <span className="cursor-pointer text-blue-600" onClick={() => setFromAmount(balances[fromAsset].toString())}>
+                Max: {balances[fromAsset].toLocaleString(undefined, { maximumFractionDigits: ASSET_CONFIG[fromAsset].decimals === 8 ? 8 : 2 })}
               </span>
             </div>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-4">
               <input
                 type="number"
                 placeholder="0.00"
@@ -384,12 +321,17 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
                 required
                 value={fromAmount}
                 onChange={(e) => setFromAmount(e.target.value)}
-                className="w-2/3 bg-transparent text-2xl font-black font-mono text-slate-800 outline-none"
+                className="w-full bg-transparent text-2xl font-black font-mono text-slate-800 outline-none"
               />
-              <span className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm flex items-center gap-1">
-                {swapDirection === 'USDC_TO_EURC' ? <DollarSign size={13} className="text-blue-600" /> : <Euro size={13} className="text-slate-600" />}
-                {swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC'}
-              </span>
+              <select 
+                value={fromAsset}
+                onChange={(e) => setFromAsset(e.target.value as AssetType)}
+                className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-700 shadow-sm outline-none cursor-pointer"
+              >
+                <option value="USDC">USDC</option>
+                <option value="EURC">EURC</option>
+                <option value="cirBTC">cirBTC</option>
+              </select>
             </div>
           </div>
 
@@ -397,7 +339,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
           <div className="flex justify-center -my-3 relative z-10">
             <button
               type="button"
-              onClick={() => setSwapDirection(prev => prev === 'USDC_TO_EURC' ? 'EURC_TO_USDC' : 'USDC_TO_EURC')}
+              onClick={handleSwapToggle}
               className="p-3 bg-white hover:bg-slate-50 border border-slate-200 text-blue-600 hover:text-blue-700 rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105 cursor-pointer active:scale-95"
             >
               <ArrowDown size={16} />
@@ -409,40 +351,47 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
               <span>To Asset (Estimated)</span>
             </div>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-4">
               <input
                 type="text"
                 placeholder="0.00"
                 readOnly
                 value={toAmount}
-                className="w-2/3 bg-transparent text-2xl font-black font-mono text-slate-400 outline-none"
+                className="w-full bg-transparent text-2xl font-black font-mono text-slate-400 outline-none"
               />
-              <span className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm flex items-center gap-1">
-                {swapDirection === 'USDC_TO_EURC' ? <Euro size={13} className="text-slate-600" /> : <DollarSign size={13} className="text-blue-600" />}
-                {swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC'}
-              </span>
+              <select 
+                value={toAsset}
+                onChange={(e) => setToAsset(e.target.value as AssetType)}
+                className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-700 shadow-sm outline-none cursor-pointer"
+              >
+                <option value="USDC">USDC</option>
+                <option value="EURC">EURC</option>
+                <option value="cirBTC">cirBTC</option>
+              </select>
             </div>
           </div>
 
           {/* RATE DETAILS */}
           <div className="flex justify-between items-center bg-blue-50/40 border border-blue-100 p-3 rounded-xl text-[10px] font-extrabold text-slate-600">
-            <span className="flex items-center gap-1"><TrendingUp size={12} className="text-blue-500" /> Guaranteed FX Rate</span>
-            <span className="font-mono text-blue-600">1 {swapDirection === 'USDC_TO_EURC' ? 'USDC' : 'EURC'} = {fxRate} {swapDirection === 'USDC_TO_EURC' ? 'EURC' : 'USDC'}</span>
+            <span className="flex items-center gap-1"><TrendingUp size={12} className="text-blue-500" /> Vault Rate</span>
+            <span className="font-mono text-blue-600">1 {fromAsset} = {fxRate.toLocaleString(undefined, {maximumFractionDigits: 8})} {toAsset}</span>
           </div>
 
           {/* SWAP ACTION BUTTON */}
           <button
             type="submit"
-            disabled={isSwapping}
+            disabled={isSwapping || fromAsset === toAsset}
             className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {isSwapping ? (
               <>
                 <RefreshCw size={15} className="animate-spin" />
-                Processing FX Execution...
+                Processing Atomic Swap...
               </>
+            ) : fromAsset === toAsset ? (
+              'Invalid Pair'
             ) : (
-              'Confirm FX Swap'
+              'Execute V4 Swap'
             )}
           </button>
         </form>

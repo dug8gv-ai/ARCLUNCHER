@@ -126,6 +126,7 @@ CREATE TABLE IF NOT EXISTS freelance_gigs (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     budget NUMERIC NOT NULL,
+    image_url TEXT,
     status TEXT DEFAULT 'OPEN', -- 'OPEN', 'IN_PROGRESS', 'COMPLETED'
     freelancer_wallet TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -133,3 +134,15 @@ CREATE TABLE IF NOT EXISTS freelance_gigs (
 
 -- Enable Supabase real-time on freelance gigs
 ALTER PUBLICATION supabase_realtime ADD TABLE freelance_gigs;
+
+-- Table for Gig Chat Messages
+CREATE TABLE IF NOT EXISTS gig_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    gig_id UUID NOT NULL REFERENCES freelance_gigs(id) ON DELETE CASCADE,
+    sender_wallet TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Supabase real-time on gig messages
+ALTER PUBLICATION supabase_realtime ADD TABLE gig_messages;

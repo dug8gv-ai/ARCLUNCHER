@@ -1,7 +1,7 @@
 {
   "_format": "hh3-artifact-1",
   "contractName": "IERC20",
-  "sourceName": "contracts/ArcLiquidityPool.sol",
+  "sourceName": "contracts/ArcGlobalVault.sol",
   "abi": [
     {
       "inputs": [
@@ -142,6 +142,6 @@
   "linkReferences": {},
   "deployedLinkReferences": {},
   "immutableReferences": {},
-  "inputSourceName": "project/contracts/ArcLiquidityPool.sol",
+  "inputSourceName": "project/contracts/ArcGlobalVault.sol",
   "buildInfoId": "solc-0_8_20-d34a87329d28ea791170f22f930d0cfd43562dee"
 }
