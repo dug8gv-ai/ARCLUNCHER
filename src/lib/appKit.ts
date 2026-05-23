@@ -52,11 +52,10 @@ export const appKitSwap = async (
   }
 
   return await kit.swap({
-    adapter,
-    chain: chain as any,
+    from: { adapter, chain: chain as any },
     amount: amountIn,
-    fromToken,
-    toToken,
+    tokenIn: fromToken as any,
+    tokenOut: toToken as any,
     ...(kitKey && { config: { kitKey } })
   } as any); 
 };
