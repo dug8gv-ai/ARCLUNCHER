@@ -111,10 +111,10 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
       const provider = (window as any).ethereum;
       if (!provider) throw new Error("No Web3 provider found. Please install a wallet.");
       
-      const adapter = createBrowserAdapter(provider);
+      const adapter = await createBrowserAdapter(provider);
       
       // Execute Swap via Arc App Kit
-      const result = await appKitSwap(adapter, fromAmount, fromAsset, toAsset, 'Arc_Testnet');
+      const result = await appKitSwap(adapter, String(fromAmount), fromAsset, toAsset, 'Arc_Testnet');
 
       // Sync trigger
       await fetchBalances();

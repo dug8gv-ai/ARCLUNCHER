@@ -12,11 +12,11 @@ export const initAppKit = (): AppKit => {
 };
 
 // Create a Viem adapter from a Wagmi/EIP-1193 provider
-export const createBrowserAdapter = (provider: any) => {
+export const createBrowserAdapter = async (provider: any) => {
   if (!provider) {
     throw new Error("No provider available for App Kit adapter.");
   }
-  return createViemAdapterFromProvider({ provider });
+  return await createViemAdapterFromProvider({ provider });
 };
 
 // Helper for Bridge
@@ -53,7 +53,7 @@ export const appKitSwap = async (
 
   return await kit.swap({
     from: { adapter, chain: chain as any },
-    amount: amountIn,
+    amountIn: amountIn,
     tokenIn: fromToken as any,
     tokenOut: toToken as any,
     ...(kitKey && { config: { kitKey } })
