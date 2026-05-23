@@ -2,9 +2,38 @@ import { AppKit } from "@circle-fin/app-kit";
 import { createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
 
 let appKitInstance: AppKit | null = null;
+let fetchIntercepted = false;
+
+// Intercept browser fetch to route Circle API calls through our Next.js backend proxy to bypass CORS
+const interceptFetchForCircleProxy = () => {
+  if (typeof window === 'undefined' || fetchIntercepted) return;
+  
+  const originalFetch = window.fetch;
+  window.fetch = async (...args) => {
+    let [resource, config] = args;
+    let url = typeof resource === 'string' ? resource : (resource instanceof Request ? resource.url : '');
+    
+    if (url.includes('api.circle.com') || url.includes('api-sandbox.circle.com')) {
+      const proxyConfig: RequestInit = {
+        ...(config || {}),
+        headers: {
+          ...(config?.headers || {}),
+          'x-circle-target-url': url
+        }
+      };
+      
+      return originalFetch('/api/circle/proxy', proxyConfig);
+    }
+    
+    return originalFetch(resource, config);
+  };
+  
+  fetchIntercepted = true;
+};
 
 // Initialize the global App Kit instance if not already initialized
 export const initAppKit = (): AppKit => {
+  interceptFetchForCircleProxy();
   if (!appKitInstance) {
     appKitInstance = new AppKit();
   }
