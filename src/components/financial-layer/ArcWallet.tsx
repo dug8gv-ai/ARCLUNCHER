@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, usePublicClient } from 'wagmi';
-import { erc20Abi, formatUnits } from 'viem';
+import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
+import { erc20Abi, formatUnits, parseUnits } from 'viem';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftRight, TrendingUp, Wallet, ArrowDown, DollarSign, Euro, RefreshCw, CheckCircle2, AlertCircle, Bitcoin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS } from '@/lib/arcDefiAbi';
+import { USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS, ARC_GLOBAL_VAULT_ADDRESS, arcVaultAbi } from '@/lib/arcDefiAbi';
 import { createBrowserAdapter, appKitSwap } from '@/lib/appKit';
 
 type AssetType = 'USDC' | 'EURC' | 'cirBTC';
@@ -32,6 +32,8 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
   const [fxRate, setFxRate] = useState(0); 
   const [isSwapping, setIsSwapping] = useState(false);
   const [swapResult, setSwapResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const { writeContractAsync } = useWriteContract();
 
   const fetchBalances = async () => {
     if (!publicClient || !isConnected || !userAddress) return;
@@ -108,13 +110,35 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
     setSwapResult(null);
 
     try {
-      const provider = (window as any).ethereum;
-      if (!provider) throw new Error("No Web3 provider found. Please install a wallet.");
-      
-      const adapter = await createBrowserAdapter(provider);
-      
-      // Execute Swap via Arc App Kit
-      const result = await appKitSwap(adapter, String(fromAmount), fromAsset, toAsset, 'Arc_Testnet');
+      if (fromAsset === 'cirBTC' || toAsset === 'cirBTC') {
+        const amtWei = parseUnits(fromAmount, ASSET_CONFIG[fromAsset].decimals);
+        
+        // 1. Approve Vault
+        const approveTx = await writeContractAsync({
+          address: ASSET_CONFIG[fromAsset].address as `0x${string}`,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`, amtWei],
+        });
+        if (publicClient) await publicClient.waitForTransactionReceipt({ hash: approveTx });
+
+        // 2. Execute Swap (Single-Hop Atomic)
+        const swapTx = await writeContractAsync({
+          address: ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`,
+          abi: arcVaultAbi,
+          functionName: 'executeSwap',
+          args: [ASSET_CONFIG[fromAsset].address as `0x${string}`, ASSET_CONFIG[toAsset].address as `0x${string}`, amtWei],
+        });
+        if (publicClient) await publicClient.waitForTransactionReceipt({ hash: swapTx });
+      } else {
+        const provider = (window as any).ethereum;
+        if (!provider) throw new Error("No Web3 provider found. Please install a wallet.");
+        
+        const adapter = await createBrowserAdapter(provider);
+        
+        // Execute Swap via Arc App Kit
+        await appKitSwap(adapter, String(fromAmount), fromAsset, toAsset, 'Arc_Testnet');
+      }
 
       // Sync trigger
       await fetchBalances();
