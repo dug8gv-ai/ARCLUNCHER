@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAccount, usePublicClient } from 'wagmi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pickaxe, TrendingUp, ShieldCheck, Lock, Unlock, Clock, Coins, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Pickaxe, TrendingUp, ShieldCheck, Lock, Unlock, Clock, Coins, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS } from '@/lib/arcDefiAbi';
 import { formatUnits, erc20Abi } from 'viem';
 
