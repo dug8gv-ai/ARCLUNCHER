@@ -76,7 +76,9 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
     setFxRate(feeRate);
 
     if (fromAmount) {
-      setToAmount((Number(fromAmount) * feeRate).toFixed(fromAsset === 'cirBTC' || toAsset === 'cirBTC' ? 8 : 2));
+      // FIX: dynamically change decimals based on target asset to support tiny cirBTC fractions
+      const decimalCount = toAsset === 'cirBTC' ? 8 : 4;
+      setToAmount((Number(fromAmount) * feeRate).toFixed(decimalCount));
     } else {
       setToAmount('');
     }
@@ -255,6 +257,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
           <div className="space-y-1 z-10 relative">
             <span className="text-xs text-orange-100 font-semibold">Available Balance</span>
             <h3 className="text-3xl font-black tracking-tight font-mono">
+              {/* FIX: Set minimum fraction digits to 4 so small balances render properly */}
               ₿{balances.cirBTC.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 8 })}
             </h3>
           </div>
@@ -280,7 +283,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
               <span>From Asset</span>
               <span className="cursor-pointer text-blue-600" onClick={() => setFromAmount(balances[fromAsset].toString())}>
-                Max: {balances[fromAsset].toLocaleString(undefined, { maximumFractionDigits: ASSET_CONFIG[fromAsset].decimals === 8 ? 8 : 2 })}
+                Max: {balances[fromAsset].toLocaleString(undefined, { maximumFractionDigits: ASSET_CONFIG[fromAsset].decimals === 8 ? 8 : 4 })}
               </span>
             </div>
             <div className="flex justify-between items-center gap-4">
