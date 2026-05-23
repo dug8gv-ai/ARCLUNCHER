@@ -44,11 +44,26 @@ export const appKitSwap = async (
   chain: string = "Arc_Testnet"
 ) => {
   const kit = initAppKit();
-  const kitKey = process.env.NEXT_PUBLIC_CIRCLE_APP_KIT_KEY || '';
-  
-  if (!kitKey || kitKey === 'placeholder_key') {
-    console.warn("Missing Circle App Kit Key for swap operations.");
-    // In a real scenario, this might throw or handle fallback
+
+  // Fetch kit key securely from backend API
+  let kitKey = '';
+  try {
+    const res = await fetch('/api/circle/kit-key');
+    if (res.ok) {
+      const data = await res.json();
+      kitKey = data.kitKey || '';
+    }
+  } catch (e) {
+    console.warn('Failed to fetch kit key from server, falling back to env.');
+  }
+
+  // Fallback to NEXT_PUBLIC env var if API fails
+  if (!kitKey) {
+    kitKey = process.env.NEXT_PUBLIC_CIRCLE_APP_KIT_KEY || '';
+  }
+
+  if (!kitKey) {
+    throw new Error('Circle App Kit Key is not configured. Please set CIRCLE_APP_KIT_KEY in environment variables.');
   }
 
   return await kit.swap({
@@ -56,7 +71,7 @@ export const appKitSwap = async (
     amountIn: amountIn,
     tokenIn: fromToken as any,
     tokenOut: toToken as any,
-    ...(kitKey && { config: { kitKey } })
+    config: { kitKey }
   } as any); 
 };
 
