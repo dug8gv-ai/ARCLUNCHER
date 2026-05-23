@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
-import { erc20Abi, formatUnits, parseUnits } from 'viem';
+import { useAccount, usePublicClient } from 'wagmi';
+import { erc20Abi, formatUnits } from 'viem';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftRight, TrendingUp, Wallet, ArrowDown, DollarSign, Euro, RefreshCw, CheckCircle2, AlertCircle, Bitcoin, Database } from 'lucide-react';
+import { ArrowLeftRight, TrendingUp, Wallet, ArrowDown, DollarSign, Euro, RefreshCw, CheckCircle2, AlertCircle, Bitcoin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import YieldSavings from './YieldSavings';
-import { USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS, ARC_GLOBAL_VAULT_ADDRESS, arcVaultAbi } from '@/lib/arcDefiAbi';
+import { USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS } from '@/lib/arcDefiAbi';
+import { createBrowserAdapter, appKitSwap } from '@/lib/appKit';
 
 type AssetType = 'USDC' | 'EURC' | 'cirBTC';
 
@@ -20,15 +20,10 @@ const ASSET_CONFIG = {
 export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (token: 'USDC' | 'EURC') => void }) {
   const { isConnected, address: userAddress } = useAccount();
   const publicClient = usePublicClient();
-  const { writeContractAsync } = useWriteContract();
 
   // User Balances
   const [balances, setBalances] = useState({ USDC: 0, EURC: 0, cirBTC: 0 });
-  // Vault Reserves
-  const [vaultReserves, setVaultReserves] = useState({ USDC: 0, EURC: 0, cirBTC: 0 });
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
-
-  const [isYieldSectionOpen, setIsYieldSectionOpen] = useState(false);
 
   const [fromAsset, setFromAsset] = useState<AssetType>('USDC');
   const [toAsset, setToAsset] = useState<AssetType>('EURC');
@@ -39,25 +34,10 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
   const [swapResult, setSwapResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const fetchBalances = async () => {
-    if (!publicClient) return;
+    if (!publicClient || !isConnected || !userAddress) return;
     
     setIsLoadingBalances(true);
     try {
-      // Fetch Vault Reserves (Zero-delay)
-      const [vUSDC, vEURC, vBTC] = await Promise.all([
-        publicClient.readContract({ address: USDC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`] }),
-        publicClient.readContract({ address: EURC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`] }),
-        publicClient.readContract({ address: CIRBTC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`] }),
-      ]);
-
-      setVaultReserves({
-        USDC: Number(formatUnits(vUSDC as bigint, 6)),
-        EURC: Number(formatUnits(vEURC as bigint, 6)),
-        cirBTC: Number(formatUnits(vBTC as bigint, 8)),
-      });
-
-      if (!isConnected || !userAddress) return;
-
       // Fetch User Balances
       const [uUSDC, uEURC, uBTC] = await Promise.all([
         publicClient.readContract({ address: USDC_ADDRESS as `0x${string}`, abi: erc20Abi, functionName: 'balanceOf', args: [userAddress] }),
@@ -70,7 +50,6 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
         EURC: Number(formatUnits(uEURC as bigint, 6)),
         cirBTC: Number(formatUnits(uBTC as bigint, 8)),
       });
-
     } catch (e) {
       console.error('Error fetching balances:', e);
     } finally {
@@ -90,10 +69,12 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
     const rateFrom = ASSET_CONFIG[fromAsset].rateToUSDC;
     const rateTo = ASSET_CONFIG[toAsset].rateToUSDC;
     const rate = rateFrom / rateTo;
-    setFxRate(rate);
+    // official swap flat fee 0.1% logic for estimate
+    const feeRate = rate * 0.999;
+    setFxRate(feeRate);
 
     if (fromAmount) {
-      setToAmount((Number(fromAmount) * rate).toFixed(fromAsset === 'cirBTC' || toAsset === 'cirBTC' ? 8 : 2));
+      setToAmount((Number(fromAmount) * feeRate).toFixed(fromAsset === 'cirBTC' || toAsset === 'cirBTC' ? 8 : 2));
     } else {
       setToAmount('');
     }
@@ -127,25 +108,13 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
     setSwapResult(null);
 
     try {
-      const amtWei = parseUnits(fromAmount, ASSET_CONFIG[fromAsset].decimals);
+      const provider = (window as any).ethereum;
+      if (!provider) throw new Error("No Web3 provider found. Please install a wallet.");
       
-      // 1. Approve Vault
-      const approveTx = await writeContractAsync({
-        address: ASSET_CONFIG[fromAsset].address as `0x${string}`,
-        abi: erc20Abi,
-        functionName: 'approve',
-        args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`, amtWei],
-      });
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: approveTx });
-
-      // 2. Execute Swap (Single-Hop Atomic)
-      const swapTx = await writeContractAsync({
-        address: ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`,
-        abi: arcVaultAbi,
-        functionName: 'executeSwap',
-        args: [ASSET_CONFIG[fromAsset].address, ASSET_CONFIG[toAsset].address, amtWei],
-      });
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: swapTx });
+      const adapter = createBrowserAdapter(provider);
+      
+      // Execute Swap via Arc App Kit
+      const result = await appKitSwap(adapter, fromAmount, fromAsset, toAsset, 'Arc_Testnet');
 
       // Sync trigger
       await fetchBalances();
@@ -173,7 +142,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
         }
       }
 
-      setSwapResult({ type: 'success', message: `Successfully swapped ${fromAmount} ${fromAsset} for ~${toAmount} ${toAsset}!` });
+      setSwapResult({ type: 'success', message: `Successfully swapped ${fromAmount} ${fromAsset} for ${toAsset} via App Kit!` });
       setFromAmount('');
       setToAmount('');
     } catch (err: any) {
@@ -269,38 +238,15 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
 
       </div>
 
-      {/* Vault Reserve Stats (V4 Feature) */}
-      <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <Database size={16} className="text-indigo-600" />
-          <h4 className="font-extrabold text-slate-800 text-sm">Public Vault Reserves</h4>
-          <span className="text-[9px] uppercase tracking-wider bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-bold ml-2 border border-indigo-100">Zero-Delay Live</span>
-        </div>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">USDC</p>
-            <p className="text-lg font-black text-slate-800 font-mono">{vaultReserves.USDC.toLocaleString()}</p>
-          </div>
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">EURC</p>
-            <p className="text-lg font-black text-slate-800 font-mono">{vaultReserves.EURC.toLocaleString()}</p>
-          </div>
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">cirBTC</p>
-            <p className="text-lg font-black text-slate-800 font-mono">{vaultReserves.cirBTC.toLocaleString(undefined, {maximumFractionDigits: 8})}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* FX Swap Engine Widget */}
+      {/* SWAP ENGINE WIDGET */}
       <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6 max-w-xl mx-auto">
         <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600">
             <ArrowLeftRight size={18} />
           </div>
           <div>
-            <h4 className="font-extrabold text-slate-800 text-sm">Vault Swap Engine (V4)</h4>
-            <p className="text-[10px] text-slate-500 font-semibold">Atomic single-hop execution. 0.1 flat fee per swap.</p>
+            <h4 className="font-extrabold text-slate-800 text-sm">Arc App Kit Swap</h4>
+            <p className="text-[10px] text-slate-500 font-semibold">Native routing with official Circle architecture.</p>
           </div>
         </div>
 
@@ -373,8 +319,8 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
 
           {/* RATE DETAILS */}
           <div className="flex justify-between items-center bg-blue-50/40 border border-blue-100 p-3 rounded-xl text-[10px] font-extrabold text-slate-600">
-            <span className="flex items-center gap-1"><TrendingUp size={12} className="text-blue-500" /> Vault Rate</span>
-            <span className="font-mono text-blue-600">1 {fromAsset} = {fxRate.toLocaleString(undefined, {maximumFractionDigits: 8})} {toAsset}</span>
+            <span className="flex items-center gap-1"><TrendingUp size={12} className="text-blue-500" /> App Kit Rate</span>
+            <span className="font-mono text-blue-600">1 {fromAsset} ≈ {fxRate.toLocaleString(undefined, {maximumFractionDigits: 8})} {toAsset}</span>
           </div>
 
           {/* SWAP ACTION BUTTON */}
@@ -386,12 +332,12 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             {isSwapping ? (
               <>
                 <RefreshCw size={15} className="animate-spin" />
-                Processing Atomic Swap...
+                Executing Swap...
               </>
             ) : fromAsset === toAsset ? (
               'Invalid Pair'
             ) : (
-              'Execute V4 Swap'
+              'Execute Swap'
             )}
           </button>
         </form>

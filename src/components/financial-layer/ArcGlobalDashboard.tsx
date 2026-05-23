@@ -14,6 +14,8 @@ import ArcWallet from './ArcWallet';
 import SocialPay from './SocialPay';
 import AirdropTracker from './AirdropTracker';
 import CircleHub from './CircleHub';
+import ArcBridge from './ArcBridge';
+import ArcStaking from './ArcStaking';
 
 // Dynamic Load for PriceChart to avoid SSR issues
 import dynamic from 'next/dynamic';
@@ -28,7 +30,7 @@ export default function ArcGlobalDashboard() {
   const { disconnect } = useDisconnect();
 
   // Dashboard routing states
-  const [currentTab, setCurrentTab] = useState<'wallet' | 'social-pay' | 'leaderboard' | 'bridge' | 'earn' | 'trade' | 'circle-hub'>('wallet');
+  const [currentTab, setCurrentTab] = useState<'wallet' | 'social-pay' | 'leaderboard' | 'bridge' | 'staking' | 'trade' | 'circle-hub'>('wallet');
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
@@ -255,22 +257,19 @@ export default function ArcGlobalDashboard() {
               </span>
             </button>
 
-            {/* Earn Tab (Soon Glow Badge) */}
+            {/* Staking Tab */}
             <button
-              onClick={() => setCurrentTab('earn')}
+              onClick={() => setCurrentTab('staking')}
               className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
-                currentTab === 'earn'
+                currentTab === 'staking'
                   ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm'
                   : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
               }`}
             >
               <div className="flex items-center gap-3.5">
-                <Coins size={16} className={currentTab === 'earn' ? 'text-blue-600' : 'text-slate-400'} />
-                <span>Earn Tab</span>
+                <TrendingUp size={16} className={currentTab === 'staking' ? 'text-blue-600' : 'text-slate-400'} />
+                <span>Staking & Yield</span>
               </div>
-              <span className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-200/50 animate-pulse">
-                Soon
-              </span>
             </button>
           </nav>
         </div>
@@ -386,30 +385,13 @@ export default function ArcGlobalDashboard() {
             )}
 
             {/* CIRCLE CCTP BRIDGE */}
-            {/* Bridge Tab Removed in favor of direct swap */}
+            {currentTab === 'bridge' && <ArcBridge />}
 
             {/* CIRCLE HUB TAB */}
             {currentTab === 'circle-hub' && <CircleHub />}
 
-            {/* EARN TAB COMING SOON */}
-            {currentTab === 'earn' && (
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-8 shadow-sm text-center max-w-xl mx-auto space-y-6 animate-in fade-in py-12">
-                <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto animate-bounce">
-                  <Coins size={32} />
-                </div>
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-black text-slate-900 flex items-center justify-center gap-2">
-                    ARCL Earn Layer
-                  </h2>
-                  <p className="text-xs text-slate-500 font-semibold max-w-sm mx-auto leading-relaxed">
-                    Staking stablecoins, delegating liquid positions, and cross-chain referral yield claims are releasing shortly.
-                  </p>
-                </div>
-                <div className="bg-blue-50/50 border border-blue-100 px-4 py-2.5 rounded-2xl text-[10.5px] font-black uppercase text-blue-600 tracking-wider inline-block">
-                  🔒 Coming Soon in V2.0 release
-                </div>
-              </div>
-            )}
+            {/* STAKING TAB */}
+            {currentTab === 'staking' && <ArcStaking />}
 
             {/* TRADING VIEW (ACTIVATED BY LEADERBOARD OR URL TOKEN) */}
             {currentTab === 'trade' && selectedToken && (
