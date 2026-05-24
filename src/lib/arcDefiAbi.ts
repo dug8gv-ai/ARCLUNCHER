@@ -8,7 +8,7 @@ export const arcVaultAbi = vaultAbiRaw.abi;
 
 export const USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
 export const EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
-export const CIRBTC_ADDRESS = '0xe2bbfd47b4704EfeBe8F2874ac54943ea5c030fB';
+export const CIRBTC_ADDRESS = '0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF';
 
 export const arcDefiRouterAbi = [
   {
