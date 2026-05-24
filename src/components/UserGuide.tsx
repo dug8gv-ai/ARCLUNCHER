@@ -2,16 +2,24 @@
 
 import { useState } from 'react';
 import { BookOpen, Coins, Send, Rocket, TrendingUp, CheckCircle, PlusCircle, AlertCircle, Info } from 'lucide-react';
-import { USDC_ADDRESS, EURC_ADDRESS } from '@/lib/arcDefiAbi';
+import { USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS } from '@/lib/arcDefiAbi';
 
 export default function UserGuide() {
   const [addingUsdc, setAddingUsdc] = useState(false);
   const [addingEurc, setAddingEurc] = useState(false);
+  const [addingCirbtc, setAddingCirbtc] = useState(false);
   const [addStatus, setAddStatus] = useState<{ token: string, status: 'success' | 'error' | null }>({ token: '', status: null });
 
-  const handleAddToWallet = async (tokenSymbol: string, tokenAddress: string) => {
+  const tokenMeta = {
+    USDC: { address: USDC_ADDRESS, decimals: 6, accent: 'bg-blue-600 hover:bg-blue-700' },
+    EURC: { address: EURC_ADDRESS, decimals: 6, accent: 'bg-indigo-600 hover:bg-indigo-700' },
+    cirBTC: { address: CIRBTC_ADDRESS, decimals: 8, accent: 'bg-amber-600 hover:bg-amber-700' },
+  } as const;
+
+  const handleAddToWallet = async (tokenSymbol: keyof typeof tokenMeta) => {
     if (tokenSymbol === 'USDC') setAddingUsdc(true);
     if (tokenSymbol === 'EURC') setAddingEurc(true);
+    if (tokenSymbol === 'cirBTC') setAddingCirbtc(true);
     setAddStatus({ token: '', status: null });
 
     try {
@@ -21,9 +29,9 @@ export default function UserGuide() {
           params: {
             type: 'ERC20',
             options: {
-              address: tokenAddress,
+              address: tokenMeta[tokenSymbol].address,
               symbol: tokenSymbol,
-              decimals: 6,
+              decimals: tokenMeta[tokenSymbol].decimals,
             },
           },
         });
@@ -42,8 +50,8 @@ export default function UserGuide() {
     } finally {
       if (tokenSymbol === 'USDC') setAddingUsdc(false);
       if (tokenSymbol === 'EURC') setAddingEurc(false);
-      
-      // Clear status after 3 seconds
+      if (tokenSymbol === 'cirBTC') setAddingCirbtc(false);
+
       setTimeout(() => setAddStatus({ token: '', status: null }), 3000);
     }
   };
@@ -163,25 +171,26 @@ export default function UserGuide() {
           <h2 className="text-lg font-black text-slate-800">Official Token Contracts</h2>
         </div>
         <p className="text-sm text-slate-500 mb-6 font-medium">
-          To see your USDC and EURC balances correctly in your Web3 wallet (like MetaMask), you need to import their contract addresses. Click the buttons below to automatically add them.
+          To see your USDC, EURC, and cirBTC balances correctly in your Web3 wallet (like MetaMask), import their contract addresses below. The add-to-wallet flow uses wallet_watchAsset so the tokens appear in your wallet portfolio immediately.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* USDC Add */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
             <div>
               <div className="font-black text-slate-800 text-sm">USDC (USD Coin)</div>
-              <div className="text-[10px] font-mono text-slate-500 mt-1 truncate max-w-[150px] sm:max-w-[200px]">{USDC_ADDRESS}</div>
+              <div className="text-[10px] font-mono text-slate-500 mt-1 break-all">{USDC_ADDRESS}</div>
             </div>
             <button
-              onClick={() => handleAddToWallet('USDC', USDC_ADDRESS)}
+              onClick={() => handleAddToWallet('USDC')}
               disabled={addingUsdc}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2
-                ${addStatus.token === 'USDC' && addStatus.status === 'success' ? 'bg-green-100 text-green-700' : 
-                  addStatus.token === 'USDC' && addStatus.status === 'error' ? 'bg-red-100 text-red-700' :
-                  'bg-blue-600 hover:bg-blue-700 text-white shadow-md'}`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                addStatus.token === 'USDC' && addStatus.status === 'success' ? 'bg-green-100 text-green-700' :
+                addStatus.token === 'USDC' && addStatus.status === 'error' ? 'bg-red-100 text-red-700' :
+                'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+              }`}
             >
-              {addingUsdc ? 'Adding...' : 
+              {addingUsdc ? 'Adding...' :
                addStatus.token === 'USDC' && addStatus.status === 'success' ? <><CheckCircle size={14} /> Added</> :
                addStatus.token === 'USDC' && addStatus.status === 'error' ? <><AlertCircle size={14} /> Failed</> :
                <><PlusCircle size={14} /> Add to Wallet</>}
@@ -189,22 +198,45 @@ export default function UserGuide() {
           </div>
 
           {/* EURC Add */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
             <div>
               <div className="font-black text-slate-800 text-sm">EURC (Euro Coin)</div>
-              <div className="text-[10px] font-mono text-slate-500 mt-1 truncate max-w-[150px] sm:max-w-[200px]">{EURC_ADDRESS}</div>
+              <div className="text-[10px] font-mono text-slate-500 mt-1 break-all">{EURC_ADDRESS}</div>
             </div>
             <button
-              onClick={() => handleAddToWallet('EURC', EURC_ADDRESS)}
+              onClick={() => handleAddToWallet('EURC')}
               disabled={addingEurc}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2
-                ${addStatus.token === 'EURC' && addStatus.status === 'success' ? 'bg-green-100 text-green-700' : 
-                  addStatus.token === 'EURC' && addStatus.status === 'error' ? 'bg-red-100 text-red-700' :
-                  'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'}`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                addStatus.token === 'EURC' && addStatus.status === 'success' ? 'bg-green-100 text-green-700' :
+                addStatus.token === 'EURC' && addStatus.status === 'error' ? 'bg-red-100 text-red-700' :
+                'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'
+              }`}
             >
-              {addingEurc ? 'Adding...' : 
+              {addingEurc ? 'Adding...' :
                addStatus.token === 'EURC' && addStatus.status === 'success' ? <><CheckCircle size={14} /> Added</> :
                addStatus.token === 'EURC' && addStatus.status === 'error' ? <><AlertCircle size={14} /> Failed</> :
+               <><PlusCircle size={14} /> Add to Wallet</>}
+            </button>
+          </div>
+
+          {/* cirBTC Add */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+            <div>
+              <div className="font-black text-slate-800 text-sm">cirBTC (Wrapped Bitcoin)</div>
+              <div className="text-[10px] font-mono text-slate-500 mt-1 break-all">{CIRBTC_ADDRESS}</div>
+            </div>
+            <button
+              onClick={() => handleAddToWallet('cirBTC')}
+              disabled={addingCirbtc}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                addStatus.token === 'cirBTC' && addStatus.status === 'success' ? 'bg-green-100 text-green-700' :
+                addStatus.token === 'cirBTC' && addStatus.status === 'error' ? 'bg-red-100 text-red-700' :
+                'bg-amber-600 hover:bg-amber-700 text-white shadow-md'
+              }`}
+            >
+              {addingCirbtc ? 'Adding...' :
+               addStatus.token === 'cirBTC' && addStatus.status === 'success' ? <><CheckCircle size={14} /> Added</> :
+               addStatus.token === 'cirBTC' && addStatus.status === 'error' ? <><AlertCircle size={14} /> Failed</> :
                <><PlusCircle size={14} /> Add to Wallet</>}
             </button>
           </div>

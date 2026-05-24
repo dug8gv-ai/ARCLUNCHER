@@ -21,8 +21,8 @@ const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => m
 import { TransactionHistory } from '@/components/TransactionHistory';
 import { SocialPay } from '@/components/SocialPay';
 import ArcWallet from '@/components/financial-layer/ArcWallet';
+import ArcYield from '@/components/financial-layer/ArcYield';
 import UserGuide from '@/components/UserGuide';
-import { DeveloperGuide } from '@/components/DeveloperGuide';
 import { FreelanceHub } from '@/components/FreelanceHub';
 
 export default function Home() {
@@ -54,7 +54,7 @@ export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'dev-guide' | 'gigs'>('launcher');
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'staking' | 'gigs'>('launcher');
   const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
   // Daily Locks State (V2 Upgraded)
@@ -843,6 +843,21 @@ export default function Home() {
               User Guide
             </button>
 
+            {/* Staking & Yield Tab */}
+            <button 
+              onClick={() => {
+                setCurrentView('staking');
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'staking'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <TrendingUp size={16} className={currentView === 'staking' ? 'text-blue-600' : 'text-slate-400'} />
+              Staking & Yield
+            </button>
+
             {/* Social Pay (New) Tab */}
             <button 
               onClick={() => {
@@ -951,21 +966,6 @@ export default function Home() {
               </span>
             </button>
 
-            {/* Developer Guide Tab */}
-            <button 
-              onClick={() => {
-                setCurrentView('dev-guide');
-              }}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
-                currentView === 'dev-guide'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
-              }`}
-            >
-              <ShieldCheck size={16} className={currentView === 'dev-guide' ? 'text-blue-600' : 'text-slate-400'} />
-              Developer Guide
-            </button>
-
             {/* Airdrop Rules modal opener */}
             <button 
               type="button"
@@ -1021,37 +1021,30 @@ export default function Home() {
           </div>
         )}
 
-        {/* Bottom Sidebar Locked Liquidity card */}
-        <div 
-          onClick={(e) => { e.stopPropagation(); setIsLockerOpen(true); setIsRulesOpen(false); }}
-          className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 rounded-3xl p-5 space-y-3.5 shadow-sm cursor-pointer group transition-all"
+        {/* Bottom Sidebar Staking & Yield card */}
+        <button
+          type="button"
+          onClick={() => {
+            setCurrentView('staking');
+            setIsRulesOpen(false);
+          }}
+          className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 rounded-3xl p-5 space-y-3.5 shadow-sm cursor-pointer group transition-all text-left"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider group-hover:text-blue-600 transition-colors">Liquidity Locked</span>
+            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider group-hover:text-blue-600 transition-colors">Staking & Yield</span>
             <span className="bg-blue-100 text-blue-700 border border-blue-200/50 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
-              Manage 🔒
+              Live
             </span>
           </div>
           <div>
-            <h4 className="text-2xl font-black text-slate-900 tracking-tight">
-              ${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <h4 className="text-lg font-black text-slate-900 tracking-tight">
+              Open the live vaults
             </h4>
-            <div className="flex flex-col gap-0.5 mt-1.5 text-[10px] text-slate-500 font-semibold">
-              <div className="flex items-center justify-between">
-                <span>USDC Locked:</span>
-                <span className="text-blue-600 font-black">
-                  {lockedUSDC.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>EURC Locked:</span>
-                <span className="text-indigo-600 font-black">
-                  {lockedEURC.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EURC
-                </span>
-              </div>
-            </div>
+            <p className="text-[10px] text-slate-500 font-semibold mt-2 leading-relaxed">
+              Review APY, wallets, and wallet-signed staking actions for USDC, EURC, and cirBTC in one place.
+            </p>
           </div>
-        </div>
+        </button>
       </aside>
 
       {/* 2. Main content viewport area */}
@@ -1275,7 +1268,9 @@ export default function Home() {
 
             {/* GUIDE VIEW */}
             {currentView === 'guide' && <UserGuide />}
-            {currentView === 'dev-guide' && <DeveloperGuide />}
+
+            {/* STAKING & YIELD VIEW */}
+            {currentView === 'staking' && <ArcYield />}
           </main>
         </div>
       </div>

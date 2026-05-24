@@ -38,9 +38,6 @@ export default function ArcGlobalDashboard() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [myProfile, setMyProfile] = useState<{ name: string; avatar: string } | null>(null);
 
-  // Locked values
-  const [totalLockedUSD, setTotalLockedUSD] = useState<number>(0);
-
   const fetchProfile = async () => {
     if (!userAddress) return;
     try {
@@ -68,40 +65,9 @@ export default function ArcGlobalDashboard() {
     }
   };
 
-  const fetchTotalLocked = async () => {
-    try {
-      let locksData: any[] = [];
-      const { data, error } = await supabase
-        .from('liquidity_locks')
-        .select('*');
-      
-      if (!error && data) {
-        locksData = data;
-      } else {
-        const local = localStorage.getItem('arclauncher_locks');
-        locksData = local ? JSON.parse(local) : [];
-      }
-
-      const activeLocks = locksData.filter((l: any) => !l.is_withdrawn);
-      const totalAmount = activeLocks.reduce((acc: number, l: any) => {
-        let worth = Number(l.amount);
-        if (l.usdc_worth != null) {
-           worth = Number(l.usdc_worth);
-        } else if (l.asset_type === 'TOKEN') {
-           worth = Number(l.amount) * 0.01;
-        }
-        return acc + worth;
-      }, 0);
-      setTotalLockedUSD(totalAmount);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   useEffect(() => {
     if (isConnected && userAddress) {
       fetchProfile();
-      fetchTotalLocked();
 
       // Listen for profile changes
       const channel = supabase.channel(`dashboard_global_profile_${userAddress.toLowerCase()}`)
@@ -274,20 +240,27 @@ export default function ArcGlobalDashboard() {
           </nav>
         </div>
 
-        {/* Bottom Lock Info Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-3xl p-5 space-y-3.5 shadow-sm">
+        {/* Bottom Staking & Yield Card */}
+        <button
+          type="button"
+          onClick={() => setCurrentTab('staking')}
+          className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 rounded-3xl p-5 space-y-3.5 shadow-sm cursor-pointer text-left transition-all"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Locked Liquidity</span>
+            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Staking & Yield</span>
             <span className="bg-blue-100 text-blue-700 border border-blue-200/50 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-              Secure
+              Live
             </span>
           </div>
           <div>
-            <h4 className="text-2xl font-black text-slate-900 tracking-tight">
-              ${totalLockedUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <h4 className="text-lg font-black text-slate-900 tracking-tight">
+              Open the live vaults
             </h4>
+            <p className="text-[10px] text-slate-500 font-semibold mt-2 leading-relaxed">
+              Review APY, balances, and wallet-signed staking actions for USDC, EURC, and cirBTC.
+            </p>
           </div>
-        </div>
+        </button>
       </aside>
 
       {/* VIEWPORT CONTROLLER */}
