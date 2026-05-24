@@ -84,6 +84,9 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
     }
   }, [fromAsset, toAsset, fromAmount]);
 
+  const isCirbtcPair = fromAsset === 'cirBTC' || toAsset === 'cirBTC';
+  const rateLabel = isCirbtcPair ? 'Vault Estimate' : 'App Kit Rate';
+
   const handleSwapToggle = () => {
     setFromAsset(toAsset);
     setToAsset(fromAsset);
@@ -168,11 +171,19 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
         }
       }
 
-      setSwapResult({ type: 'success', message: `Successfully swapped ${fromAmount} ${fromAsset} for ${toAsset} via App Kit!` });
+      const routeLabel = isCirbtcPair ? 'Arc Global Vault' : 'App Kit';
+      setSwapResult({ type: 'success', message: `Successfully swapped ${fromAmount} ${fromAsset} for ${toAsset} via ${routeLabel}!` });
       setFromAmount('');
       setToAmount('');
     } catch (err: any) {
-      setSwapResult({ type: 'error', message: err.shortMessage || err.message || 'Transaction rejected.' });
+      const rawMessage = String(err?.shortMessage || err?.message || err?.reason || 'Transaction rejected.');
+      const isUnsupportedPair = /unsupported pair/i.test(rawMessage);
+      setSwapResult({
+        type: 'error',
+        message: isUnsupportedPair
+          ? 'cirBTC trading pairs are coming soon to Arc Testnet pools. Please swap USDC ↔ EURC while testnet routing is finalized.'
+          : rawMessage,
+      });
     } finally {
       setIsSwapping(false);
     }
@@ -346,9 +357,15 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
 
           {/* RATE DETAILS */}
           <div className="flex justify-between items-center bg-blue-50/40 border border-blue-100 p-3 rounded-xl text-[10px] font-extrabold text-slate-600">
-            <span className="flex items-center gap-1"><TrendingUp size={12} className="text-blue-500" /> App Kit Rate</span>
+            <span className="flex items-center gap-1"><TrendingUp size={12} className="text-blue-500" /> {rateLabel}</span>
             <span className="font-mono text-blue-600">1 {fromAsset} ≈ {fxRate.toLocaleString(undefined, {maximumFractionDigits: 8})} {toAsset}</span>
           </div>
+
+          {isCirbtcPair && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800 font-semibold">
+              cirBTC swaps route through the Arc Global Vault. If this pair is unavailable on current testnet liquidity pools, please use USDC ↔ EURC for now.
+            </div>
+          )}
 
           {/* SWAP ACTION BUTTON */}
           <button
