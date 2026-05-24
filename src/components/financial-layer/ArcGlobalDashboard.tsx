@@ -15,7 +15,7 @@ import SocialPay from './SocialPay';
 import AirdropTracker from './AirdropTracker';
 import CircleHub from './CircleHub';
 import ArcBridge from './ArcBridge';
-import ArcStaking from './ArcStaking';
+import ArcYield from './ArcYield';
 
 // Dynamic Load for PriceChart to avoid SSR issues
 import dynamic from 'next/dynamic';
@@ -391,7 +391,7 @@ export default function ArcGlobalDashboard() {
             {currentTab === 'circle-hub' && <CircleHub />}
 
             {/* STAKING TAB */}
-            {currentTab === 'staking' && <ArcStaking />}
+            {currentTab === 'staking' && <ArcYield />}
 
             {/* TRADING VIEW (ACTIVATED BY LEADERBOARD OR URL TOKEN) */}
             {currentTab === 'trade' && selectedToken && (

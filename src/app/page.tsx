@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
 import { parseUnits, formatUnits, erc20Abi } from 'viem';
 import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp, Briefcase } from 'lucide-react';
-import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi, USDC_ADDRESS, EURC_ADDRESS } from '@/lib/arcDefiAbi';
+import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi, USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS } from '@/lib/arcDefiAbi';
 import dynamic from 'next/dynamic';
 
 const PriceChart = dynamic(() => import('@/components/PriceChart').then(mod => mod.PriceChart), {
@@ -71,6 +71,7 @@ export default function Home() {
   const [lockedEURC, setLockedEURC] = useState<number>(0);
   const [usdcWalletBalance, setUsdcWalletBalance] = useState<number>(0);
   const [eurcWalletBalance, setEurcWalletBalance] = useState<number>(0);
+  const [cirbtcWalletBalance, setCirbtcWalletBalance] = useState<number>(0);
   const [isFetchingWalletBalances, setIsFetchingWalletBalances] = useState<boolean>(false);
   const [tokensList, setTokensList] = useState<any[]>([]);
   const [tokenBalance, setTokenBalance] = useState<number>(1000.00);
@@ -129,11 +130,13 @@ export default function Home() {
     if (!userAddress || !publicClient) {
       setUsdcWalletBalance(0);
       setEurcWalletBalance(0);
+      setCirbtcWalletBalance(0);
       return;
     }
     setIsFetchingWalletBalances(true);
     let usdcVal = 0;
     let eurcVal = 0;
+    let cirbtcVal = 0;
 
     // Fetch ERC20 USDC
     try {
@@ -161,13 +164,27 @@ export default function Home() {
       console.error('EURC ERC20 fetch error:', err);
     }
 
+    // Fetch ERC20 cirBTC with 8-decimal handling
+    try {
+      const cirbtcRaw = await publicClient.readContract({
+        address: CIRBTC_ADDRESS as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [userAddress],
+      });
+      cirbtcVal += Number(formatUnits(cirbtcRaw as bigint, 8));
+    } catch (err) {
+      console.error('cirBTC ERC20 fetch error:', err);
+    }
+
     setUsdcWalletBalance(usdcVal);
     setEurcWalletBalance(eurcVal);
-    
+    setCirbtcWalletBalance(cirbtcVal);
+
     // Also sync the active tokenBalance if it's USDC or EURC
     if (lockAssetType === 'USDC') setTokenBalance(usdcVal);
     if (lockAssetType === 'EURC') setTokenBalance(eurcVal);
-    
+
     setIsFetchingWalletBalances(false);
   };
 
@@ -348,6 +365,7 @@ export default function Home() {
     } else {
       setUsdcWalletBalance(0);
       setEurcWalletBalance(0);
+      setCirbtcWalletBalance(0);
     }
   }, [isConnected, userAddress, publicClient, lockAssetType]);
   const handleCreateLock = async () => {
@@ -966,7 +984,7 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Your Wallet</span>
               <span className="text-[9px] bg-slate-100 text-slate-600 font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Stablecoins
+                Arc Chain Assets
               </span>
             </div>
             <div className="space-y-2.5">
@@ -987,6 +1005,16 @@ export default function Home() {
                 </div>
                 <span className="text-xs font-extrabold text-slate-900">
                   {eurcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="w-full h-[1px] bg-slate-100" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs">🟡</span>
+                  <span className="text-[11px] font-bold text-slate-700">cirBTC Balance</span>
+                </div>
+                <span className="text-xs font-extrabold text-slate-900">
+                  {cirbtcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 8, maximumFractionDigits: 8 })}
                 </span>
               </div>
             </div>
