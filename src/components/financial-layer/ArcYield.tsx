@@ -86,10 +86,10 @@ export default function ArcYield() {
   const [selectedAsset, setSelectedAsset] = useState<AssetKey>('USDC');
   const [amountInput, setAmountInput] = useState('');
   const [currentBlock, setCurrentBlock] = useState<number>(0);
-  const [status, setStatus] = useState<StatusState>(null);
-  const [isPending, setIsPending] = useState(false);
-
-  const selectedMeta = ASSET_META[selectedAsset];
+  const [approvalTxHash, setApprovalTxHash] = useState<string | null>(null);
+  const { data: approvalReceipt } = useWaitForTransactionReceipt({
+    hash: approvalTxHash ? (approvalTxHash as `0x${string}`) : undefined,
+  });
 
   const loadPositions = () => {
     if (!userAddress) {
@@ -267,64 +267,77 @@ export default function ArcYield() {
       const amountInWei = parseUnits(amount.toFixed(selectedMeta.decimals), selectedMeta.decimals);
       const lockDurationSeconds = 30 * 24 * 60 * 60; // 30 days
 
-      // 1. Approve token spend
-      writeContract(
-        {
-          address: tokenAddress,
-          abi: erc20Abi,
-          functionName: 'approve',
-          args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amountInWei],
-        },
-        {
-          onSuccess: () => {
-            // 2. Call lock() on ArcDefiRouter
-            writeContract({
-              address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
-              abi: arcDefiRouterAbi,
-              functionName: 'lock',
-              args: [tokenAddress, amountInWei, BigInt(lockDurationSeconds)],
-            },
-            {
-              onSuccess: () => {
-                setAmountInput('');
-                setStatus({
-                  type: 'success',
-                  message: `Locked ${amount.toFixed(4)} ${selectedMeta.symbol} for 30 days on Arc Chain.`,
-                });
-                // Refresh balances and positions
-                setTimeout(() => {
-                  fetchBalances();
-                  fetchCurrentBlock();
-                  loadPositions();
-                }, 2000);
-                window.dispatchEvent(new Event('arc-balance-update'));
-              },
-              onError: (error: any) => {
-                console.error('Lock error', error);
-                setStatus({
-                  type: 'error',
-                  message: error?.shortMessage || 'Failed to lock tokens on-chain.',
-                });
-              },
-            });
+      setStatus({
+        type: 'info',
+        message: `Approving ${selectedMeta.symbol} spend on Arc Chain Testnet...`,
+      });
+
+      // 1. Approve token spend and wait for confirmation
+      const approveTx = await new Promise<string>((resolve, reject) => {
+        writeContract(
+          {
+            address: tokenAddress,
+            abi: erc20Abi,
+            functionName: 'approve',
+            args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amountInWei],
           },
-          onError: (error: any) => {
-            console.error('Approve error', error);
-            setStatus({
-              type: 'error',
-              message: error?.shortMessage || 'Failed to approve token spending.',
-            });
+          {
+            onSuccess: (hash) => resolve(hash),
+            onError: (error: any) => reject(error),
+          }
+        );
+      });
+
+      // Wait for approval to be confirmed
+      await publicClient?.waitForTransactionReceipt({ hash: approveTx as `0x${string}` });
+
+      setStatus({
+        type: 'info',
+        message: `Locking ${amount.toFixed(4)} ${selectedMeta.symbol} on Arc Chain Testnet for 30 days...`,
+      });
+
+      // 2. Call lock() after approval is confirmed
+      const lockTx = await new Promise<string>((resolve, reject) => {
+        writeContract(
+          {
+            address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
+            abi: arcDefiRouterAbi,
+            functionName: 'lock',
+            args: [tokenAddress, amountInWei, BigInt(lockDurationSeconds)],
           },
-        }
-      );
+          {
+            onSuccess: (hash) => resolve(hash),
+            onError: (error: any) => reject(error),
+          }
+        );
+      });
+
+      // Wait for lock to be confirmed
+      await publicClient?.waitForTransactionReceipt({ hash: lockTx as `0x${string}` });
+
+      setAmountInput('');
+      setStatus({
+        type: 'success',
+        message: `✓ Locked ${amount.toFixed(4)} ${selectedMeta.symbol} for 30 days on Arc Chain Testnet.`,
+      });
+
+      // Refresh balances and positions
+      setTimeout(() => {
+        fetchBalances();
+        fetchCurrentBlock();
+        loadPositions();
+      }, 2000);
+
+      window.dispatchEvent(new Event('arc-balance-update'));
     } catch (error: any) {
-      console.error('Stake setup error', error);
+      console.error('Stake error', error);
       setStatus({
         type: 'error',
-        message: error?.shortMessage || error?.message || 'Unable to initiate stake.',
+        message: error?.shortMessage || error?.message || 'Unable to complete stake. Check wallet and Arc Chain Testnet connectivity.',
       });
     } finally {
       setIsPending(false);
+      setApprovalTxHash(null);
     }
   };
 
