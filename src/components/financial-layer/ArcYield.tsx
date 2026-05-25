@@ -228,6 +228,7 @@ export default function ArcYield() {
     }, 0);
   }, [positions, currentBlock]);
 
+  const selectedMeta = ASSET_META[selectedAsset];
   const selectedPosition = positions[selectedAsset];
   const selectedAccruedYield = selectedPosition
     ? calculateReward(selectedPosition, currentBlock || 0, selectedMeta.apy)
