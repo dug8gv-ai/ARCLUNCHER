@@ -86,6 +86,8 @@ export default function ArcYield() {
   const [selectedAsset, setSelectedAsset] = useState<AssetKey>('USDC');
   const [amountInput, setAmountInput] = useState('');
   const [currentBlock, setCurrentBlock] = useState<number>(0);
+  const [isPending, setIsPending] = useState(false);
+  const [status, setStatus] = useState<StatusState>(null);
   const [approvalTxHash, setApprovalTxHash] = useState<string | null>(null);
   const { data: approvalReceipt } = useWaitForTransactionReceipt({
     hash: approvalTxHash ? (approvalTxHash as `0x${string}`) : undefined,
