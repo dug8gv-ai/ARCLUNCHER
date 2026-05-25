@@ -132,7 +132,7 @@ export default function ArcYield() {
         args: [userAddress, tokenAddress],
       });
 
-      if (!lockData || lockData[0] === 0n) {
+      if (!lockData || lockData[0] === BigInt(0)) {
         return null;
       }
 
