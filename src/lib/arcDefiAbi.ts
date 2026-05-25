@@ -40,5 +40,18 @@ export const arcDefiRouterAbi = [
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "name": "userLocks",
+    "outputs": [
+      { "internalType": "uint256", "name": "amount", "type": "uint256" },
+      { "internalType": "uint256", "name": "unlockTime", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
-];
+] as const;

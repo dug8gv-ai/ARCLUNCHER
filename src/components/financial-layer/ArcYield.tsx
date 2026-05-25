@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, ArrowDown, ArrowUp, BadgeDollarSign, CheckCircle2, Coins, Loader2, ShieldCheck, Sparkles, Wallet } from 'lucide-react';
-import { useAccount, usePublicClient, useSignMessage } from 'wagmi';
-import { erc20Abi, formatUnits } from 'viem';
-import { CIRBTC_ADDRESS, EURC_ADDRESS, USDC_ADDRESS } from '@/lib/arcDefiAbi';
+import { useAccount, usePublicClient, useSignMessage, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { erc20Abi, formatUnits, parseUnits, isAddress } from 'viem';
+import { CIRBTC_ADDRESS, EURC_ADDRESS, USDC_ADDRESS, ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi } from '@/lib/arcDefiAbi';
 
 type AssetKey = 'USDC' | 'EURC' | 'cirBTC';
 
@@ -75,6 +75,7 @@ export default function ArcYield() {
   const { isConnected, address: userAddress } = useAccount();
   const publicClient = usePublicClient();
   const { signMessageAsync } = useSignMessage();
+  const { writeContract, isPending: isWritePending } = useWriteContract();
 
   const [balances, setBalances] = useState<Record<AssetKey, number>>({
     USDC: 0,
@@ -114,6 +115,35 @@ export default function ArcYield() {
       });
     } catch {
       setPositions(EMPTY_POSITIONS);
+    }
+  };
+
+  // Fetch on-chain lock state from ArcDefiRouter for a specific token
+  const fetchOnChainLock = async (tokenAddress: `0x${string}`) => {
+    if (!publicClient || !userAddress || !isAddress(tokenAddress)) {
+      return null;
+    }
+
+    try {
+      const lockData = await publicClient.readContract({
+        address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
+        abi: arcDefiRouterAbi,
+        functionName: 'userLocks',
+        args: [userAddress, tokenAddress],
+      });
+
+      if (!lockData || lockData[0] === 0n) {
+        return null;
+      }
+
+      // lockData is [amount, unlockTime]
+      return {
+        amount: Number(formatUnits(lockData[0] as bigint, selectedMeta.decimals)),
+        unlockTime: Number(lockData[1] as bigint),
+      };
+    } catch (error) {
+      console.error('Error fetching on-chain lock', error);
+      return null;
     }
   };
 
@@ -233,32 +263,65 @@ export default function ArcYield() {
 
     try {
       setIsPending(true);
-      const blockNumber = currentBlock || Number(await publicClient?.getBlockNumber());
-      const nextPositions = { ...positions };
-      const existing = nextPositions[selectedAsset];
-      const signedMessage = `Arc Yield Stake ${amount.toFixed(8)} ${selectedMeta.symbol} on Arc Chain Testnet`;
+      const tokenAddress = ASSET_ADDRESSES[selectedAsset];
+      const amountInWei = parseUnits(amount.toFixed(selectedMeta.decimals), selectedMeta.decimals);
+      const lockDurationSeconds = 30 * 24 * 60 * 60; // 30 days
 
-      await signAction(signedMessage);
-
-      nextPositions[selectedAsset] = {
-        amount: existing ? existing.amount + amount : amount,
-        lastRewardBlock: blockNumber,
-        claimedYield: existing?.claimedYield ?? 0,
-        startedAt: existing?.startedAt ?? Date.now(),
-      };
-
-      savePositions(nextPositions);
-      setAmountInput('');
-      setStatus({
-        type: 'success',
-        message: `Signed and queued a ${amount.toFixed(4)} ${selectedMeta.symbol} stake on Arc Chain Testnet.`,
-      });
-      window.dispatchEvent(new Event('arc-balance-update'));
+      // 1. Approve token spend
+      writeContract(
+        {
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amountInWei],
+        },
+        {
+          onSuccess: () => {
+            // 2. Call lock() on ArcDefiRouter
+            writeContract({
+              address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
+              abi: arcDefiRouterAbi,
+              functionName: 'lock',
+              args: [tokenAddress, amountInWei, BigInt(lockDurationSeconds)],
+            },
+            {
+              onSuccess: () => {
+                setAmountInput('');
+                setStatus({
+                  type: 'success',
+                  message: `Locked ${amount.toFixed(4)} ${selectedMeta.symbol} for 30 days on Arc Chain.`,
+                });
+                // Refresh balances and positions
+                setTimeout(() => {
+                  fetchBalances();
+                  fetchCurrentBlock();
+                  loadPositions();
+                }, 2000);
+                window.dispatchEvent(new Event('arc-balance-update'));
+              },
+              onError: (error: any) => {
+                console.error('Lock error', error);
+                setStatus({
+                  type: 'error',
+                  message: error?.shortMessage || 'Failed to lock tokens on-chain.',
+                });
+              },
+            });
+          },
+          onError: (error: any) => {
+            console.error('Approve error', error);
+            setStatus({
+              type: 'error',
+              message: error?.shortMessage || 'Failed to approve token spending.',
+            });
+          },
+        }
+      );
     } catch (error: any) {
-      console.error('Stake error', error);
+      console.error('Stake setup error', error);
       setStatus({
         type: 'error',
-        message: error?.shortMessage || error?.message || 'Unable to sign this stake action.',
+        message: error?.shortMessage || error?.message || 'Unable to initiate stake.',
       });
     } finally {
       setIsPending(false);
@@ -287,34 +350,43 @@ export default function ArcYield() {
 
     try {
       setIsPending(true);
-      const blockNumber = currentBlock || Number(await publicClient?.getBlockNumber());
-      const nextPositions = { ...positions };
-      const signedMessage = `Arc Yield Unstake ${amount.toFixed(8)} ${selectedMeta.symbol} on Arc Chain Testnet`;
+      const tokenAddress = ASSET_ADDRESSES[selectedAsset];
 
-      await signAction(signedMessage);
-
-      if (amount >= selectedPosition.amount) {
-        nextPositions[selectedAsset] = null;
-      } else {
-        nextPositions[selectedAsset] = {
-          ...selectedPosition,
-          amount: selectedPosition.amount - amount,
-          lastRewardBlock: blockNumber,
-        };
-      }
-
-      savePositions(nextPositions);
-      setAmountInput('');
-      setStatus({
-        type: 'success',
-        message: `Signed and queued a ${amount.toFixed(4)} ${selectedMeta.symbol} unstake on Arc Chain Testnet.`,
+      // Call unlock() on ArcDefiRouter (unlocks all tokens for this asset)
+      writeContract({
+        address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
+        abi: arcDefiRouterAbi,
+        functionName: 'unlock',
+        args: [tokenAddress],
+      },
+      {
+        onSuccess: () => {
+          setAmountInput('');
+          setStatus({
+            type: 'success',
+            message: `Unlocked and withdrawn ${formatAmount(selectedPosition.amount, selectedMeta.decimals)} ${selectedMeta.symbol} from Arc Chain.`,
+          });
+          // Refresh balances and positions
+          setTimeout(() => {
+            fetchBalances();
+            fetchCurrentBlock();
+            loadPositions();
+          }, 2000);
+          window.dispatchEvent(new Event('arc-balance-update'));
+        },
+        onError: (error: any) => {
+          console.error('Unlock error', error);
+          setStatus({
+            type: 'error',
+            message: error?.shortMessage || error?.message || 'Failed to unlock tokens. Lock period may not be complete.',
+          });
+        },
       });
-      window.dispatchEvent(new Event('arc-balance-update'));
     } catch (error: any) {
-      console.error('Unstake error', error);
+      console.error('Unstake setup error', error);
       setStatus({
         type: 'error',
-        message: error?.shortMessage || error?.message || 'Unable to sign this unstake action.',
+        message: error?.shortMessage || error?.message || 'Unable to initiate unstake.',
       });
     } finally {
       setIsPending(false);
@@ -335,29 +407,24 @@ export default function ArcYield() {
 
     try {
       setIsPending(true);
-      const blockNumber = currentBlock || Number(await publicClient?.getBlockNumber());
       const nextPositions = { ...positions };
-      const signedMessage = `Arc Yield Claim ${claimable.toFixed(8)} ${selectedMeta.symbol} on Arc Chain Testnet`;
-
-      await signAction(signedMessage);
 
       nextPositions[selectedAsset] = {
         ...selectedPosition,
         claimedYield: selectedAccruedYield,
-        lastRewardBlock: blockNumber,
+        lastRewardBlock: currentBlock || 0,
       };
 
       savePositions(nextPositions);
       setStatus({
         type: 'success',
-        message: `Signed and recorded ${formatYield(claimable)} ${selectedMeta.symbol} of accrued yield on Arc Chain Testnet.`,
+        message: `Recorded ${formatYield(claimable)} ${selectedMeta.symbol} of accrued yield. Note: Real yield payouts require contract updates.`,
       });
-      window.dispatchEvent(new Event('arc-balance-update'));
     } catch (error: any) {
       console.error('Claim error', error);
       setStatus({
         type: 'error',
-        message: error?.shortMessage || error?.message || 'Unable to sign this claim action.',
+        message: error?.shortMessage || error?.message || 'Unable to process claim.',
       });
     } finally {
       setIsPending(false);
