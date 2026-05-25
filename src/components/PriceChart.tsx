@@ -75,14 +75,8 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
     });
     candleSeriesRef.current = candleSeries;
 
-    candleSeries.createPriceLine({
-      price: 0.01,
-      color: '#94a3b8',
-      lineWidth: 2,
-      lineStyle: 2, // Dashed
-      axisLabelVisible: true,
-      title: 'Floor Price',
-    });
+    // Floor price line is set dynamically inside fetchChartData
+    // once we know the real initial price from the token's supply
 
     const volumeSeries = chart.addHistogramSeries({
       color: '#3b82f6',
@@ -116,33 +110,66 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         return;
       }
 
-      // 1. THE SYMMETRIC AMM BONDING CURVE LOGIC (MATCHING TRADING PANEL)
-      const VIRTUAL_USDC = 100;
-      const VIRTUAL_TOKENS = VIRTUAL_USDC / 0.01; // 10,000 tokens virtual supply
+      // ── AMM BONDING CURVE (REAL POOL MATH) ──────────────────────────────
+      // Initial pool: 3 USDC deposited at launch against the full token supply.
+      // This gives the correct opening price:  price = 3 / supply
+      // e.g. 1 B supply → $0.000000003 opening price, FDV = $3 at launch.
+      //
+      // Damping factor (0.1) prevents small trades from spiking the chart.
+      // Price impact % = (tradeUSDC / poolUSDC) * 100 * DAMPING_FACTOR
+      // ─────────────────────────────────────────────────────────────────────
+      const INITIAL_LIQUIDITY_USDC = 3; // Fixed 3 USDC deposited at launch
+      const DAMPING_FACTOR = 0.1;       // Scales price impact for organic candles
+
+      const totalSupply = Number(
+        selectedToken.initial_supply || selectedToken.supply || 1_000_000_000
+      );
+
+      // Opening price = deposited USDC / total token supply
+      const INITIAL_PRICE = INITIAL_LIQUIDITY_USDC / totalSupply;
+
+      // Draw the floor price line on the chart using the real initial price
+      candleSeries.createPriceLine({
+        price: INITIAL_PRICE,
+        color: '#94a3b8',
+        lineWidth: 2,
+        lineStyle: 2, // Dashed
+        axisLabelVisible: true,
+        title: 'Floor Price',
+      });
+
+      // Virtual pool seeded so that spot price = INITIAL_PRICE
+      // x * y = k  →  USDC_reserve / TOKEN_reserve = INITIAL_PRICE
+      // We fix USDC_reserve = INITIAL_LIQUIDITY_USDC, so TOKEN_reserve = supply
+      const VIRTUAL_USDC   = INITIAL_LIQUIDITY_USDC;
+      const VIRTUAL_TOKENS = totalSupply; // TOKEN_reserve = supply at launch
       const k = VIRTUAL_USDC * VIRTUAL_TOKENS;
 
-      let currentUSDC = VIRTUAL_USDC;
+      let currentUSDC   = VIRTUAL_USDC;
       let currentTokens = VIRTUAL_TOKENS;
 
       const swapsWithSpotPrice = swaps?.map(s => {
-        const usdcAmount = Number(s.usdc_amount);
-        const tokenAmount = Number(s.token_amount);
+        const usdcAmount   = Number(s.usdc_amount);
+        const tokenAmount  = Number(s.token_amount);
 
         if (s.is_buy) {
-          currentUSDC += usdcAmount;
-          currentTokens -= tokenAmount;
+          // Apply damping: only a fraction of the trade moves the pool
+          currentUSDC   += usdcAmount   * DAMPING_FACTOR;
+          currentTokens -= tokenAmount  * DAMPING_FACTOR;
         } else {
-          currentUSDC -= usdcAmount;
-          currentTokens += tokenAmount;
+          currentUSDC   -= usdcAmount   * DAMPING_FACTOR;
+          currentTokens += tokenAmount  * DAMPING_FACTOR;
         }
 
-        // Strict Floor Protection (Price never below 0.01)
-        if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
+        // Floor protection: pool reserves never go below initial values
+        if (currentUSDC   < VIRTUAL_USDC)   currentUSDC   = VIRTUAL_USDC;
         if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
+        // Prevent division by zero / negative tokens
+        if (currentTokens <= 0) currentTokens = 1;
 
-        const spotPrice = currentTokens > 0 ? (currentUSDC / currentTokens) : 0.01;
+        const spotPrice = currentUSDC / currentTokens;
 
-        return { ...s, spotPrice: Math.max(0.01, spotPrice) };
+        return { ...s, spotPrice: Math.max(INITIAL_PRICE, spotPrice) };
       }) || [];
 
       let candles: any[] = [];
@@ -175,7 +202,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
           const prices = bucketSwaps.map(s => s.spotPrice);
           if (prices.length === 0) continue;
 
-          const openPrice = candles.length === 0 ? 0.01 : candles[candles.length - 1].close;
+          const openPrice = candles.length === 0 ? INITIAL_PRICE : candles[candles.length - 1].close;
           const closePrice = prices[prices.length - 1];
           
           let high = Math.max(openPrice, closePrice, ...prices);
@@ -203,9 +230,11 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       if (candles.length === 0) {
         const launchTime = Math.floor(new Date(selectedToken.timestamp || selectedToken.created_at || Date.now()).getTime() / 60000) * 60;
         const fallbackTime = (isNaN(launchTime) ? Math.floor(Date.now() / 60000) * 60 : launchTime) as any;
+        // Fallback candle uses the real initial price derived from pool math
+        const fp = INITIAL_PRICE;
         candles = [{
           time: fallbackTime,
-          open: 0.01, high: 0.011, low: 0.01, close: 0.011 
+          open: fp, high: fp * 1.01, low: fp, close: fp * 1.005
         }];
         volumes = [{
           time: fallbackTime,
@@ -219,11 +248,12 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       chart.timeScale().fitContent();
 
       // Update Metrics
-      const supply = Number(selectedToken.initial_supply || selectedToken.supply || 1000000000);
-      const latestPrice = candles.length > 0 ? candles[candles.length - 1].close : 0.01;
+      // supply is already computed above as totalSupply; reuse it here
+      const latestPrice = candles.length > 0 ? candles[candles.length - 1].close : INITIAL_PRICE;
       const totalVolume = swaps?.reduce((acc, s) => acc + Number(s.usdc_amount), 0) || 0;
       const uniqueHolders = new Set(swaps?.map(s => s.user_address)).size || 1;
-      const mcap = latestPrice * supply;
+      // FDV = current price × total supply  (correct AMM formula)
+      const mcap = latestPrice * totalSupply;
 
       setMetrics({
         mcap: mcap < 1 ? mcap.toFixed(2) : mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),

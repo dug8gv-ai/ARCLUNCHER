@@ -222,10 +222,25 @@ export default function Home() {
         } else if (lockAssetType === 'EURC') {
           setEstimatedWorthUSD(amt * 1.09); // Pegged roughly at 1 EURC = 1.09 USD
         } else if (lockAssetType === 'PLATFORM_TOKEN' && lockAddress) {
-          // Calculate using active bonding curve
-          const VIRTUAL_USDC = 100;
-          const VIRTUAL_TOKENS = VIRTUAL_USDC / 0.01;
-          let currentUSDC = VIRTUAL_USDC;
+          // Calculate using real AMM bonding curve
+          // Fetch token supply from token_launches to get the correct initial price
+          const INITIAL_LIQUIDITY_USDC = 3;
+          const DAMPING_FACTOR = 0.1;
+
+          const { data: tokenData } = await supabase
+            .from('token_launches')
+            .select('initial_supply, supply')
+            .eq('token_address', lockAddress.toLowerCase())
+            .single();
+
+          const totalSupply = Number(
+            tokenData?.initial_supply || tokenData?.supply || 1_000_000_000
+          );
+
+          const VIRTUAL_USDC   = INITIAL_LIQUIDITY_USDC;
+          const VIRTUAL_TOKENS = totalSupply;
+
+          let currentUSDC   = VIRTUAL_USDC;
           let currentTokens = VIRTUAL_TOKENS;
 
           const { data: swaps } = await supabase
@@ -235,16 +250,17 @@ export default function Home() {
 
           swaps?.forEach(s => {
             if (s.is_buy) {
-              currentUSDC += Number(s.usdc_amount);
-              currentTokens -= Number(s.token_amount);
+              currentUSDC   += Number(s.usdc_amount)  * DAMPING_FACTOR;
+              currentTokens -= Number(s.token_amount) * DAMPING_FACTOR;
             } else {
-              currentUSDC -= Number(s.usdc_amount);
-              currentTokens += Number(s.token_amount);
+              currentUSDC   -= Number(s.usdc_amount)  * DAMPING_FACTOR;
+              currentTokens += Number(s.token_amount) * DAMPING_FACTOR;
             }
           });
 
-          if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
+          if (currentUSDC   < VIRTUAL_USDC)   currentUSDC   = VIRTUAL_USDC;
           if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
+          if (currentTokens <= 0) currentTokens = 1;
 
           const price = currentUSDC / currentTokens;
           setEstimatedWorthUSD(amt * price);

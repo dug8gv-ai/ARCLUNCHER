@@ -123,52 +123,60 @@ export function TradingPanel({ token }: TradingPanelProps) {
         .select('usdc_amount, token_amount, is_buy')
         .eq('token_address', token.token_address.toLowerCase());
 
-      // VIRTUAL LIQUIDITY POOL FOR DYNAMIC "MEME COIN" CHART PATTERNS
-      // We use a small virtual pool so that regular trades (e.g., $10 - $100)
-      // create massive, visible green and red candles just like real meme coins.
-      const VIRTUAL_USDC = 100; // Small liquidity for high volatility
-      const VIRTUAL_TOKENS = VIRTUAL_USDC / 0.01; // 10,000 tokens virtual supply
+      // ── AMM BONDING CURVE (REAL POOL MATH) ──────────────────────────────
+      // Initial pool: 3 USDC deposited at launch against the full token supply.
+      // Opening price = 3 / supply  (e.g. 1B supply → $0.000000003)
+      // Damping factor (0.1) keeps small trades from over-moving the price.
+      // ─────────────────────────────────────────────────────────────────────
+      const INITIAL_LIQUIDITY_USDC = 3;
+      const DAMPING_FACTOR = 0.1;
+
+      const totalSupply = Number(
+        token.initial_supply || token.supply || 1_000_000_000
+      );
+
+      const VIRTUAL_USDC   = INITIAL_LIQUIDITY_USDC;
+      const VIRTUAL_TOKENS = totalSupply;
       const k = VIRTUAL_USDC * VIRTUAL_TOKENS;
 
-      let currentUSDC = VIRTUAL_USDC;
+      let currentUSDC   = VIRTUAL_USDC;
       let currentTokens = VIRTUAL_TOKENS;
 
       swaps?.forEach(s => {
         if (s.is_buy) {
-          currentUSDC += Number(s.usdc_amount);
-          currentTokens -= Number(s.token_amount);
+          currentUSDC   += Number(s.usdc_amount)   * DAMPING_FACTOR;
+          currentTokens -= Number(s.token_amount)  * DAMPING_FACTOR;
         } else {
-          currentUSDC -= Number(s.usdc_amount);
-          currentTokens += Number(s.token_amount);
+          currentUSDC   -= Number(s.usdc_amount)   * DAMPING_FACTOR;
+          currentTokens += Number(s.token_amount)  * DAMPING_FACTOR;
         }
       });
 
-      // Strict Floor Protection (Price never below 0.01)
-      if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
+      // Floor protection: reserves never go below initial values
+      if (currentUSDC   < VIRTUAL_USDC)   currentUSDC   = VIRTUAL_USDC;
       if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
+      if (currentTokens <= 0) currentTokens = 1;
 
       const dX = Number(val);
       if (isBuy) {
         // Buy: Input is USDC (dX), Output is Tokens
-        const newUSDC = currentUSDC + dX;
+        const newUSDC   = currentUSDC + dX;
         const newTokens = k / newUSDC;
         const tokensOut = currentTokens - newTokens;
-        setEstimatedTokens((tokensOut).toFixed(2));
+        setEstimatedTokens(Math.max(0, tokensOut).toFixed(2));
       } else {
         // Sell: Input is Tokens (dX), Output is USDC
         const newTokens = currentTokens + dX;
-        const newUSDC = k / newTokens;
+        const newUSDC   = k / newTokens;
         let usdcOut = currentUSDC - newUSDC;
-        
-        // Floor protection
+
+        // Floor protection: pool USDC never drops below initial liquidity
         if (currentUSDC - usdcOut < VIRTUAL_USDC) {
           usdcOut = currentUSDC - VIRTUAL_USDC;
         }
-        
+
         setEstimatedTokens(Math.max(0, usdcOut).toFixed(6));
       }
-
-
 
     } catch (e) {
       console.error("Error calculating estimate:", e);
