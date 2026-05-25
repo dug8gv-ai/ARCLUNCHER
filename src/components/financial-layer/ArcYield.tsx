@@ -119,7 +119,7 @@ export default function ArcYield() {
   };
 
   // Fetch on-chain lock state from ArcDefiRouter for a specific token
-  const fetchOnChainLock = async (tokenAddress: `0x${string}`) => {
+  const fetchOnChainLock = async (asset: AssetKey, tokenAddress: `0x${string}`) => {
     if (!publicClient || !userAddress || !isAddress(tokenAddress)) {
       return null;
     }
@@ -138,7 +138,7 @@ export default function ArcYield() {
 
       // lockData is [amount, unlockTime]
       return {
-        amount: Number(formatUnits(lockData[0] as bigint, selectedMeta.decimals)),
+        amount: Number(formatUnits(lockData[0] as bigint, ASSET_META[asset].decimals)),
         unlockTime: Number(lockData[1] as bigint),
       };
     } catch (error) {
