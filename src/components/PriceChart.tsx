@@ -9,6 +9,20 @@ interface PriceChartProps {
   selectedToken?: any;
 }
 
+// Smart price formatter — shows enough decimals for any magnitude
+// e.g.  0.000000003  →  "$0.000000003"
+//       0.00045      →  "$0.00045"
+//       1.2345       →  "$1.2345"
+function formatSmartPrice(price: number): string {
+  if (price === 0) return '0';
+  const abs = Math.abs(price);
+  if (abs >= 1)        return price.toFixed(4);
+  if (abs >= 0.01)     return price.toFixed(6);
+  if (abs >= 0.000001) return price.toFixed(9);
+  const decimals = Math.max(2, Math.ceil(-Math.log10(abs)) + 4);
+  return price.toFixed(Math.min(decimals, 20));
+}
+
 export function PriceChart({ selectedToken }: PriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -31,28 +45,20 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#64748b', // Slate-500 for high-end readability
+        textColor: '#64748b',
       },
       grid: {
-        vertLines: { color: '#e2e8f0' }, // Slate-200 grid lines
-        horzLines: { color: '#e2e8f0' }, // Slate-200 grid lines
+        vertLines: { color: '#e2e8f0' },
+        horzLines: { color: '#e2e8f0' },
       },
       crosshair: {
         mode: CrosshairMode.Normal,
-        vertLine: {
-          width: 1,
-          color: '#3b82f6', // Calm blue crosshair
-          style: 3,
-        },
-        horzLine: {
-          width: 1,
-          color: '#3b82f6', // Calm blue crosshair
-          style: 3,
-        },
+        vertLine: { width: 1, color: '#3b82f6', style: 3 },
+        horzLine: { width: 1, color: '#3b82f6', style: 3 },
       },
       rightPriceScale: {
         borderColor: '#e2e8f0',
-        scaleMargins: { top: 0.1, bottom: 0.3 }, // leave space for volume
+        scaleMargins: { top: 0.1, bottom: 0.3 },
       },
       timeScale: {
         borderColor: '#e2e8f0',
@@ -62,16 +68,48 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       handleScale: {
         axisPressedMouseMove: { time: true, price: true },
       },
+      // ── SMART PRICE FORMATTER ──────────────────────────────────────────
+      // Automatically shows enough decimal places for any price magnitude.
+      // e.g.  0.000000003  →  "0.000000003"
+      //       0.00045      →  "0.00045"
+      //       1.23         →  "1.23"
+      // ──────────────────────────────────────────────────────────────────
+      localization: {
+        priceFormatter: (price: number) => {
+          if (price === 0) return '0';
+          const abs = Math.abs(price);
+          if (abs >= 1)        return price.toFixed(4);
+          if (abs >= 0.01)     return price.toFixed(6);
+          if (abs >= 0.000001) return price.toFixed(9);
+          // Very small prices — use enough decimals to show non-zero digits
+          const decimals = Math.max(2, Math.ceil(-Math.log10(abs)) + 4);
+          return price.toFixed(Math.min(decimals, 20));
+        },
+      },
     });
 
     chartRef.current = chart;
 
     const candleSeries = chart.addCandlestickSeries({
-      upColor: '#10b981', // Premium green
-      downColor: '#ef4444', // Premium red
+      upColor: '#10b981',
+      downColor: '#ef4444',
       borderVisible: false,
       wickUpColor: '#10b981',
       wickDownColor: '#ef4444',
+      // Use enough decimal precision for very small token prices
+      priceFormat: {
+        type: 'custom',
+        formatter: (price: number) => {
+          if (price === 0) return '0';
+          const abs = Math.abs(price);
+          if (abs >= 1)        return price.toFixed(4);
+          if (abs >= 0.01)     return price.toFixed(6);
+          if (abs >= 0.000001) return price.toFixed(9);
+          const decimals = Math.max(2, Math.ceil(-Math.log10(abs)) + 4);
+          return price.toFixed(Math.min(decimals, 20));
+        },
+        minMove: 0.000000000001,
+      },
     });
     candleSeriesRef.current = candleSeries;
 
@@ -253,11 +291,11 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       const mcap = latestPrice * totalSupply;
 
       setMetrics({
-        mcap: mcap < 1 ? mcap.toFixed(2) : mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
-        fdv: mcap < 1 ? mcap.toFixed(2) : mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        mcap: mcap < 1 ? mcap.toFixed(4) : mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        fdv: mcap < 1 ? mcap.toFixed(4) : mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
         holders: uniqueHolders.toString(),
         volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-        price: latestPrice < 0.0001 ? latestPrice.toExponential(4) : latestPrice.toFixed(6)
+        price: formatSmartPrice(latestPrice),
       });
     }
 
