@@ -222,9 +222,9 @@ export default function Home() {
         } else if (lockAssetType === 'EURC') {
           setEstimatedWorthUSD(amt * 1.09); // Pegged roughly at 1 EURC = 1.09 USD
         } else if (lockAssetType === 'PLATFORM_TOKEN' && lockAddress) {
-          // Calculate using real AMM bonding curve
+          // Calculate using real AMM bonding curve — Virtual $20K FDV seed
           // Fetch token supply from token_launches to get the correct initial price
-          const INITIAL_LIQUIDITY_USDC = 3;
+          const INITIAL_LIQUIDITY_USDC = 20_000; // Virtual seed → $20K opening FDV
 
           const { data: tokenData } = await supabase
             .from('token_launches')

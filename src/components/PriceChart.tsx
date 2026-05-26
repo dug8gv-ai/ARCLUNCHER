@@ -148,16 +148,20 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         return;
       }
 
-      // ── AMM BONDING CURVE (REAL POOL MATH) ──────────────────────────────
-      // Initial pool: 3 USDC + totalSupply tokens  →  price = 3 / supply
-      // e.g. 1 B supply → $0.000000003 opening price, FDV = $3 at launch.
+      // ── AMM BONDING CURVE — VIRTUAL $20K FDV LAUNCH ────────────────────
+      // Every token launches with a VIRTUAL seed of 20,000 USDC so that
+      // the opening FDV is always $20,000 regardless of actual on-chain
+      // liquidity (which is only 3 USDC).
+      //
+      //   Opening price  = VIRTUAL_SEED / totalSupply
+      //   Opening FDV    = VIRTUAL_SEED  = $20,000
       //
       // Chart uses a damping factor (0.1) ONLY for visual smoothing so that
       // small trades don't create huge spikes on the chart. The actual trade
       // math in TradingPanel uses the real pool state without damping.
       // ─────────────────────────────────────────────────────────────────────
-      const INITIAL_LIQUIDITY_USDC = 3; // Fixed 3 USDC deposited at launch
-      const DAMPING_FACTOR = 0.1;       // Chart-only: scales candle height
+      const INITIAL_LIQUIDITY_USDC = 20_000; // Virtual seed → $20K opening FDV
+      const DAMPING_FACTOR = 0.1;            // Chart-only: scales candle height
 
       const totalSupply = Number(
         selectedToken.initial_supply || selectedToken.supply || 1_000_000_000
