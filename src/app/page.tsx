@@ -225,7 +225,6 @@ export default function Home() {
           // Calculate using real AMM bonding curve
           // Fetch token supply from token_launches to get the correct initial price
           const INITIAL_LIQUIDITY_USDC = 3;
-          const DAMPING_FACTOR = 0.1;
 
           const { data: tokenData } = await supabase
             .from('token_launches')
@@ -237,11 +236,8 @@ export default function Home() {
             tokenData?.initial_supply || tokenData?.supply || 1_000_000_000
           );
 
-          const VIRTUAL_USDC   = INITIAL_LIQUIDITY_USDC;
-          const VIRTUAL_TOKENS = totalSupply;
-
-          let currentUSDC   = VIRTUAL_USDC;
-          let currentTokens = VIRTUAL_TOKENS;
+          let currentUSDC   = INITIAL_LIQUIDITY_USDC;
+          let currentTokens = totalSupply;
 
           const { data: swaps } = await supabase
             .from('token_swaps')
@@ -250,16 +246,16 @@ export default function Home() {
 
           swaps?.forEach(s => {
             if (s.is_buy) {
-              currentUSDC   += Number(s.usdc_amount)  * DAMPING_FACTOR;
-              currentTokens -= Number(s.token_amount) * DAMPING_FACTOR;
+              currentUSDC   += Number(s.usdc_amount);
+              currentTokens -= Number(s.token_amount);
             } else {
-              currentUSDC   -= Number(s.usdc_amount)  * DAMPING_FACTOR;
-              currentTokens += Number(s.token_amount) * DAMPING_FACTOR;
+              currentUSDC   -= Number(s.usdc_amount);
+              currentTokens += Number(s.token_amount);
             }
           });
 
-          if (currentUSDC   < VIRTUAL_USDC)   currentUSDC   = VIRTUAL_USDC;
-          if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
+          if (currentUSDC   < INITIAL_LIQUIDITY_USDC) currentUSDC   = INITIAL_LIQUIDITY_USDC;
+          if (currentTokens > totalSupply)             currentTokens = totalSupply;
           if (currentTokens <= 0) currentTokens = 1;
 
           const price = currentUSDC / currentTokens;

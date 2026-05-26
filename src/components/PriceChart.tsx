@@ -111,15 +111,15 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       }
 
       // ── AMM BONDING CURVE (REAL POOL MATH) ──────────────────────────────
-      // Initial pool: 3 USDC deposited at launch against the full token supply.
-      // This gives the correct opening price:  price = 3 / supply
+      // Initial pool: 3 USDC + totalSupply tokens  →  price = 3 / supply
       // e.g. 1 B supply → $0.000000003 opening price, FDV = $3 at launch.
       //
-      // Damping factor (0.1) prevents small trades from spiking the chart.
-      // Price impact % = (tradeUSDC / poolUSDC) * 100 * DAMPING_FACTOR
+      // Chart uses a damping factor (0.1) ONLY for visual smoothing so that
+      // small trades don't create huge spikes on the chart. The actual trade
+      // math in TradingPanel uses the real pool state without damping.
       // ─────────────────────────────────────────────────────────────────────
       const INITIAL_LIQUIDITY_USDC = 3; // Fixed 3 USDC deposited at launch
-      const DAMPING_FACTOR = 0.1;       // Scales price impact for organic candles
+      const DAMPING_FACTOR = 0.1;       // Chart-only: scales candle height
 
       const totalSupply = Number(
         selectedToken.initial_supply || selectedToken.supply || 1_000_000_000
@@ -139,10 +139,8 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       });
 
       // Virtual pool seeded so that spot price = INITIAL_PRICE
-      // x * y = k  →  USDC_reserve / TOKEN_reserve = INITIAL_PRICE
-      // We fix USDC_reserve = INITIAL_LIQUIDITY_USDC, so TOKEN_reserve = supply
       const VIRTUAL_USDC   = INITIAL_LIQUIDITY_USDC;
-      const VIRTUAL_TOKENS = totalSupply; // TOKEN_reserve = supply at launch
+      const VIRTUAL_TOKENS = totalSupply;
       const k = VIRTUAL_USDC * VIRTUAL_TOKENS;
 
       let currentUSDC   = VIRTUAL_USDC;
@@ -153,7 +151,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         const tokenAmount  = Number(s.token_amount);
 
         if (s.is_buy) {
-          // Apply damping: only a fraction of the trade moves the pool
+          // Apply damping for chart only — keeps candles proportional
           currentUSDC   += usdcAmount   * DAMPING_FACTOR;
           currentTokens -= tokenAmount  * DAMPING_FACTOR;
         } else {
@@ -164,7 +162,6 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         // Floor protection: pool reserves never go below initial values
         if (currentUSDC   < VIRTUAL_USDC)   currentUSDC   = VIRTUAL_USDC;
         if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
-        // Prevent division by zero / negative tokens
         if (currentTokens <= 0) currentTokens = 1;
 
         const spotPrice = currentUSDC / currentTokens;
