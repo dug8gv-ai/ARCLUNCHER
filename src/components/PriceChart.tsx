@@ -23,6 +23,17 @@ function formatSmartPrice(price: number): string {
   return price.toFixed(Math.min(decimals, 20));
 }
 
+// USD formatter for FDV / MCAP — handles any size cleanly
+// e.g.  20000  →  "20,000"   |  1500000  →  "1.50M"  |  0.5  →  "0.5000"
+function formatUSD(value: number): string {
+  if (value === 0) return '0';
+  if (value >= 1_000_000_000) return (value / 1_000_000_000).toFixed(2) + 'B';
+  if (value >= 1_000_000)     return (value / 1_000_000).toFixed(2) + 'M';
+  if (value >= 1_000)         return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  if (value >= 1)             return value.toFixed(2);
+  return value.toFixed(4);
+}
+
 export function PriceChart({ selectedToken }: PriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -286,17 +297,40 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       volumeSeries.setData(volumes);
       chart.timeScale().fitContent();
 
-      // Update Metrics
-      // supply is already computed above as totalSupply; reuse it here
-      const latestPrice = candles.length > 0 ? candles[candles.length - 1].close : INITIAL_PRICE;
+      // ── METRICS: use REAL pool price (no damping) ────────────────────────
+      // Replay all swaps again WITHOUT damping to get the true current price
+      // for FDV / MCAP calculation. Chart candles use damping for visuals only.
+      // ─────────────────────────────────────────────────────────────────────
+      let realUSDC   = VIRTUAL_USDC;   // starts at 20,000
+      let realTokens = VIRTUAL_TOKENS; // starts at totalSupply
+
+      swaps?.forEach(s => {
+        if (s.is_buy) {
+          realUSDC   += Number(s.usdc_amount);
+          realTokens -= Number(s.token_amount);
+        } else {
+          realUSDC   -= Number(s.usdc_amount);
+          realTokens += Number(s.token_amount);
+        }
+      });
+
+      // Floor protection
+      if (realUSDC   < VIRTUAL_USDC)   realUSDC   = VIRTUAL_USDC;
+      if (realTokens > VIRTUAL_TOKENS) realTokens = VIRTUAL_TOKENS;
+      if (realTokens <= 0)             realTokens = 1;
+
+      const realCurrentPrice = realUSDC / realTokens;
+      const latestPrice = Math.max(INITIAL_PRICE, realCurrentPrice);
+
       const totalVolume = swaps?.reduce((acc, s) => acc + Number(s.usdc_amount), 0) || 0;
       const uniqueHolders = new Set(swaps?.map(s => s.user_address)).size || 1;
-      // FDV = current price × total supply  (correct AMM formula)
+
+      // FDV = current real price × total supply
       const mcap = latestPrice * totalSupply;
 
       setMetrics({
-        mcap: mcap < 1 ? mcap.toFixed(4) : mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
-        fdv: mcap < 1 ? mcap.toFixed(4) : mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        mcap: formatUSD(mcap),
+        fdv:  formatUSD(mcap),
         holders: uniqueHolders.toString(),
         volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
         price: formatSmartPrice(latestPrice),
