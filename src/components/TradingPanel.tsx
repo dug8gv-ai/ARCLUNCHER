@@ -162,19 +162,17 @@ export function TradingPanel({ token }: TradingPanelProps) {
       const dX = Number(val);
       if (isBuy) {
         // Buy: spend dX USDC → receive tokens
-        // newUSDC = currentUSDC + dX
-        // newTokens = k / newUSDC
-        // tokensOut = currentTokens - newTokens
         const newUSDC   = currentUSDC + dX;
         const newTokens = k / newUSDC;
         const tokensOut = currentTokens - newTokens;
         setEstimatedTokens(Math.max(0, tokensOut).toFixed(2));
       } else {
         // Sell: spend dX tokens → receive USDC
-        // newTokens = currentTokens + dX
-        // newUSDC = k / newTokens
-        // usdcOut = currentUSDC - newUSDC
-        const newTokens = currentTokens + dX;
+        // Cap dX to actual wallet balance to prevent over-sell estimates
+        const walletTokens = Number(tokenBalance.replace(/,/g, ''));
+        const actualSell = Math.min(dX, walletTokens);
+
+        const newTokens = currentTokens + actualSell;
         const newUSDC   = k / newTokens;
         let usdcOut = currentUSDC - newUSDC;
 
@@ -202,28 +200,27 @@ export function TradingPanel({ token }: TradingPanelProps) {
       return;
     }
     if (!amount || Number(amount) <= 0) return;
-    
+
+    // On sell: cap the amount to actual wallet token balance
+    if (!isBuy) {
+      const walletTokens = Number(tokenBalance.replace(/,/g, ''));
+      if (Number(amount) > walletTokens) {
+        await triggerPremiumAlert("INSUFFICIENT BALANCE", [
+          { label: "You entered", value: `${Number(amount).toLocaleString()} ${token.ticker}` },
+          { label: "Your wallet balance", value: `${walletTokens.toLocaleString()} ${token.ticker}` },
+          { label: "Fix", value: "Use MAX SELL to sell your exact balance." }
+        ], "error");
+        return;
+      }
+    }
+
     const tokenAmountForDB = Number(estimatedTokens.replace(/,/g, ''));
     if (tokenAmountForDB <= 0) {
       await triggerPremiumAlert("ESTIMATION ERROR", [
-        { label: "Message", value: "Estimated tokens is 0. Wait for calculation." }
+        { label: "Message", value: "Estimated output is 0. Wait for calculation." }
       ], "error");
       return;
     }
-
-    // CONFIG DEBUG - Premium Modal
-    await triggerPremiumAlert("SYSTEM CONFIG", [
-      { label: "Launcher", value: ARC_LAUNCHER_ADDRESS },
-      { label: "USDC", value: USDC_ADDRESS },
-      { label: "Network", value: "Arc Testnet" }
-    ], "config");
-
-    // DEBUG ALERT - Premium Modal
-    await triggerPremiumAlert("TRADE INFO", [
-      { label: "Token Address", value: token.token_address },
-      { label: "USDC input", value: amount },
-      { label: "Estimated Tokens", value: tokenAmountForDB.toLocaleString() }
-    ], "info");
 
     try {
       setStatus('approving');
@@ -276,13 +273,16 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
       await publicClient?.waitForTransactionReceipt({ hash: swapHash });
 
-      // Sync with Supabase (Lowercase)
+      // Sync with Supabase
+      // BUY:  usdc_amount = USDC spent,  token_amount = tokens received (estimate)
+      // SELL: usdc_amount = USDC received (estimate), token_amount = tokens sold (actual input)
       const cleanEstimate = Number(estimatedTokens.replace(/,/g, ''));
+      const actualTokensSold = Number(amount); // exact tokens user entered & approved
       const swapData = {
         user_address: userAddress?.toLowerCase(),
         token_address: token.token_address.toLowerCase(),
-        usdc_amount: isBuy ? Number(amount) : cleanEstimate,
-        token_amount: isBuy ? cleanEstimate : Number(amount),
+        usdc_amount:   isBuy ? Number(amount) : cleanEstimate,
+        token_amount:  isBuy ? cleanEstimate  : actualTokensSold,
         is_buy: isBuy,
         type: isBuy ? 'buy' : 'sell'
       };
