@@ -18,6 +18,10 @@ interface Gig {
   created_at: string;
   clientProfile?: any;
   freelancerProfile?: any;
+  // Proposal gig fields
+  is_proposal?: boolean;
+  proposal_image1?: string | null;
+  proposal_image2?: string | null;
 }
 
 interface GigMessage {
@@ -71,7 +75,12 @@ export function FreelanceHub() {
   const [newBudget, setNewBudget] = useState('');
   const [newImage, setNewImage] = useState<string | null>(null);
   const [postLoading, setPostLoading] = useState(false);
+  const [isProposal, setIsProposal] = useState(false);
+  const [proposalImage1, setProposalImage1] = useState<string | null>(null);
+  const [proposalImage2, setProposalImage2] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const proposalRef1 = useRef<HTMLInputElement>(null);
+  const proposalRef2 = useRef<HTMLInputElement>(null);
 
   // Payment Confirmation Modal
   const [payConfirmGig, setPayConfirmGig] = useState<Gig | null>(null);
@@ -98,8 +107,9 @@ export function FreelanceHub() {
 
       if (error) {
         console.error('Supabase error fetching gigs:', error);
-        setFetchError('Table not found. Please create the freelance_gigs table in Supabase (check walkthrough for SQL).');
+        // Table missing — show empty board, not an error wall
         setGigs([]);
+        setFetchError(null);
         return;
       }
 
@@ -237,12 +247,15 @@ export function FreelanceHub() {
         description: newDesc,
         budget: Number(newBudget),
         image_url: newImage || null,
-        status: 'OPEN'
+        status: 'OPEN',
+        is_proposal: isProposal,
+        proposal_image1: isProposal ? (proposalImage1 || null) : null,
+        proposal_image2: isProposal ? (proposalImage2 || null) : null,
       });
 
       if (error) {
         console.error('Insert error:', error);
-        alert('Failed to post gig. Make sure the freelance_gigs table exists in Supabase.');
+        alert('Failed to post gig: ' + error.message);
         return;
       }
 
@@ -251,6 +264,9 @@ export function FreelanceHub() {
       setNewDesc('');
       setNewBudget('');
       setNewImage(null);
+      setIsProposal(false);
+      setProposalImage1(null);
+      setProposalImage2(null);
       fetchGigs();
     } catch (err) {
       console.error(err);
@@ -373,27 +389,24 @@ export function FreelanceHub() {
             <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-black text-slate-800">Post a New Gig</h3>
-                <button onClick={() => { setIsPosting(false); setNewImage(null); }} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100">
+                <button onClick={() => { setIsPosting(false); setNewImage(null); setIsProposal(false); setProposalImage1(null); setProposalImage2(null); }} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100">
                   <X size={18} />
                 </button>
               </div>
               <form onSubmit={handlePostGig} className="space-y-4">
 
-                {/* Image Upload */}
+                {/* Cover Image */}
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Gig Image (Optional)</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Gig Cover Image (Optional)</label>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
                   {newImage ? (
                     <div className="relative rounded-xl overflow-hidden border border-slate-200">
-                      <img src={newImage} alt="Preview" className="w-full h-40 object-cover" />
-                      <button type="button" onClick={() => { setNewImage(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="absolute top-2 right-2 bg-white/90 hover:bg-white text-slate-600 p-1.5 rounded-full shadow-sm">
-                        <X size={14} />
-                      </button>
+                      <img src={newImage} alt="Preview" className="w-full h-36 object-cover" />
+                      <button type="button" onClick={() => { setNewImage(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="absolute top-2 right-2 bg-white/90 hover:bg-white text-slate-600 p-1.5 rounded-full shadow-sm"><X size={14} /></button>
                     </div>
                   ) : (
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full h-32 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-indigo-300 hover:text-indigo-500 transition-all hover:bg-indigo-50/30">
-                      <ImagePlus size={24} />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">Click to upload image</span>
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full h-28 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-indigo-300 hover:text-indigo-500 transition-all hover:bg-indigo-50/30">
+                      <ImagePlus size={22} /><span className="text-[10px] font-bold uppercase tracking-wider">Click to upload</span>
                     </button>
                   )}
                 </div>
@@ -404,7 +417,7 @@ export function FreelanceHub() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Description</label>
-                  <textarea required value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Details of the job..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500 min-h-[100px]" />
+                  <textarea required value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Details of the job..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500 min-h-[90px]" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Budget (USDC)</label>
@@ -413,8 +426,54 @@ export function FreelanceHub() {
                     <input required type="number" min="1" value={newBudget} onChange={e => setNewBudget(e.target.value)} placeholder="50" className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-black outline-none focus:border-indigo-500" />
                   </div>
                 </div>
+
+                {/* Proposal Samples Toggle */}
+                <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50">
+                  <div className="flex items-center justify-between cursor-pointer" onClick={() => { setIsProposal(!isProposal); setProposalImage1(null); setProposalImage2(null); }}>
+                    <div>
+                      <p className="text-xs font-black text-slate-700">Add Proposal Samples</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Attach up to 2 portfolio images to showcase your work</p>
+                    </div>
+                    <div className={`relative w-11 h-6 rounded-full transition-all flex-shrink-0 ${isProposal ? 'bg-indigo-600' : 'bg-slate-300'}`}>
+                      <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${isProposal ? 'left-5' : 'left-0.5'}`} />
+                    </div>
+                  </div>
+                  {isProposal && (
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1.5">Sample 1</p>
+                        <input ref={proposalRef1} type="file" accept="image/*" onChange={async e => { const f = e.target.files?.[0]; if (f) setProposalImage1(await compressImage(f)); }} className="hidden" />
+                        {proposalImage1 ? (
+                          <div className="relative rounded-xl overflow-hidden border border-slate-200 h-28">
+                            <img src={proposalImage1} alt="P1" className="w-full h-full object-cover" />
+                            <button type="button" onClick={() => { setProposalImage1(null); if (proposalRef1.current) proposalRef1.current.value = ''; }} className="absolute top-1 right-1 bg-white/90 text-slate-600 p-1 rounded-full shadow-sm"><X size={12} /></button>
+                          </div>
+                        ) : (
+                          <button type="button" onClick={() => proposalRef1.current?.click()} className="w-full h-28 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center gap-1.5 text-indigo-400 hover:bg-indigo-50/50 transition-all">
+                            <ImagePlus size={20} /><span className="text-[9px] font-bold uppercase">Upload</span>
+                          </button>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1.5">Sample 2</p>
+                        <input ref={proposalRef2} type="file" accept="image/*" onChange={async e => { const f = e.target.files?.[0]; if (f) setProposalImage2(await compressImage(f)); }} className="hidden" />
+                        {proposalImage2 ? (
+                          <div className="relative rounded-xl overflow-hidden border border-slate-200 h-28">
+                            <img src={proposalImage2} alt="P2" className="w-full h-full object-cover" />
+                            <button type="button" onClick={() => { setProposalImage2(null); if (proposalRef2.current) proposalRef2.current.value = ''; }} className="absolute top-1 right-1 bg-white/90 text-slate-600 p-1 rounded-full shadow-sm"><X size={12} /></button>
+                          </div>
+                        ) : (
+                          <button type="button" onClick={() => proposalRef2.current?.click()} className="w-full h-28 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center gap-1.5 text-indigo-400 hover:bg-indigo-50/50 transition-all">
+                            <ImagePlus size={20} /><span className="text-[9px] font-bold uppercase">Upload</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => { setIsPosting(false); setNewImage(null); }} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-black">Cancel</button>
+                  <button type="button" onClick={() => { setIsPosting(false); setNewImage(null); setIsProposal(false); setProposalImage1(null); setProposalImage2(null); }} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-black">Cancel</button>
                   <button type="submit" disabled={postLoading} className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 disabled:opacity-50">
                     {postLoading ? <Loader2 className="animate-spin size-4" /> : 'Post Gig'}
                   </button>
@@ -570,17 +629,38 @@ export function FreelanceHub() {
                     </div>
                   )}
 
+                  {/* Proposal Sample Images */}
+                  {gig.is_proposal && (gig.proposal_image1 || gig.proposal_image2) && (
+                    <div className={`grid gap-0.5 ${gig.proposal_image1 && gig.proposal_image2 ? 'grid-cols-2' : 'grid-cols-1'} ${gig.image_url ? '' : 'mt-0'}`}>
+                      {gig.proposal_image1 && (
+                        <div className="h-28 bg-slate-100 overflow-hidden">
+                          <img src={gig.proposal_image1} alt="Sample 1" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        </div>
+                      )}
+                      {gig.proposal_image2 && (
+                        <div className="h-28 bg-slate-100 overflow-hidden">
+                          <img src={gig.proposal_image2} alt="Sample 2" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="p-5 flex flex-col flex-1">
                     {/* Status Badge */}
                     <div className="flex justify-between items-start mb-3">
                       <h3 className="text-lg font-black text-slate-800 leading-tight pr-4 flex-1">{gig.title}</h3>
-                      <span className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg flex-shrink-0 ${
-                        gig.status === 'OPEN' ? 'bg-emerald-100 text-emerald-600' :
-                        gig.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-600' :
-                        'bg-slate-100 text-slate-600'
-                      }`}>
-                        {gig.status.replace('_', ' ')}
-                      </span>
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        {gig.is_proposal && (
+                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg bg-indigo-100 text-indigo-600">Proposal</span>
+                        )}
+                        <span className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg ${
+                          gig.status === 'OPEN' ? 'bg-emerald-100 text-emerald-600' :
+                          gig.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-600' :
+                          'bg-slate-100 text-slate-600'
+                        }`}>
+                          {gig.status.replace('_', ' ')}
+                        </span>
+                      </div>
                     </div>
 
                     <p className="text-xs text-slate-500 mb-4 flex-1 leading-relaxed">{gig.description}</p>
