@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BookOpen, Coins, Send, Rocket, TrendingUp, CheckCircle, PlusCircle, AlertCircle, Info } from 'lucide-react';
+import { BookOpen, Coins, Send, Rocket, TrendingUp, CheckCircle, PlusCircle, AlertCircle, Info, Briefcase, MessageCircle, DollarSign, Trash2, ImagePlus, UserCheck, Bell } from 'lucide-react';
 import { USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS } from '@/lib/arcDefiAbi';
 
 export default function UserGuide() {
@@ -162,6 +162,131 @@ export default function UserGuide() {
           </ul>
         </div>
 
+      </div>
+
+      {/* ==================== ARC FREELANCE HUB GUIDE ==================== */}
+      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10"><Briefcase size={120} /></div>
+        <div className="relative z-10">
+          <p className="text-indigo-200 text-[10px] font-black uppercase tracking-widest mb-2">Complete Guide</p>
+          <h2 className="text-2xl font-black mb-2 flex items-center gap-3"><Briefcase className="text-indigo-200" /> Arc Freelance Hub</h2>
+          <p className="text-indigo-100 max-w-2xl text-sm leading-relaxed font-medium">
+            A decentralized freelance marketplace built on Arc Chain. Post jobs, apply for gigs, chat with clients, and get paid in USDC — all on-chain.
+          </p>
+        </div>
+      </div>
+
+      {/* Step by step flow */}
+      <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+        <h3 className="text-lg font-black text-slate-800 mb-5 flex items-center gap-2"><Briefcase size={18} className="text-indigo-600" /> How It Works — Full Flow</h3>
+        <div className="space-y-4">
+          {[
+            { step: '01', title: 'Connect Your Wallet', desc: 'Connect your Web3 wallet (MetaMask or any WalletConnect wallet) to Arc Testnet. You need USDC to post gigs or pay freelancers.', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+            { step: '02', title: 'Post a Gig (Client)', desc: 'Click "+ Post Gig". Fill in Job Title, Description, and Budget in USDC. Optionally upload a cover image. Toggle "Add Proposal Samples" to attach up to 2 portfolio images showcasing your work style.', color: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
+            { step: '03', title: 'Browse the Gigs Board', desc: 'All posted gigs appear on the "Gigs Board" tab. Anyone can see all open, in-progress, and completed gigs. Click on a client\'s name/avatar to view their profile.', color: 'bg-violet-50 border-violet-200 text-violet-700' },
+            { step: '04', title: 'Accept a Gig (Freelancer)', desc: 'See an OPEN gig you want to work on? Click "Accept Gig". Your wallet address is recorded as the freelancer and the gig status changes to IN PROGRESS.', color: 'bg-amber-50 border-amber-200 text-amber-700' },
+            { step: '05', title: 'Chat in Real-Time', desc: 'Click "Open Chat" on any gig to open the live chat. Messages are stored in Supabase and update in real-time. Click any user\'s avatar in chat to view their full profile.', color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+            { step: '06', title: 'Pay & Complete (Client)', desc: 'Once the work is done, the client clicks "Pay & Complete". A confirmation modal shows the amount, freelancer name, and wallet. Confirm → USDC is sent on-chain → gig marked COMPLETED.', color: 'bg-green-50 border-green-200 text-green-700' },
+            { step: '07', title: 'Direct USDC Payment', desc: 'You can also pay anyone directly from their profile or from the chat header "Pay" button — without completing a gig. Enter any USDC amount and confirm the on-chain transfer.', color: 'bg-rose-50 border-rose-200 text-rose-700' },
+          ].map(item => (
+            <div key={item.step} className={`flex gap-4 p-4 rounded-2xl border ${item.color}`}>
+              <div className="w-8 h-8 rounded-xl bg-white/60 flex items-center justify-center font-black text-xs flex-shrink-0">{item.step}</div>
+              <div>
+                <p className="font-black text-sm">{item.title}</p>
+                <p className="text-xs mt-1 leading-relaxed opacity-80">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Feature cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4"><ImagePlus size={22} /></div>
+          <h3 className="text-base font-black text-slate-800 mb-2">Proposal Samples</h3>
+          <p className="text-sm text-slate-500 mb-3 leading-relaxed">When posting a gig, toggle "Add Proposal Samples" to attach up to 2 portfolio images. These appear side-by-side on your gig card so clients can see your work quality before hiring.</p>
+          <ul className="text-xs text-slate-600 space-y-1.5 font-medium">
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Max 2 images per gig</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Images are compressed automatically</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Shown with a "Proposal" badge on the card</li>
+          </ul>
+        </div>
+
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4"><MessageCircle size={22} /></div>
+          <h3 className="text-base font-black text-slate-800 mb-2">Live Chat System</h3>
+          <p className="text-sm text-slate-500 mb-3 leading-relaxed">Every gig has a built-in real-time chat. Messages update instantly via Supabase Realtime. The gig owner gets a notification badge on "My Gigs" when a new message arrives.</p>
+          <ul className="text-xs text-slate-600 space-y-1.5 font-medium">
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Real-time messages (no refresh needed)</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Red badge shows unread count</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Click any avatar to view full profile</li>
+          </ul>
+        </div>
+
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-4"><DollarSign size={22} /></div>
+          <h3 className="text-base font-black text-slate-800 mb-2">Payment System</h3>
+          <p className="text-sm text-slate-500 mb-3 leading-relaxed">Two ways to pay on Arc Freelance Hub — both are real on-chain USDC transfers on Arc Testnet.</p>
+          <ul className="text-xs text-slate-600 space-y-1.5 font-medium">
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> <span><strong>Gig Payment:</strong> Client clicks "Pay & Complete" → confirmation modal → on-chain USDC sent → gig marked COMPLETED</span></li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> <span><strong>Direct Payment:</strong> Click "Pay" in chat header or from any user's profile → enter amount → send USDC directly</span></li>
+          </ul>
+        </div>
+
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-4"><Trash2 size={22} /></div>
+          <h3 className="text-base font-black text-slate-800 mb-2">Delete Gig (1 Week Rule)</h3>
+          <p className="text-sm text-slate-500 mb-3 leading-relaxed">You can delete your own OPEN gigs using the red trash icon on the gig card. To prevent spam, only 1 gig can be deleted per week per wallet.</p>
+          <ul className="text-xs text-slate-600 space-y-1.5 font-medium">
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Only OPEN gigs can be deleted</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> 1 delete per wallet per 7 days</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> All chat messages are also deleted</li>
+          </ul>
+        </div>
+
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4"><UserCheck size={22} /></div>
+          <h3 className="text-base font-black text-slate-800 mb-2">User Profiles</h3>
+          <p className="text-sm text-slate-500 mb-3 leading-relaxed">Click any user's avatar — on a gig card or inside chat — to open their profile modal showing their name, bio, and wallet address.</p>
+          <ul className="text-xs text-slate-600 space-y-1.5 font-medium">
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Profile pulls from the Arc profiles table</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> "Send USDC" button opens direct payment</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Auto-generated avatar if no profile set</li>
+          </ul>
+        </div>
+
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-all">
+          <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center mb-4"><Bell size={22} /></div>
+          <h3 className="text-base font-black text-slate-800 mb-2">Notifications</h3>
+          <p className="text-sm text-slate-500 mb-3 leading-relaxed">Gig owners get live notifications when someone messages on their gig. A red badge appears on the "My Gigs" tab showing the unread count.</p>
+          <ul className="text-xs text-slate-600 space-y-1.5 font-medium">
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Real-time via Supabase Realtime</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Badge clears when you open chat</li>
+            <li className="flex items-start gap-2"><CheckCircle size={13} className="text-green-500 mt-0.5 shrink-0" /> Only counts messages from others</li>
+          </ul>
+        </div>
+
+      </div>
+
+      {/* Gig Status Guide */}
+      <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+        <h3 className="text-lg font-black text-slate-800 mb-4">Gig Status Explained</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+            <span className="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase rounded-lg mb-2">OPEN</span>
+            <p className="text-xs text-slate-600 leading-relaxed">Gig is available. Any user (except the poster) can click "Accept Gig" to start working on it.</p>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+            <span className="inline-block px-2.5 py-1 bg-blue-100 text-blue-700 text-[10px] font-black uppercase rounded-lg mb-2">IN PROGRESS</span>
+            <p className="text-xs text-slate-600 leading-relaxed">A freelancer has accepted the gig. Client can see who is working and release payment when done.</p>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+            <span className="inline-block px-2.5 py-1 bg-slate-100 text-slate-700 text-[10px] font-black uppercase rounded-lg mb-2">COMPLETED</span>
+            <p className="text-xs text-slate-600 leading-relaxed">Payment has been sent on-chain. The gig is archived and visible for reference.</p>
+          </div>
+        </div>
       </div>
 
       {/* Add to Wallet Section */}
