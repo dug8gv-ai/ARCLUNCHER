@@ -117,9 +117,7 @@ export function PredictionDashboard() {
     { value: 'other', label: '🔮 Other', color: 'bg-slate-100 text-slate-700' },
   ];
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleImageUpload = async (file: File) => {
     
     if (!file.type.startsWith('image/')) {
       toast.error('Please upload an image file (PNG, JPG, GIF, WEBP)');
@@ -173,10 +171,7 @@ export function PredictionDashboard() {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) {
-      const input = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
-      handleImageUpload(input);
-    }
+    if (file) handleImageUpload(file);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
