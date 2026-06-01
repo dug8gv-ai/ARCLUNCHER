@@ -98,7 +98,10 @@ export function PredictionDashboard() {
   const [newExpiration, setNewExpiration] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newCategory, setNewCategory] = useState('crypto');
+  const [selectedCategory, setSelectedCategory] = useState('crypto');
   const [isUploading, setIsUploading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isBetting, setIsBetting] = useState(false);
   const [uploadPreview, setUploadPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
