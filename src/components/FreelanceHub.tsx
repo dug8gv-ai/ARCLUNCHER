@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
+import { parseUnits, erc20Abi } from 'viem';
 import { supabase } from '@/lib/supabase';
-import { Briefcase, Loader2, Plus, Clock, CheckCircle2, DollarSign, Send, MessageCircle, X, ImagePlus, AlertTriangle, Trash2, User, Bell } from 'lucide-react';
-import { appKitSend, createBrowserAdapter } from '@/lib/appKit';
+import { Briefcase, Loader2, Plus, Clock, CheckCircle2, DollarSign, Send, MessageCircle, X, ImagePlus, AlertTriangle, Trash2, Bell } from 'lucide-react';
+
+const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x3600000000000000000000000000000000000000';
 
 interface Gig {
   id: string;
@@ -54,7 +56,9 @@ const compressImage = (file: File, maxWidth = 500, quality = 0.6): Promise<strin
 };
 
 export function FreelanceHub() {
-  const { isConnected, address: userAddress, connector } = useAccount();
+  const { isConnected, address: userAddress } = useAccount();
+  const publicClient = usePublicClient();
+  const { writeContractAsync } = useWriteContract();
 
   const [activeTab, setActiveTab] = useState<'board' | 'my_gigs'>('board');
   const [gigs, setGigs] = useState<Gig[]>([]);
@@ -242,26 +246,42 @@ export function FreelanceHub() {
     if (!payConfirmGig || !userAddress || !payConfirmGig.freelancer_wallet) return;
     try {
       setPayLoading(true);
-      let provider = typeof window !== 'undefined' && (window as any).ethereum ? (window as any).ethereum : await connector?.getProvider();
-      if (!provider) throw new Error('No Web3 Provider available');
-      const adapter = createBrowserAdapter(provider);
-      await appKitSend(adapter, String(payConfirmGig.budget), 'USDC', payConfirmGig.freelancer_wallet, 'Arc_Testnet');
+      // Direct ERC20 USDC transfer — no Circle AppKit needed
+      const amountWei = parseUnits(String(payConfirmGig.budget), 6); // USDC = 6 decimals
+      const txHash = await writeContractAsync({
+        address: USDC_ADDRESS as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [payConfirmGig.freelancer_wallet as `0x${string}`, amountWei],
+      });
+      await publicClient?.waitForTransactionReceipt({ hash: txHash });
       await supabase.from('freelance_gigs').update({ status: 'COMPLETED' }).eq('id', payConfirmGig.id);
-      setPayConfirmGig(null); fetchGigs();
-    } catch (err: any) { alert('Payment failed: ' + (err.message || 'Unknown error')); } finally { setPayLoading(false); }
+      setPayConfirmGig(null);
+      fetchGigs();
+    } catch (err: any) {
+      alert('Payment failed: ' + (err.shortMessage || err.message || 'Unknown error'));
+    } finally { setPayLoading(false); }
   };
 
   const handleDirectPay = async () => {
     if (!directPayTarget || !userAddress || !directPayAmount) return;
     try {
       setDirectPayLoading(true);
-      let provider = typeof window !== 'undefined' && (window as any).ethereum ? (window as any).ethereum : await connector?.getProvider();
-      if (!provider) throw new Error('No Web3 Provider available');
-      const adapter = createBrowserAdapter(provider);
-      await appKitSend(adapter, directPayAmount, 'USDC', directPayTarget.wallet, 'Arc_Testnet');
+      // Direct ERC20 USDC transfer
+      const amountWei = parseUnits(directPayAmount, 6); // USDC = 6 decimals
+      const txHash = await writeContractAsync({
+        address: USDC_ADDRESS as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [directPayTarget.wallet as `0x${string}`, amountWei],
+      });
+      await publicClient?.waitForTransactionReceipt({ hash: txHash });
       alert(`✓ Sent ${directPayAmount} USDC to ${directPayTarget.name}`);
-      setDirectPayTarget(null); setDirectPayAmount('');
-    } catch (err: any) { alert('Payment failed: ' + (err.message || 'Unknown error')); } finally { setDirectPayLoading(false); }
+      setDirectPayTarget(null);
+      setDirectPayAmount('');
+    } catch (err: any) {
+      alert('Payment failed: ' + (err.shortMessage || err.message || 'Unknown error'));
+    } finally { setDirectPayLoading(false); }
   };
 
   const handleSendChat = async (e: React.FormEvent) => {
@@ -269,9 +289,23 @@ export function FreelanceHub() {
     if (!chatGig || !userAddress || !chatInput.trim()) return;
     try {
       setChatSending(true);
-      await supabase.from('gig_messages').insert({ gig_id: chatGig.id, sender_wallet: userAddress.toLowerCase(), message: chatInput.trim() });
+      const { error } = await supabase.from('gig_messages').insert({
+        gig_id: chatGig.id,
+        sender_wallet: userAddress.toLowerCase(),
+        message: chatInput.trim()
+      });
+      if (error) {
+        console.error('Chat insert error:', error);
+        alert('Message failed: ' + error.message + '\n\nFix: Run this SQL in Supabase:\nALTER TABLE gig_messages DISABLE ROW LEVEL SECURITY;');
+        return;
+      }
       setChatInput('');
-    } catch (err) { console.error(err); } finally { setChatSending(false); }
+      // Immediately refetch so message appears without waiting for realtime
+      await fetchChatMessages(chatGig.id);
+    } catch (err: any) {
+      console.error(err);
+      alert('Message failed: ' + (err.message || 'Unknown error'));
+    } finally { setChatSending(false); }
   };
 
   const openChat = (gig: Gig) => {
