@@ -123,15 +123,12 @@ export function TradingPanel({ token }: TradingPanelProps) {
         .select('usdc_amount, token_amount, is_buy')
         .eq('token_address', token.token_address.toLowerCase());
 
-      // ── AMM BONDING CURVE — VIRTUAL $20K FDV LAUNCH ────────────────────
-      // Every token launches with a VIRTUAL seed of 20,000 USDC so that
-      // the opening FDV is always $20,000 regardless of actual on-chain
-      // liquidity (which is only 3 USDC).
-      //   Opening price = 20,000 / totalSupply
-      //   Opening FDV   = $20,000
-      // NO damping here — trade math must be accurate (damping is chart-only).
+      // ── AMM BONDING CURVE — RESPONSIVE POOL ────────────────────────────
+      // Virtual seed of 500 USDC so trades have real price impact.
+      // Small trades ($10-100) now move the price meaningfully,
+      // giving users noticeable profit/loss on sells.
       // ─────────────────────────────────────────────────────────────────────
-      const INITIAL_LIQUIDITY_USDC = 20_000; // Virtual seed → $20K opening FDV
+      const INITIAL_LIQUIDITY_USDC = 500; // Responsive pool for real trading impact
 
       const totalSupply = Number(
         token.initial_supply || token.supply || 1_000_000_000

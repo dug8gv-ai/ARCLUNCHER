@@ -171,8 +171,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       // small trades don't create huge spikes on the chart. The actual trade
       // math in TradingPanel uses the real pool state without damping.
       // ─────────────────────────────────────────────────────────────────────
-      const INITIAL_LIQUIDITY_USDC = 20_000; // Virtual seed → $20K opening FDV
-      const DAMPING_FACTOR = 0.1;            // Chart-only: scales candle height
+      const INITIAL_LIQUIDITY_USDC = 500; // Must match TradingPanel exactly
 
       const totalSupply = Number(
         selectedToken.initial_supply || selectedToken.supply || 1_000_000_000
@@ -204,12 +203,12 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         const tokenAmount  = Number(s.token_amount);
 
         if (s.is_buy) {
-          // Apply damping for chart only — keeps candles proportional
-          currentUSDC   += usdcAmount   * DAMPING_FACTOR;
-          currentTokens -= tokenAmount  * DAMPING_FACTOR;
+          // No damping — chart matches real pool math exactly
+          currentUSDC   += usdcAmount;
+          currentTokens -= tokenAmount;
         } else {
-          currentUSDC   -= usdcAmount   * DAMPING_FACTOR;
-          currentTokens += tokenAmount  * DAMPING_FACTOR;
+          currentUSDC   -= usdcAmount;
+          currentTokens += tokenAmount;
         }
 
         // Floor protection: pool reserves never go below initial values
@@ -297,9 +296,8 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       volumeSeries.setData(volumes);
       chart.timeScale().fitContent();
 
-      // ── METRICS: use REAL pool price (no damping) ────────────────────────
-      // Replay all swaps again WITHOUT damping to get the true current price
-      // for FDV / MCAP calculation. Chart candles use damping for visuals only.
+      // ── METRICS: use same pool math as chart (no separate replay needed) ─
+      // Both chart and metrics now share the same undamped pool state.
       // ─────────────────────────────────────────────────────────────────────
       let realUSDC   = VIRTUAL_USDC;   // starts at 20,000
       let realTokens = VIRTUAL_TOKENS; // starts at totalSupply
