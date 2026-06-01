@@ -1,8 +1,14 @@
-export const PREDICTION_MARKET_ADDRESS = '0xC5993D56BBA5D39395c8FC2531b5040d43383A9b';
+export const PREDICTION_MARKET_ADDRESS = '0xE22656B357466B048Bb49Dae3511aa1Af0236B21';
 
 export const predictionMarketAbi = [
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_admin",
+        "type": "address"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
