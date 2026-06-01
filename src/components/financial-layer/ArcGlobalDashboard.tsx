@@ -148,7 +148,7 @@ export default function ArcGlobalDashboard() {
               transition={{ type: 'spring', stiffness: 300 }}
               className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
             >
-              <img src="/logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+              <img src="/arcomni-logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
             </motion.div>
             <div>
               <span className="text-sm font-black tracking-wide text-slate-900 block">ARC GLOBAL</span>
@@ -285,7 +285,7 @@ export default function ArcGlobalDashboard() {
                 transition={{ type: 'spring', stiffness: 300 }}
                 className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
               >
-                <img src="/logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+                <img src="/arcomni-logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
               </motion.div>
               <div>
                 <h1 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">

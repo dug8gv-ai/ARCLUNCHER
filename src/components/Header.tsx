@@ -256,7 +256,7 @@ export function Header() {
             transition={{ type: 'spring', stiffness: 300 }}
             className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
           >
-            <img src="/logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+            <img src="/arcomni-logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
           </motion.div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
