@@ -136,13 +136,41 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
         });
         if (publicClient) await publicClient.waitForTransactionReceipt({ hash: swapTx });
       } else {
-        const provider = (window as any).ethereum;
-        if (!provider) throw new Error("No Web3 provider found. Please install a wallet.");
-        
-        const adapter = await createBrowserAdapter(provider);
-        
-        // Execute Swap via Arc App Kit
-        await appKitSwap(adapter, String(fromAmount), fromAsset, toAsset, 'Arc_Testnet');
+        // Try Circle App Kit first (USDC↔EURC native stablecoin routing)
+        let appKitSuccess = false;
+        try {
+          const provider = (window as any).ethereum;
+          if (!provider) throw new Error("No Web3 provider found. Please install a wallet.");
+          
+          const adapter = await createBrowserAdapter(provider);
+          await appKitSwap(adapter, String(fromAmount), fromAsset, toAsset, 'Arc_Testnet');
+          appKitSuccess = true;
+        } catch (appKitErr: any) {
+          console.warn('App Kit swap failed, falling back to vault:', appKitErr?.message);
+        }
+
+        // Fallback: use on-chain vault swap (works both directions reliably)
+        if (!appKitSuccess) {
+          const amtWei = parseUnits(fromAmount, ASSET_CONFIG[fromAsset].decimals);
+          
+          // 1. Approve Vault
+          const approveTx = await writeContractAsync({
+            address: ASSET_CONFIG[fromAsset].address as `0x${string}`,
+            abi: erc20Abi,
+            functionName: 'approve',
+            args: [ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`, amtWei],
+          });
+          if (publicClient) await publicClient.waitForTransactionReceipt({ hash: approveTx });
+
+          // 2. Execute Swap via Vault
+          const swapTx = await writeContractAsync({
+            address: ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`,
+            abi: arcVaultAbi,
+            functionName: 'executeSwap',
+            args: [ASSET_CONFIG[fromAsset].address as `0x${string}`, ASSET_CONFIG[toAsset].address as `0x${string}`, amtWei],
+          });
+          if (publicClient) await publicClient.waitForTransactionReceipt({ hash: swapTx });
+        }
       }
 
       // Sync trigger
