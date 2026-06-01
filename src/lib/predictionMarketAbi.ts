@@ -377,4 +377,4 @@ export const predictionMarketAbi = [
     "stateMutability": "nonpayable",
     "type": "function"
   }
-];
+] as const;
