@@ -286,8 +286,8 @@ export function PredictionDashboard() {
                         <span className="text-red-500">{ratios.no}% No</span>
                       </div>
                       <div className="w-full h-3 rounded-full flex overflow-hidden bg-slate-100">
-                        <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: \`\${ratios.yes}%\` }}></div>
-                        <div className="h-full bg-red-500 transition-all duration-500" style={{ width: \`\${ratios.no}%\` }}></div>
+                        <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${ratios.yes}%` }}></div>
+                        <div className="h-full bg-red-500 transition-all duration-500" style={{ width: `${ratios.no}%` }}></div>
                       </div>
                     </div>
 
