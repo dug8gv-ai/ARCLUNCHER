@@ -5,6 +5,7 @@ import { useAccount, useWriteContract, usePublicClient, useReadContract } from '
 import { formatUnits, parseUnits, erc20Abi } from 'viem';
 import { PieChart, Clock, ShieldAlert, CheckCircle, Info, History, Upload, X, ImagePlus, Tag, AlignLeft, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 import { PREDICTION_MARKET_ADDRESS, predictionMarketAbi } from '@/lib/predictionMarketAbi';
 import { USDC_ADDRESS } from '@/lib/arcDefiAbi';
 
@@ -113,39 +114,55 @@ export function PredictionDashboard() {
     { value: 'other', label: '🔮 Other', color: 'bg-slate-100 text-slate-700' },
   ];
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file (PNG, JPG, GIF, WEBP)');
+      toast.error('Please upload an image file (PNG, JPG, GIF, WEBP)');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be under 5MB');
+      toast.error('Image must be under 5MB');
       return;
     }
 
-    // Show local preview immediately
-    const reader = new FileReader();
-    reader.onload = (e) => setUploadPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
-
-    setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.url) {
-        setNewImageUrl(data.url);
-      } else {
-        alert('Upload failed: ' + (data.error || 'Unknown error'));
-        setUploadPreview(null);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Upload failed. Try pasting a URL instead.');
-      setUploadPreview(null);
-    } finally {
-      setIsUploading(false);
+      // Compress image client-side to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Max width/height
+          const MAX_SIZE = 400;
+          if (width > height && width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          } else if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          const base64Url = canvas.toDataURL('image/jpeg', 0.6);
+          setUploadPreview(base64Url);
+          setNewImageUrl(base64Url);
+          toast.success('Image compressed and attached!');
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Compression error:', error);
+      toast.error('Upload failed. Try pasting a URL instead.');
     }
   };
 
@@ -153,7 +170,10 @@ export function PredictionDashboard() {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) handleImageUpload(file);
+    if (file) {
+      const input = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+      handleImageUpload(input);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -184,12 +204,12 @@ export function PredictionDashboard() {
     };
   };
 
-  const handleCreateTask = async () => {
-    if (!newTitle || !newExpiration) return alert("Please fill the market question and expiration date.");
-    if (!isConnected) return alert("Please connect your wallet first.");
+  const handleCreateMarket = async () => {
+    if (!newTitle || !newExpiration) return toast.error("Please fill the market question and expiration date.");
+    if (!isConnected) return toast.error("Please connect your wallet first.");
 
+    setIsCreating(true);
     const expTimestamp = Math.floor(new Date(newExpiration).getTime() / 1000);
-    // Combine description into the image URL field as metadata (contract stores imageUrl)
     const imageData = newImageUrl || '';
     
     try {
@@ -201,30 +221,33 @@ export function PredictionDashboard() {
       });
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash: tx });
-        alert("🎉 Market Created Successfully!");
+        toast.success("🎉 Market Created Successfully!");
         setNewTitle('');
-        setNewImageUrl('');
-        setNewExpiration('');
         setNewDescription('');
-        setNewCategory('crypto');
+        setSelectedCategory('');
+        setNewImageUrl('');
         setUploadPreview(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+        setNewExpiration('');
+        
+        setTimeout(() => fetchMarkets(), 3000);
       }
     } catch (e: any) {
       console.error(e);
-      alert(e.shortMessage || e.message);
+      toast.error(e.shortMessage || e.message);
+    } finally {
+      setIsCreating(false);
     }
   };
 
   const handlePlaceBet = async (marketId: number) => {
-    if (!isConnected) return alert("Please connect your wallet");
-    if (!betAmount || Number(betAmount) <= 0) return alert("Enter valid amount");
-    if (!selectedSide) return alert("Select Yes or No");
+    if (!isConnected) return toast.error("Please connect your wallet");
+    if (!betAmount || Number(betAmount) <= 0) return toast.error("Enter valid amount");
+    if (!selectedSide) return toast.error("Select Yes or No");
     
+    setIsBetting(true);
     try {
-       const amountWei = parseUnits(betAmount, 6); // Assuming USDC 6 decimals
+       const amountWei = parseUnits(betAmount, 6);
 
-       // 1. Approve
        const approveTx = await writeContractAsync({
          address: USDC_ADDRESS as `0x${string}`,
          abi: erc20Abi,
@@ -235,7 +258,6 @@ export function PredictionDashboard() {
          await publicClient.waitForTransactionReceipt({ hash: approveTx });
        }
 
-       // 2. Bet
        const betTx = await writeContractAsync({
          address: PREDICTION_MARKET_ADDRESS as `0x${string}`,
          abi: predictionMarketAbi,
@@ -244,19 +266,22 @@ export function PredictionDashboard() {
        });
        if (publicClient) {
          await publicClient.waitForTransactionReceipt({ hash: betTx });
-         alert("Bet Placed Successfully!");
+         toast.success("Bet Placed Successfully!");
          setBetAmount('');
          setSelectedMarketId(null);
          setSelectedSide(null);
+         setTimeout(() => fetchMarkets(), 3000);
        }
     } catch (e: any) {
       console.error(e);
-      alert("Bet Failed: " + (e.shortMessage || e.message));
+      toast.error("Bet Failed: " + (e.shortMessage || e.message));
+    } finally {
+      setIsBetting(false);
     }
   };
 
   const handleClaimReward = async (marketId: number) => {
-    if (!isConnected) return alert("Please connect your wallet");
+    if (!isConnected) return toast.error("Please connect your wallet");
     try {
       const claimTx = await writeContractAsync({
         address: PREDICTION_MARKET_ADDRESS as `0x${string}`,
@@ -266,30 +291,31 @@ export function PredictionDashboard() {
       });
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash: claimTx });
-        alert("Reward Claimed Successfully!");
+        toast.success("Reward Claimed Successfully!");
+        setTimeout(() => fetchMarkets(), 3000);
       }
     } catch (e: any) {
       console.error(e);
-      alert("Claim Failed: " + (e.shortMessage || e.message));
+      toast.error("Claim Failed: " + (e.shortMessage || e.message));
     }
   };
 
   const handleResolveMarket = async (marketId: number, winningSide: 1 | 2) => {
     if (!isAdmin) return;
     try {
-      const resolveTx = await writeContractAsync({
+      const hash = await writeContractAsync({
         address: PREDICTION_MARKET_ADDRESS as `0x${string}`,
         abi: predictionMarketAbi,
         functionName: 'resolveMarket',
         args: [BigInt(marketId), winningSide],
       });
-      if (publicClient) {
-        await publicClient.waitForTransactionReceipt({ hash: resolveTx });
-        alert("Market Resolved!");
+      if (hash) {
+        toast.success("Market Resolved!");
+        setTimeout(() => fetchMarkets(), 3000);
       }
     } catch (e: any) {
       console.error(e);
-      alert(e.shortMessage || e.message);
+      toast.error(e.shortMessage || e.message);
     }
   };
 

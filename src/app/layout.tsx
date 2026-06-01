@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "@/components/Web3Provider";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,6 +28,7 @@ export default function RootLayout({
         className={`${inter.variable} antialiased`}
       >
         <Web3Provider>
+          <Toaster position="top-center" />
           {children}
         </Web3Provider>
       </body>
