@@ -106,7 +106,6 @@ export function PredictionDashboard() {
   };
 
   const handleCreateTask = async () => {
-    if (!isAdmin) return alert("Viewing Mode Only: Admin rights required.");
     if (!newTitle || !newExpiration) return alert("Please fill title and expiration");
 
     const expTimestamp = Math.floor(new Date(newExpiration).getTime() / 1000);
@@ -399,22 +398,19 @@ export function PredictionDashboard() {
           >
           <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm sticky top-8">
             <div className="flex items-center gap-2 mb-4">
-              <ShieldAlert className={isAdmin ? "text-emerald-500" : "text-amber-500"} size={18} />
-              <h3 className="font-extrabold text-slate-800">Admin Controls</h3>
+              <ShieldAlert className="text-emerald-500" size={18} />
+              <h3 className="font-extrabold text-slate-800">Create New Market</h3>
             </div>
             
-            {!isAdmin && (
-              <div className="bg-amber-50 text-amber-800 text-[11px] font-bold p-3 rounded-xl border border-amber-200/50 flex items-start gap-2 mb-5">
-                <Info size={14} className="mt-0.5 flex-shrink-0" />
-                <p>Public Launch Pending - Viewing Mode Only. Task creation and resolution are restricted to the Protocol Admin.</p>
-              </div>
-            )}
+            <div className="bg-blue-50 text-blue-800 text-[11px] font-bold p-3 rounded-xl border border-blue-200/50 flex items-start gap-2 mb-5">
+              <Info size={14} className="mt-0.5 flex-shrink-0" />
+              <p>Public Launch Active - Anyone can create a new prediction market on the Arc Testnet. Market resolution is managed by decentralized oracles.</p>
+            </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Market Question</label>
                 <input 
-                  disabled={!isAdmin}
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   type="text" 
@@ -425,7 +421,6 @@ export function PredictionDashboard() {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Image URL</label>
                 <input 
-                  disabled={!isAdmin}
                   value={newImageUrl}
                   onChange={(e) => setNewImageUrl(e.target.value)}
                   type="text" 
@@ -436,7 +431,6 @@ export function PredictionDashboard() {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Expiration Date</label>
                 <input 
-                  disabled={!isAdmin}
                   value={newExpiration}
                   onChange={(e) => setNewExpiration(e.target.value)}
                   type="datetime-local" 
@@ -445,9 +439,8 @@ export function PredictionDashboard() {
               </div>
               
               <button 
-                disabled={!isAdmin}
                 onClick={handleCreateTask}
-                className="w-full mt-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-xs font-black py-3 rounded-xl transition-all"
+                className="w-full mt-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black py-3 rounded-xl transition-all"
               >
                 Create Market
               </button>

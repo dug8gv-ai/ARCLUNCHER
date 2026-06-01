@@ -55,7 +55,7 @@ contract PredictionMarket {
         string memory _imageUrl,
         uint256 _expirationTime,
         address _token
-    ) external onlyAdmin returns (uint256) {
+    ) external returns (uint256) {
         require(_expirationTime > block.timestamp, "Expiration must be in the future");
         require(_token != address(0), "Invalid token address");
 
