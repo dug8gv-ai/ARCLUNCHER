@@ -38,15 +38,22 @@ export function PredictionDashboard() {
 
   // Fetch Markets
   const fetchMarkets = async () => {
-    if (!publicClient || nextMarketIdRaw === undefined) return;
-    const count = Number(nextMarketIdRaw);
-    if (count === 0) {
-      setMarkets([]);
-      setIsLoadingMarkets(false);
-      return;
-    }
-
+    if (!publicClient) return;
+    setIsLoadingMarkets(true);
     try {
+      const nextId = await publicClient.readContract({
+        address: PREDICTION_MARKET_ADDRESS as `0x${string}`,
+        abi: predictionMarketAbi,
+        functionName: 'nextMarketId',
+      });
+      
+      const count = Number(nextId);
+      if (count === 0) {
+        setMarkets([]);
+        setIsLoadingMarkets(false);
+        return;
+      }
+
       const calls = [];
       for (let i = 0; i < count; i++) {
         calls.push({
@@ -250,14 +257,18 @@ export function PredictionDashboard() {
         await publicClient.waitForTransactionReceipt({ hash: tx });
         toast.success("🎉 Market Created Successfully!");
         
-        // Log to Supabase History
-        const mId = Number(nextMarketIdRaw);
-        await supabase.from('prediction_history').insert({
-          wallet: address?.toLowerCase(),
-          action_type: 'CREATE_MARKET',
-          market_id: mId,
-          details: { title: newTitle, category: selectedCategory || newCategory }
-        });
+        // Log to Supabase History safely
+        try {
+          const mId = Number(nextMarketIdRaw);
+          await supabase.from('prediction_history').insert({
+            wallet: address?.toLowerCase(),
+            action_type: 'CREATE_MARKET',
+            market_id: mId,
+            details: { title: newTitle, category: selectedCategory || newCategory }
+          });
+        } catch (dbErr) {
+          console.error("Supabase log error:", dbErr);
+        }
 
         setNewTitle('');
         setNewDescription('');
@@ -308,14 +319,18 @@ export function PredictionDashboard() {
          await publicClient.waitForTransactionReceipt({ hash: betTx });
          toast.success("Bet Placed Successfully!");
          
-         // Log to Supabase
-         const market = markets.find(m => m.id === marketId);
-         await supabase.from('prediction_history').insert({
-           wallet: address?.toLowerCase(),
-           action_type: 'PLACE_BET',
-           market_id: marketId,
-           details: { title: market?.title, amount: betAmount, side: selectedSide === 1 ? 'YES' : 'NO' }
-         });
+         // Log to Supabase safely
+         try {
+           const market = markets.find(m => m.id === marketId);
+           await supabase.from('prediction_history').insert({
+             wallet: address?.toLowerCase(),
+             action_type: 'PLACE_BET',
+             market_id: marketId,
+             details: { title: market?.title, amount: betAmount, side: selectedSide === 1 ? 'YES' : 'NO' }
+           });
+         } catch (dbErr) {
+           console.error("Supabase log error:", dbErr);
+         }
 
          setBetAmount('');
          setSelectedMarketId(null);
@@ -343,14 +358,18 @@ export function PredictionDashboard() {
         await publicClient.waitForTransactionReceipt({ hash: claimTx });
         toast.success("Reward Claimed!");
         
-        // Log to Supabase
-        const market = markets.find(m => m.id === marketId);
-        await supabase.from('prediction_history').insert({
-          wallet: address?.toLowerCase(),
-          action_type: 'CLAIM_REWARD',
-          market_id: marketId,
-          details: { title: market?.title }
-        });
+        // Log to Supabase safely
+        try {
+          const market = markets.find(m => m.id === marketId);
+          await supabase.from('prediction_history').insert({
+            wallet: address?.toLowerCase(),
+            action_type: 'CLAIM_REWARD',
+            market_id: marketId,
+            details: { title: market?.title }
+          });
+        } catch (dbErr) {
+          console.error("Supabase log error:", dbErr);
+        }
 
         setTimeout(() => fetchMarkets(), 3000);
       }
