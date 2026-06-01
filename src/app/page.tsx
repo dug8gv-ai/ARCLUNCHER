@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
 import { parseUnits, formatUnits, erc20Abi } from 'viem';
 import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp, Briefcase, PieChart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi, USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS } from '@/lib/arcDefiAbi';
 import dynamic from 'next/dynamic';
 
@@ -800,8 +801,8 @@ export default function Home() {
         <div className="space-y-8">
           {/* Brand header */}
           <div className="flex items-center gap-3 px-2">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm shadow-blue-500/10">
-              <Layers className="text-blue-600" size={20} />
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10">
+              <img src="/logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="text-sm font-black tracking-wide text-slate-900 block">ARCOMNI</span>
@@ -1079,12 +1080,12 @@ export default function Home() {
           <Header />
           <NetworkGuard />
           
-          <main className="space-y-8">
+          <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.1 }} className="space-y-8">
             {/* LAUNCHER TAB VIEW */}
             {currentView === 'launcher' && (
               <>
                 {/* Elegant Welcome Banner */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm">
                   <div>
                     <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
                       Hello, {profileName} 👋
@@ -1133,7 +1134,7 @@ export default function Home() {
                       )}
                     </div>
                   )}
-                </div>
+                </motion.div>
 
                 {/* Global Dashboard Stats */}
                 <DashboardStats /> 
@@ -1302,7 +1303,7 @@ export default function Home() {
 
             {/* STAKING & YIELD VIEW */}
             {currentView === 'staking' && <ArcYield />}
-          </main>
+          </motion.main>
         </div>
       </div>
 

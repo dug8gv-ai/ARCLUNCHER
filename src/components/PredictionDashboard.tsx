@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, usePublicClient, useReadContract } from 'wagmi';
 import { formatUnits, parseUnits, erc20Abi } from 'viem';
 import { PieChart, Clock, ShieldAlert, CheckCircle, Info, History } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { PREDICTION_MARKET_ADDRESS, predictionMarketAbi } from '@/lib/predictionMarketAbi';
 import { USDC_ADDRESS } from '@/lib/arcDefiAbi';
 
@@ -208,10 +209,20 @@ export function PredictionDashboard() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-8"
+    >
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm"
+      >
         <div>
           <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
             <PieChart className="text-blue-600" /> Prediction Markets
@@ -233,7 +244,7 @@ export function PredictionDashboard() {
             My History
           </button>
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
@@ -249,12 +260,18 @@ export function PredictionDashboard() {
                   <h3 className="text-lg font-black text-slate-800">No Markets Live</h3>
                   <p className="text-xs text-slate-500 font-semibold mt-1">Check back later for new predictions.</p>
                 </div>
-              ) : markets.filter(m => m.state !== 2).map((market: any) => {
+              ) : markets.filter(m => m.state !== 2).map((market: any, index: number) => {
                 const ratios = calculateRatio(market.totalYesPool, market.totalNoPool);
                 const isExpired = Date.now() > market.expirationTime;
 
                 return (
-                  <div key={market.id} className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm transition-all hover:shadow-md">
+                  <motion.div
+                    key={market.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.08 }}
+                    className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm transition-all hover:shadow-md"
+                  >
                     <div className="flex items-start gap-4">
                       <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 flex-shrink-0">
                         {market.imageUrl ? <img src={market.imageUrl} className="w-full h-full object-cover" alt="" /> : <PieChart className="w-8 h-8 m-4 text-slate-300" />}
@@ -358,7 +375,7 @@ export function PredictionDashboard() {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -374,7 +391,12 @@ export function PredictionDashboard() {
         </div>
 
         {/* Right Sidebar - Admin Controls */}
-        <div className="lg:col-span-1">
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="lg:col-span-1"
+          >
           <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm sticky top-8">
             <div className="flex items-center gap-2 mb-4">
               <ShieldAlert className={isAdmin ? "text-emerald-500" : "text-amber-500"} size={18} />
@@ -431,9 +453,9 @@ export function PredictionDashboard() {
               </button>
             </div>
           </div>
-        </div>
+          </motion.div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -7,6 +7,7 @@ import {
   Wallet, Send, Trophy, Coins, HelpCircle, ChevronDown, 
   Settings, LogOut, Layers, Rocket, TrendingUp, HelpCircle as HelpIcon, ArrowRight, CreditCard
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 
 // Import Financial Layer Components
@@ -142,9 +143,13 @@ export default function ArcGlobalDashboard() {
         <div className="space-y-8">
           {/* Brand header */}
           <div className="flex items-center gap-3 px-2">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm shadow-blue-500/10">
-              <Layers className="text-blue-600" size={20} />
-            </div>
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+              className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
+            >
+              <img src="/logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+            </motion.div>
             <div>
               <span className="text-sm font-black tracking-wide text-slate-900 block">ARC GLOBAL</span>
               <span className="text-[9px] block font-extrabold text-blue-600 tracking-widest mt-[-2px] uppercase">FINANCIAL</span>
@@ -268,11 +273,20 @@ export default function ArcGlobalDashboard() {
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 w-full space-y-6">
           
           {/* HEADER LAYER WITH AIRDROP WIDGET */}
-          <header className="glass-panel px-6 py-4 mb-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40 bg-white/90 backdrop-blur-md">
+          <motion.header
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="glass-panel px-6 py-4 mb-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40 bg-white/90 backdrop-blur-md"
+          >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-sm">
-                <Layers className="text-blue-600 animate-spin" style={{ animationDuration: '6s' }} />
-              </div>
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
+              >
+                <img src="/logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+              </motion.div>
               <div>
                 <h1 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">
                   ARC GLOBAL <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full font-bold">PRO</span>
@@ -328,10 +342,15 @@ export default function ArcGlobalDashboard() {
 
               <ConnectButton />
             </div>
-          </header>
+          </motion.header>
 
           {/* MAIN RENDER ENGINE */}
-          <main className="space-y-8">
+          <motion.main
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="space-y-8"
+          >
             
             {/* ARC WALLET TAB */}
             {currentTab === 'wallet' && (
@@ -408,7 +427,7 @@ export default function ArcGlobalDashboard() {
               </div>
             )}
 
-          </main>
+          </motion.main>
 
         </div>
       </div>

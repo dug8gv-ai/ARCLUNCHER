@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useDisconnect, usePublicClient } from 'wagmi';
-import { Layers, User, MessageSquare, Check, Loader2, ChevronDown, Award, Settings, LogOut } from 'lucide-react';
+import { User, MessageSquare, Check, Loader2, ChevronDown, Award, Settings, LogOut } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { erc20Abi, formatUnits } from 'viem';
 import { USDC_ADDRESS, EURC_ADDRESS } from '@/lib/arcDefiAbi';
@@ -242,12 +243,21 @@ export function Header() {
 
   return (
     <>
-      <header className="glass-panel px-6 py-4 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40 bg-white/90 backdrop-blur-md">
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="glass-panel px-6 py-4 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40 bg-white/90 backdrop-blur-md"
+      >
         {/* Brand Logo & Info */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-sm">
-            <Layers className="text-blue-600" />
-          </div>
+          <motion.div
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+            className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
+          >
+            <img src="/logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+          </motion.div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               ArcOmni <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full font-bold">PRO</span>
@@ -303,8 +313,15 @@ export function Header() {
                 <ChevronDown size={14} className="text-slate-500" />
               </button>
 
+              <AnimatePresence>
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2.5 w-48 bg-white border border-slate-200/80 rounded-2xl shadow-xl py-2 z-50 text-xs font-medium text-slate-700 animate-in fade-in slide-in-from-top-2 duration-150">
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2.5 w-48 bg-white border border-slate-200/80 rounded-2xl shadow-xl py-2 z-50 text-xs font-medium text-slate-700"
+                >
                   <button
                     onClick={() => {
                       setIsDropdownOpen(false);
@@ -325,20 +342,34 @@ export function Header() {
                     <LogOut size={14} />
                     Disconnect Wallet
                   </button>
-                </div>
+                </motion.div>
               )}
+              </AnimatePresence>
             </div>
           )}
 
           {/* Rainbowkit Wallet Connection Button */}
           <ConnectButton />
         </div>
-      </header>
+      </motion.header>
 
       {/* Persistent Social Profile Settings Modal (Radius Glassmorphism) */}
+      <AnimatePresence>
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg glass-modal p-8 space-y-6 relative border border-white">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="w-full max-w-lg glass-modal p-8 space-y-6 relative border border-white"
+          >
             {/* Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
@@ -474,9 +505,10 @@ export function Header() {
                 )}
               </button>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </>
   );
 }
