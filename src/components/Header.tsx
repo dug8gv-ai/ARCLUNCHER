@@ -250,7 +250,7 @@ export function Header() {
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-              ArcLauncher <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full font-bold">PRO</span>
+              ArcOmni <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full font-bold">PRO</span>
             </h1>
             <p className="text-xs text-slate-500 hidden md:block font-medium">High-Frequency Premium Token Launchpad</p>
           </div>
@@ -352,7 +352,7 @@ export function Header() {
                 <User className="text-blue-600" />
                 Profile Settings
               </h2>
-              <p className="text-xs text-slate-500">Customize your ArcLauncher identity. Saved securely on Supabase.</p>
+              <p className="text-xs text-slate-500">Customize your ArcOmni identity. Saved securely on Supabase.</p>
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-5">

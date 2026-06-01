@@ -6,7 +6,7 @@ import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { parseUnits, erc20Abi, decodeEventLog } from 'viem';
 import { supabase } from '@/lib/supabase';
 
-// ABI snippet for ArcLauncher
+// ABI snippet for ArcOmni
 const ARC_LAUNCHER_ABI = [
   {
     "inputs": [

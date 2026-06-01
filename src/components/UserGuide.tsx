@@ -67,7 +67,7 @@ export default function UserGuide() {
         <div className="relative z-10">
           <h1 className="text-3xl font-black mb-2 flex items-center gap-3">
             <BookOpen className="text-indigo-200" />
-            Arc Launcher Guide
+            ArcOmni Guide
           </h1>
           <p className="text-indigo-100 max-w-2xl text-sm leading-relaxed font-medium">
             Welcome to the ultimate hub for decentralized finance on the ARC Testnet. This guide will walk you through everything you need to know to swap, send, launch, and trade assets seamlessly.

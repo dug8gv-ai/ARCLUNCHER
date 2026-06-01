@@ -515,7 +515,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
               </div>
               <div className="flex-1">
                 <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumAlert.title}</h3>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Arc Launcher Alert</p>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">ArcOmni Alert</p>
               </div>
             </div>
 

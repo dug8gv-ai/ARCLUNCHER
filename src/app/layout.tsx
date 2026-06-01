@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ArcLauncher Pro | Global Analytics Edition",
+  title: "ArcOmni Pro | Global Analytics Edition",
   description: "High-Frequency Token Launchpad on Arc Testnet",
   icons: {
     icon: "/icon.png",

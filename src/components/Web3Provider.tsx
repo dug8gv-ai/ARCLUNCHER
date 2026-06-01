@@ -36,7 +36,7 @@ const arcTestnet = {
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || 'd81f0a9e995c256929f364a174ab440e';
 
 const config = getDefaultConfig({
-  appName: 'ArcLauncher Pro',
+  appName: 'ArcOmni Pro',
   projectId,
   chains: [arcTestnet],
   ssr: true,

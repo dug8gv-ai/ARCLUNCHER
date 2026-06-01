@@ -45,7 +45,7 @@ export default function EscrowSystem() {
   // Load agreements
   const loadAgreements = () => {
     if (!userAddress) return;
-    const local = localStorage.getItem(`arclauncher_escrows_${userAddress.toLowerCase()}`);
+    const local = localStorage.getItem(`arcomni_escrows_${userAddress.toLowerCase()}`);
     if (local) {
       setAgreements(JSON.parse(local));
     } else {
@@ -65,7 +65,7 @@ export default function EscrowSystem() {
           ]
         }
       ];
-      localStorage.setItem(`arclauncher_escrows_${userAddress.toLowerCase()}`, JSON.stringify(mockAgreements));
+      localStorage.setItem(`arcomni_escrows_${userAddress.toLowerCase()}`, JSON.stringify(mockAgreements));
       setAgreements(mockAgreements);
     }
   };
@@ -139,12 +139,12 @@ export default function EscrowSystem() {
 
     const updated = [newEscrow, ...agreements];
     setAgreements(updated);
-    localStorage.setItem(`arclauncher_escrows_${userAddress.toLowerCase()}`, JSON.stringify(updated));
+    localStorage.setItem(`arcomni_escrows_${userAddress.toLowerCase()}`, JSON.stringify(updated));
 
     // Propagate escrow records back to other party if mock address matches user
-    localStorage.setItem(`arclauncher_escrows_${otherParty.toLowerCase()}`, JSON.stringify([
+    localStorage.setItem(`arcomni_escrows_${otherParty.toLowerCase()}`, JSON.stringify([
       newEscrow,
-      ...(JSON.parse(localStorage.getItem(`arclauncher_escrows_${otherParty.toLowerCase()}`) || '[]'))
+      ...(JSON.parse(localStorage.getItem(`arcomni_escrows_${otherParty.toLowerCase()}`) || '[]'))
     ]));
 
     // Reset Form
@@ -220,11 +220,11 @@ export default function EscrowSystem() {
     });
 
     setAgreements(updatedAgreements);
-    localStorage.setItem(`arclauncher_escrows_${userAddress.toLowerCase()}`, JSON.stringify(updatedAgreements));
+    localStorage.setItem(`arcomni_escrows_${userAddress.toLowerCase()}`, JSON.stringify(updatedAgreements));
 
     // Sync other party
     const targetParty = userAddress.toLowerCase() === agreement.client ? agreement.freelancer : agreement.client;
-    localStorage.setItem(`arclauncher_escrows_${targetParty.toLowerCase()}`, JSON.stringify(updatedAgreements));
+    localStorage.setItem(`arcomni_escrows_${targetParty.toLowerCase()}`, JSON.stringify(updatedAgreements));
 
     const updatedSelect = updatedAgreements.find(a => a.id === agreementId);
     if (updatedSelect) setSelectedAgreement(updatedSelect);

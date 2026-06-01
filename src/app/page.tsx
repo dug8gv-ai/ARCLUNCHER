@@ -291,7 +291,7 @@ export default function Home() {
         locksData = data || [];
       } catch (dbErr) {
         // Fallback to local storage locks if database schema doesn't exist yet!
-        const local = localStorage.getItem('arclauncher_locks');
+        const local = localStorage.getItem('arcomni_locks');
         locksData = local ? JSON.parse(local) : [];
       }
 
@@ -344,10 +344,10 @@ export default function Home() {
 
   useEffect(() => {
     // Clear previous lock data to start fresh on Version 2 upgrade!
-    const hasUpgraded = localStorage.getItem('arclauncher_locks_v2_upgraded');
+    const hasUpgraded = localStorage.getItem('arcomni_locks_v2_upgraded');
     if (!hasUpgraded) {
-      localStorage.removeItem('arclauncher_locks');
-      localStorage.setItem('arclauncher_locks_v2_upgraded', 'true');
+      localStorage.removeItem('arcomni_locks');
+      localStorage.setItem('arcomni_locks_v2_upgraded', 'true');
     }
 
     fetchLocks();
@@ -492,10 +492,10 @@ export default function Home() {
         if (error) throw error;
       } catch (dbErr) {
         // Fallback save to local storage
-        const local = localStorage.getItem('arclauncher_locks');
+        const local = localStorage.getItem('arcomni_locks');
         const list = local ? JSON.parse(local) : [];
         list.push(newLock);
-        localStorage.setItem('arclauncher_locks', JSON.stringify(list));
+        localStorage.setItem('arcomni_locks', JSON.stringify(list));
       }
 
       await triggerAlert("ASSET LOCKED", `Successfully locked ${lockAmount} ${activeTicker} (Worth ~$${finalWorth.toFixed(2)} USD) for 30 Days!`, "success");
@@ -529,7 +529,7 @@ export default function Home() {
       } catch (dbErr) {}
 
       if (!targetLock) {
-        const local = localStorage.getItem('arclauncher_locks');
+        const local = localStorage.getItem('arcomni_locks');
         if (local) {
           const list = JSON.parse(local);
           targetLock = list.find((l: any) => l.id === lockId);
@@ -562,13 +562,13 @@ export default function Home() {
         if (error) throw error;
       } catch (dbErr) {
         // Fallback update in local storage
-        const local = localStorage.getItem('arclauncher_locks');
+        const local = localStorage.getItem('arcomni_locks');
         if (local) {
           const list = JSON.parse(local);
           const idx = list.findIndex((l: any) => l.id === lockId);
           if (idx !== -1) {
             list[idx].is_withdrawn = true;
-            localStorage.setItem('arclauncher_locks', JSON.stringify(list));
+            localStorage.setItem('arcomni_locks', JSON.stringify(list));
           }
         }
       }
@@ -804,7 +804,7 @@ export default function Home() {
               <Layers className="text-blue-600" size={20} />
             </div>
             <div>
-              <span className="text-sm font-black tracking-wide text-slate-900 block">ARC LAUNCHER</span>
+              <span className="text-sm font-black tracking-wide text-slate-900 block">ARCOMNI</span>
               <span className="text-[9px] block font-extrabold text-blue-600 tracking-widest mt-[-2px] uppercase">PRO</span>
             </div>
           </div>
@@ -1684,7 +1684,7 @@ export default function Home() {
               </div>
               <div className="flex-1">
                 <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumAlert.title}</h3>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Arc Launcher Alert</p>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">ArcOmni Alert</p>
               </div>
             </div>
 

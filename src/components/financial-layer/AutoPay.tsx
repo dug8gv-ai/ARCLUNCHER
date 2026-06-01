@@ -49,7 +49,7 @@ export default function AutoPay() {
   const loadJobs = () => {
     if (!userAddress) return;
     const wallet = userAddress.toLowerCase();
-    const local = localStorage.getItem(`arclauncher_autopay_${wallet}`);
+    const local = localStorage.getItem(`arcomni_autopay_${wallet}`);
     if (local) {
       setJobs(JSON.parse(local));
     } else {
@@ -78,7 +78,7 @@ export default function AutoPay() {
           status: 'Active'
         }
       ];
-      localStorage.setItem(`arclauncher_autopay_${wallet}`, JSON.stringify(mockJobs));
+      localStorage.setItem(`arcomni_autopay_${wallet}`, JSON.stringify(mockJobs));
       setJobs(mockJobs);
     }
   };
@@ -129,7 +129,7 @@ export default function AutoPay() {
     const wallet = userAddress.toLowerCase();
 
     const checkAndExecuteJobs = async () => {
-      const currentJobs = JSON.parse(localStorage.getItem(`arclauncher_autopay_${wallet}`) || '[]');
+      const currentJobs = JSON.parse(localStorage.getItem(`arcomni_autopay_${wallet}`) || '[]');
       if (currentJobs.length === 0) return;
 
       let balanceUpdated = false;
@@ -208,7 +208,7 @@ export default function AutoPay() {
 
       if (balanceUpdated) {
         setJobs(updatedJobs);
-        localStorage.setItem(`arclauncher_autopay_${wallet}`, JSON.stringify(updatedJobs));
+        localStorage.setItem(`arcomni_autopay_${wallet}`, JSON.stringify(updatedJobs));
         window.dispatchEvent(new Event('storage'));
       }
     };
@@ -261,7 +261,7 @@ export default function AutoPay() {
 
     const updated = [newJob, ...jobs];
     setJobs(updated);
-    localStorage.setItem(`arclauncher_autopay_${wallet}`, JSON.stringify(updated));
+    localStorage.setItem(`arcomni_autopay_${wallet}`, JSON.stringify(updated));
 
     // Reset Form
     setSelectedRecipient(null);
@@ -283,7 +283,7 @@ export default function AutoPay() {
       return j;
     });
     setJobs(updated);
-    localStorage.setItem(`arclauncher_autopay_${wallet}`, JSON.stringify(updated));
+    localStorage.setItem(`arcomni_autopay_${wallet}`, JSON.stringify(updated));
   };
 
   const handleDeleteJob = (jobId: string) => {
@@ -291,7 +291,7 @@ export default function AutoPay() {
     const wallet = userAddress.toLowerCase();
     const updated = jobs.filter(j => j.id !== jobId);
     setJobs(updated);
-    localStorage.setItem(`arclauncher_autopay_${wallet}`, JSON.stringify(updated));
+    localStorage.setItem(`arcomni_autopay_${wallet}`, JSON.stringify(updated));
   };
 
   const handleForceTrigger = async (jobId: string) => {
@@ -366,7 +366,7 @@ export default function AutoPay() {
     });
 
     setJobs(updated);
-    localStorage.setItem(`arclauncher_autopay_${wallet}`, JSON.stringify(updated));
+    localStorage.setItem(`arcomni_autopay_${wallet}`, JSON.stringify(updated));
     window.dispatchEvent(new Event('storage'));
 
     alert(`Successfully processed instant force payment execution! Sent ${job.amount} ${job.asset} to @${job.recipientName}.`);
