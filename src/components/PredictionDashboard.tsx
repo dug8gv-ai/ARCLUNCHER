@@ -682,7 +682,7 @@ export function PredictionDashboard() {
               <motion.button 
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={handleCreateTask}
+                onClick={handleCreateMarket}
                 disabled={!newTitle || !newExpiration || isUploading}
                 className="w-full mt-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white text-xs font-black py-3.5 rounded-xl transition-all shadow-lg shadow-slate-900/10 hover:shadow-slate-900/20 flex items-center justify-center gap-2"
               >
