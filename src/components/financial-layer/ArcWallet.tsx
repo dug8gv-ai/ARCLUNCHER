@@ -32,7 +32,6 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
   const [fxRate, setFxRate] = useState(0); 
   const [isSwapping, setIsSwapping] = useState(false);
   const [swapResult, setSwapResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [minFeeRequirement, setMinFeeRequirement] = useState<number | null>(null);
 
   const { writeContractAsync } = useWriteContract();
 
@@ -85,26 +84,6 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
     }
   }, [fromAsset, toAsset, fromAmount]);
 
-  // Fetch minimum protocol fees from ArcGlobalVault dynamically
-  useEffect(() => {
-    if (!publicClient) return;
-    const fetchMinFee = async () => {
-      try {
-        const feeFunctionName = `FLAT_FEE_${fromAsset}`;
-        const feeRaw = await publicClient.readContract({
-          address: ARC_GLOBAL_VAULT_ADDRESS as `0x${string}`,
-          abi: arcVaultAbi,
-          functionName: feeFunctionName
-        });
-        const decimals = ASSET_CONFIG[fromAsset].decimals;
-        setMinFeeRequirement(Number(formatUnits(feeRaw as bigint, decimals)));
-      } catch (e) {
-        console.error('Failed to fetch minimum fee:', e);
-        setMinFeeRequirement(null);
-      }
-    };
-    fetchMinFee();
-  }, [fromAsset, publicClient]);
 
   const isCirbtcPair = fromAsset === 'cirBTC' || toAsset === 'cirBTC';
   const rateLabel = isCirbtcPair ? 'Vault Estimate' : 'App Kit Rate';
@@ -128,10 +107,6 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
       return;
     }
 
-    if (minFeeRequirement !== null && amt <= minFeeRequirement) {
-      setSwapResult({ type: 'error', message: `Amount is less than the protocol minimum fee (${minFeeRequirement.toLocaleString()} ${fromAsset}).` });
-      return;
-    }
 
     if (amt > balances[fromAsset]) {
       setSwapResult({ type: 'error', message: `Insufficient ${fromAsset} balance.` });
@@ -372,12 +347,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
                 <option value="cirBTC">cirBTC</option>
               </select>
             </div>
-            {minFeeRequirement !== null && fromAmount && Number(fromAmount) <= minFeeRequirement && (
-              <div className="flex justify-start items-center gap-1 text-[10px] text-red-500 font-bold mt-1">
-                <AlertCircle size={10} />
-                Amount less than protocol minimum fee ({minFeeRequirement.toLocaleString()} {fromAsset})
-              </div>
-            )}
+
           </div>
 
           {/* FLIP TOGGLE BUTTON */}
