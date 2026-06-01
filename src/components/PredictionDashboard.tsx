@@ -27,7 +27,7 @@ export function PredictionDashboard() {
   const isAdmin = isConnected && address?.toLowerCase() === (adminAddress as string)?.toLowerCase();
 
   // Read Next Market ID
-  const { data: nextMarketIdRaw } = useReadContract({
+  const { data: nextMarketIdRaw, refetch: refetchMarketId } = useReadContract({
     address: PREDICTION_MARKET_ADDRESS as `0x${string}`,
     abi: predictionMarketAbi,
     functionName: 'nextMarketId',
@@ -227,7 +227,10 @@ export function PredictionDashboard() {
         setUploadPreview(null);
         setNewExpiration('');
         
-        setTimeout(() => fetchMarkets(), 3000);
+        setTimeout(async () => {
+          await refetchMarketId();
+          fetchMarkets();
+        }, 6000);
       }
     } catch (e: any) {
       console.error(e);
