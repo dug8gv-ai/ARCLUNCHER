@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAccount, useWriteContract, usePublicClient, useReadContract } from 'wagmi';
 import { formatUnits, parseUnits, erc20Abi } from 'viem';
-import { PieChart, Clock, ShieldAlert, CheckCircle, Info, History, Upload, X, ImagePlus, Tag, AlignLeft, Zap } from 'lucide-react';
+import { PieChart, Clock, ShieldAlert, CheckCircle, Info, History, Upload, X, ImagePlus, Tag, AlignLeft, Zap, RefreshCw, DollarSign } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { PREDICTION_MARKET_ADDRESS, predictionMarketAbi } from '@/lib/predictionMarketAbi';
 import { USDC_ADDRESS } from '@/lib/arcDefiAbi';
+import { supabase } from '@/lib/supabase';
 
 export function PredictionDashboard() {
   const { isConnected, address } = useAccount();
@@ -17,6 +18,8 @@ export function PredictionDashboard() {
   const [activeTab, setActiveTab] = useState<'feed' | 'history'>('feed');
   const [markets, setMarkets] = useState<any[]>([]);
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
+  const [historyEvents, setHistoryEvents] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   
   // Read Admin
   const { data: adminAddress } = useReadContract({
@@ -87,6 +90,32 @@ export function PredictionDashboard() {
   useEffect(() => {
     fetchMarkets();
   }, [publicClient, nextMarketIdRaw]);
+
+  // Fetch History
+  useEffect(() => {
+    if (!address) return;
+    const fetchHistory = async () => {
+      setIsLoadingHistory(true);
+      const { data } = await supabase
+        .from('prediction_history')
+        .select('*')
+        .eq('wallet', address.toLowerCase())
+        .order('created_at', { ascending: false });
+      if (data) setHistoryEvents(data);
+      setIsLoadingHistory(false);
+    };
+
+    fetchHistory();
+
+    const sub = supabase
+      .channel('prediction_history_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'prediction_history', filter: `wallet=eq.${address.toLowerCase()}` }, fetchHistory)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(sub);
+    };
+  }, [address]);
   
   const [betAmount, setBetAmount] = useState('');
   const [selectedMarketId, setSelectedMarketId] = useState<number | null>(null);
@@ -220,6 +249,16 @@ export function PredictionDashboard() {
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash: tx });
         toast.success("🎉 Market Created Successfully!");
+        
+        // Log to Supabase History
+        const mId = Number(nextMarketIdRaw);
+        await supabase.from('prediction_history').insert({
+          wallet: address?.toLowerCase(),
+          action_type: 'CREATE_MARKET',
+          market_id: mId,
+          details: { title: newTitle, category: selectedCategory || newCategory }
+        });
+
         setNewTitle('');
         setNewDescription('');
         setSelectedCategory('');
@@ -268,6 +307,16 @@ export function PredictionDashboard() {
        if (publicClient) {
          await publicClient.waitForTransactionReceipt({ hash: betTx });
          toast.success("Bet Placed Successfully!");
+         
+         // Log to Supabase
+         const market = markets.find(m => m.id === marketId);
+         await supabase.from('prediction_history').insert({
+           wallet: address?.toLowerCase(),
+           action_type: 'PLACE_BET',
+           market_id: marketId,
+           details: { title: market?.title, amount: betAmount, side: selectedSide === 1 ? 'YES' : 'NO' }
+         });
+
          setBetAmount('');
          setSelectedMarketId(null);
          setSelectedSide(null);
@@ -292,7 +341,17 @@ export function PredictionDashboard() {
       });
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash: claimTx });
-        toast.success("Reward Claimed Successfully!");
+        toast.success("Reward Claimed!");
+        
+        // Log to Supabase
+        const market = markets.find(m => m.id === marketId);
+        await supabase.from('prediction_history').insert({
+          wallet: address?.toLowerCase(),
+          action_type: 'CLAIM_REWARD',
+          market_id: marketId,
+          details: { title: market?.title }
+        });
+
         setTimeout(() => fetchMarkets(), 3000);
       }
     } catch (e: any) {
@@ -494,10 +553,70 @@ export function PredictionDashboard() {
           )}
 
           {activeTab === 'history' && (
-            <div className="bg-white border border-slate-200 rounded-[24px] p-8 text-center shadow-sm">
-              <History className="mx-auto text-slate-300 mb-3" size={40} />
-              <h3 className="text-lg font-black text-slate-800">Transaction History</h3>
-              <p className="text-xs text-slate-500 font-semibold mt-1">Check your wallet explorer for recent interactions.</p>
+            <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm min-h-[400px]">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+                  <History size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-800">My History</h3>
+                  <p className="text-xs text-slate-500 font-semibold">Your recent interactions on Prediction Markets.</p>
+                </div>
+              </div>
+
+              {isLoadingHistory ? (
+                <div className="text-center py-10">
+                  <RefreshCw className="mx-auto text-slate-300 animate-spin mb-2" size={24} />
+                  <p className="text-sm text-slate-500">Loading history...</p>
+                </div>
+              ) : historyEvents.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-slate-400 font-bold">No history found.</p>
+                  <p className="text-sm text-slate-400 mt-1">Place a bet or create a market to see activity here.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {historyEvents.map((evt) => (
+                    <div key={evt.id} className="flex items-start gap-4 p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                        evt.action_type === 'CREATE_MARKET' ? 'bg-indigo-100 text-indigo-600' : 
+                        evt.action_type === 'PLACE_BET' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'
+                      }`}>
+                        {evt.action_type === 'CREATE_MARKET' ? <Zap size={18} /> : 
+                         evt.action_type === 'PLACE_BET' ? <DollarSign size={18} /> : <CheckCircle size={18} />}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">
+                            {evt.action_type === 'CREATE_MARKET' ? 'Created Market' : 
+                             evt.action_type === 'PLACE_BET' ? 'Placed Bet' : 'Claimed Reward'}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-400">
+                            {new Date(evt.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-sm font-bold text-slate-800 leading-snug">
+                          {evt.details?.title || `Market #${evt.market_id}`}
+                        </p>
+                        {evt.action_type === 'PLACE_BET' && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-xs font-bold text-slate-600">Bet Amount:</span>
+                            <span className="text-xs font-black text-slate-900">${evt.details?.amount}</span>
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-sm ${evt.details?.side === 'YES' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                              {evt.details?.side}
+                            </span>
+                          </div>
+                        )}
+                        {evt.action_type === 'CREATE_MARKET' && evt.details?.category && (
+                          <div className="mt-2 text-xs font-semibold text-slate-500">
+                            Category: {evt.details?.category}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
