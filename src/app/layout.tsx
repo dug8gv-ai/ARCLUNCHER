@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "ArcOmni Pro | Global Analytics Edition",
   description: "High-Frequency Token Launchpad on Arc Testnet",
   icons: {
-    icon: "/icon.png",
+    icon: "/main-logo.jpg",
   },
 };
 
