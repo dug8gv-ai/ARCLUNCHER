@@ -603,7 +603,7 @@ export function SocialPay() {
                 <div className="flex items-center justify-between p-4 bg-blue-50/50 border border-blue-200/60 rounded-2xl animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex items-center gap-4.5">
                     <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-white">
-                      <img src={selectedRecipient.avatar} alt="" className="w-full h-full object-cover" />
+                      <img src={selectedRecipient.avatar} alt="" className="w-full h-full object-contain p-0.5" />
                     </div>
                     <div>
                       <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
@@ -672,7 +672,7 @@ export function SocialPay() {
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-white">
-                              <img src={p.avatar} alt="" className="w-full h-full object-cover" />
+                              <img src={p.avatar} alt="" className="w-full h-full object-contain p-0.5" />
                             </div>
                             <div>
                               <span className="text-xs font-black text-slate-800 block leading-tight">{p.name}</span>
@@ -900,7 +900,7 @@ export function SocialPay() {
           {myProfile ? (
             <>
               <div className="w-18 h-18 rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-white mt-2">
-                <img src={myProfile.avatar} alt="My Avatar" className="w-full h-full object-cover" />
+                <img src={myProfile.avatar} alt="My Avatar" className="w-full h-full object-contain p-0.5" />
               </div>
               <div className="space-y-1">
                 <h3 className="text-base font-black text-slate-800 flex items-center justify-center gap-1">

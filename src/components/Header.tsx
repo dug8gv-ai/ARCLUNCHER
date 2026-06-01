@@ -256,7 +256,7 @@ export function Header() {
             transition={{ type: 'spring', stiffness: 300 }}
             className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
           >
-            <img src="/arcomni-logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+            <img src="/brand.png" alt="ArcOmni" className="w-full h-full object-contain p-0.5" />
           </motion.div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
@@ -307,7 +307,7 @@ export function Header() {
                 className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-800 px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold transition-all cursor-pointer"
               >
                 <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-300 bg-white">
-                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-contain p-0.5" />
                 </div>
                 <span className="max-w-[100px] truncate text-slate-700">{profile.name}</span>
                 <ChevronDown size={14} className="text-slate-500" />
@@ -413,7 +413,7 @@ export function Header() {
                         formAvatar === av.url ? 'border-blue-600 shadow-md shadow-blue-500/10' : 'border-slate-200'
                       }`}
                     >
-                      <img src={av.url} alt={av.name} className="w-full h-full object-cover" />
+                      <img src={av.url} alt={av.name} className="w-full h-full object-contain p-0.5" />
                       {formAvatar === av.url && (
                         <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center">
                           <div className="bg-blue-600 text-white rounded-full p-0.5">

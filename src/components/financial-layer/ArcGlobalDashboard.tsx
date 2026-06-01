@@ -148,7 +148,7 @@ export default function ArcGlobalDashboard() {
               transition={{ type: 'spring', stiffness: 300 }}
               className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
             >
-              <img src="/arcomni-logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+              <img src="/brand.png" alt="ArcOmni" className="w-full h-full object-contain p-0.5" />
             </motion.div>
             <div>
               <span className="text-sm font-black tracking-wide text-slate-900 block">ARC GLOBAL</span>
@@ -285,7 +285,7 @@ export default function ArcGlobalDashboard() {
                 transition={{ type: 'spring', stiffness: 300 }}
                 className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
               >
-                <img src="/arcomni-logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+                <img src="/brand.png" alt="ArcOmni" className="w-full h-full object-contain p-0.5" />
               </motion.div>
               <div>
                 <h1 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">
@@ -307,7 +307,7 @@ export default function ArcGlobalDashboard() {
                     className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-800 px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold cursor-pointer"
                   >
                     <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-350 bg-white">
-                      <img src={myProfile.avatar} alt="" className="w-full h-full object-cover" />
+                      <img src={myProfile.avatar} alt="" className="w-full h-full object-contain p-0.5" />
                     </div>
                     <span className="max-w-[80px] truncate text-slate-700">@{myProfile.name}</span>
                     <ChevronDown size={14} className="text-slate-400" />
@@ -392,7 +392,7 @@ export default function ArcGlobalDashboard() {
                   <div className="flex items-center gap-3.5">
                     <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center">
                       {selectedToken.image_url ? (
-                        <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
+                        <img src={selectedToken.image_url} alt="" className="w-full h-full object-contain p-0.5" />
                       ) : (
                         <TrendingUp className="text-slate-400" size={18} />
                       )}

@@ -405,7 +405,7 @@ export function FreelanceHub() {
                           <input ref={item.ref} type="file" accept="image/*" onChange={async e => { const f = e.target.files?.[0]; if (f) item.set(await compressImage(f)); }} className="hidden" />
                           {item.img ? (
                             <div className="relative rounded-xl overflow-hidden border border-slate-200 h-28">
-                              <img src={item.img} alt={item.label} className="w-full h-full object-cover" />
+                              <img src={item.img} alt={item.label} className="w-full h-full object-contain p-0.5" />
                               <button type="button" onClick={() => { item.set(null); if (item.ref.current) item.ref.current.value = ''; }} className="absolute top-1 right-1 bg-white/90 text-slate-600 p-1 rounded-full shadow-sm"><X size={12} /></button>
                             </div>
                           ) : (

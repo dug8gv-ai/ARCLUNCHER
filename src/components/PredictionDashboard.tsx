@@ -274,7 +274,7 @@ export function PredictionDashboard() {
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 flex-shrink-0">
-                        {market.imageUrl ? <img src={market.imageUrl} className="w-full h-full object-cover" alt="" /> : <PieChart className="w-8 h-8 m-4 text-slate-300" />}
+                        {market.imageUrl ? <img src={market.imageUrl} className="w-full h-full object-contain p-0.5" alt="" /> : <PieChart className="w-8 h-8 m-4 text-slate-300" />}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-start justify-between">

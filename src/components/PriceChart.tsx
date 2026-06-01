@@ -376,7 +376,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden">
             {selectedToken?.image_url ? (
-              <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
+              <img src={selectedToken.image_url} alt="" className="w-full h-full object-contain p-0.5" />
             ) : (
               <TrendingUp className="text-blue-500" />
             )}

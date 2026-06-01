@@ -113,7 +113,7 @@ export function AffiliatesView() {
                 {/* Header Profile Info */}
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 shadow-sm flex-shrink-0">
-                    <img src={partner.avatar} alt={partner.name} className="w-full h-full object-cover" />
+                    <img src={partner.avatar} alt={partner.name} className="w-full h-full object-contain p-0.5" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">

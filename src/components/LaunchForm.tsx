@@ -311,7 +311,7 @@ export function LaunchForm() {
             </label>
             {formData.image && (
               <div className="w-12 h-12 rounded-lg border border-gray-700 overflow-hidden bg-black/40">
-                <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                <img src={formData.image} alt="Preview" className="w-full h-full object-contain p-0.5" />
               </div>
             )}
           </div>

@@ -802,7 +802,7 @@ export default function Home() {
           {/* Brand header */}
           <div className="flex items-center gap-3 px-2">
             <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10">
-              <img src="/arcomni-logo.png" alt="ArcOmni" className="w-full h-full object-cover" />
+              <img src="/brand.png" alt="ArcOmni" className="w-full h-full object-contain p-0.5" />
             </div>
             <div>
               <span className="text-sm font-black tracking-wide text-slate-900 block">ARCOMNI</span>
@@ -1172,7 +1172,7 @@ export default function Home() {
                       <div className="flex items-center gap-3.5">
                         <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center">
                           {selectedToken.image_url ? (
-                            <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
+                            <img src={selectedToken.image_url} alt="" className="w-full h-full object-contain p-0.5" />
                           ) : (
                             <TrendingUp className="text-slate-400" size={18} />
                           )}

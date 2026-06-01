@@ -606,7 +606,7 @@ export default function SocialPay() {
             {myProfile ? (
               <>
                 <div className="w-18 h-18 rounded-2xl overflow-hidden border border-slate-200 bg-white mt-2">
-                  <img src={myProfile.avatar} alt="" className="w-full h-full object-cover" />
+                  <img src={myProfile.avatar} alt="" className="w-full h-full object-contain p-0.5" />
                 </div>
                 <div>
                   <h4 className="font-black text-slate-800 text-sm">@{myProfile.name}</h4>
