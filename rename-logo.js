@@ -18,10 +18,7 @@ walkDir('src', (filePath) => {
     let content = fs.readFileSync(filePath, 'utf8');
     let original = content;
     
-    // Rename image path
-    content = content.replace(/\/arcomni-logo\.png/g, '/brand.png');
-    // Change object-cover to object-contain p-0.5 for the logo
-    content = content.replace(/className="w-full h-full object-cover"/g, 'className="w-full h-full object-contain p-0.5"');
+    content = content.replace(/\/brand\.png/g, '/main-logo.jpg');
     
     if (content !== original) {
       fs.writeFileSync(filePath, content, 'utf8');
