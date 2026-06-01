@@ -56,7 +56,21 @@ export default function Home() {
   const [selectedToken, setSelectedToken] = useState<any>(null);
   const [profileName, setProfileName] = useState<string>('Guest');
   const [isRulesOpen, setIsRulesOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'staking' | 'gigs' | 'prediction-market'>('launcher');
+
+  // Read initial view from URL hash so page refresh stays on the same section
+  const getInitialView = () => {
+    if (typeof window === 'undefined') return 'launcher';
+    const hash = window.location.hash.replace('#', '');
+    const validViews = ['launcher','trade','social-pay','leaderboard','affiliates','earn','wallet','guide','staking','gigs','prediction-market'];
+    return validViews.includes(hash) ? hash as any : 'launcher';
+  };
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'staking' | 'gigs' | 'prediction-market'>(getInitialView);
+
+  // Sync URL hash whenever view changes so refresh preserves position
+  useEffect(() => {
+    window.location.hash = currentView;
+  }, [currentView]);
+
   const [bridgeInitialToken, setBridgeInitialToken] = useState<'USDC' | 'EURC'>('USDC');
 
   // Daily Locks State (V2 Upgraded)

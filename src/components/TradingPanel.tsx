@@ -360,7 +360,11 @@ export function TradingPanel({ token }: TradingPanelProps) {
       ], "success");
 
       setStatus('success');
-      window.location.reload(); 
+      // Soft refresh: update balances + chart without reloading the page
+      await fetchBalance();
+      window.dispatchEvent(new Event('arc-balance-update'));
+      setAmount('');
+      setTimeout(() => setStatus('idle'), 2000);
 
     } catch (error: any) {
       console.error(error);
