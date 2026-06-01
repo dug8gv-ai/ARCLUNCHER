@@ -34,57 +34,57 @@ export function PredictionDashboard() {
   });
 
   // Fetch Markets
-  useEffect(() => {
-    const fetchMarkets = async () => {
-      if (!publicClient || nextMarketIdRaw === undefined) return;
-      const count = Number(nextMarketIdRaw);
-      if (count === 0) {
-        setMarkets([]);
-        setIsLoadingMarkets(false);
-        return;
-      }
+  const fetchMarkets = async () => {
+    if (!publicClient || nextMarketIdRaw === undefined) return;
+    const count = Number(nextMarketIdRaw);
+    if (count === 0) {
+      setMarkets([]);
+      setIsLoadingMarkets(false);
+      return;
+    }
 
-      try {
-        const calls = [];
-        for (let i = 0; i < count; i++) {
-          calls.push({
-            address: PREDICTION_MARKET_ADDRESS as `0x${string}`,
-            abi: predictionMarketAbi,
-            functionName: 'markets',
-            args: [i],
-          });
+    try {
+      const calls = [];
+      for (let i = 0; i < count; i++) {
+        calls.push({
+          address: PREDICTION_MARKET_ADDRESS as `0x${string}`,
+          abi: predictionMarketAbi,
+          functionName: 'markets',
+          args: [i],
+        });
+      }
+      
+      // Use multicall
+      const results = await publicClient.multicall({ contracts: calls });
+      
+      const formattedMarkets = results.map((res: any, index: number) => {
+        if (res.status === 'success') {
+          const data = res.result as any[];
+          return {
+            id: index,
+            title: data[0],
+            imageUrl: data[1],
+            expirationTime: Number(data[2]) * 1000, // JS timestamp
+            resolvedTime: Number(data[3]) * 1000,
+            totalYesPool: Number(formatUnits(data[4], 6)), // assuming USDC
+            totalNoPool: Number(formatUnits(data[5], 6)),
+            state: data[6], // 0 Active, 1 Resolved, 2 Deleted
+            winningSide: data[7], // 0 None, 1 Yes, 2 No
+            token: data[8]
+          };
         }
-        
-        // Use multicall
-        const results = await publicClient.multicall({ contracts: calls });
-        
-        const formattedMarkets = results.map((res: any, index: number) => {
-          if (res.status === 'success') {
-            const data = res.result as any[];
-            return {
-              id: index,
-              title: data[0],
-              imageUrl: data[1],
-              expirationTime: Number(data[2]) * 1000, // JS timestamp
-              resolvedTime: Number(data[3]) * 1000,
-              totalYesPool: Number(formatUnits(data[4], 6)), // assuming USDC
-              totalNoPool: Number(formatUnits(data[5], 6)),
-              state: data[6], // 0 Active, 1 Resolved, 2 Deleted
-              winningSide: data[7], // 0 None, 1 Yes, 2 No
-              token: data[8]
-            };
-          }
-          return null;
-        }).filter(Boolean);
+        return null;
+      }).filter(Boolean);
 
-        setMarkets(formattedMarkets);
-      } catch (e) {
-        console.error("Error fetching markets", e);
-      } finally {
-        setIsLoadingMarkets(false);
-      }
-    };
+      setMarkets(formattedMarkets);
+    } catch (e) {
+      console.error("Error fetching markets", e);
+    } finally {
+      setIsLoadingMarkets(false);
+    }
+  };
 
+  useEffect(() => {
     fetchMarkets();
   }, [publicClient, nextMarketIdRaw]);
   
