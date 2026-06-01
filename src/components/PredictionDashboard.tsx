@@ -64,12 +64,14 @@ export function PredictionDashboard() {
         });
       }
       
-      // Use multicall
-      const results = await publicClient.multicall({ contracts: calls });
+      // Use Promise.all instead of multicall to support networks without Multicall3
+      const rawResults = await Promise.allSettled(
+        calls.map(call => publicClient.readContract(call as any))
+      );
       
-      const formattedMarkets = results.map((res: any, index: number) => {
-        if (res.status === 'success') {
-          const data = res.result as any[];
+      const formattedMarkets = rawResults.map((res: any, index: number) => {
+        if (res.status === 'fulfilled') {
+          const data = res.value as any[];
           return {
             id: index,
             title: data[0],
