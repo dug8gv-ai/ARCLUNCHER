@@ -123,12 +123,19 @@ export function TradingPanel({ token }: TradingPanelProps) {
         .select('usdc_amount, token_amount, is_buy')
         .eq('token_address', token.token_address.toLowerCase());
 
-      // ── AMM BONDING CURVE — RESPONSIVE POOL ────────────────────────────
-      // Virtual seed of 500 USDC so trades have real price impact.
-      // Small trades ($10-100) now move the price meaningfully,
-      // giving users noticeable profit/loss on sells.
+      // ── AMM BONDING CURVE — REAL MARKET PRICING ────────────────────────
+      // Initial liquidity = actual USDC used when token was created
+      // For example: 3 USDC initial liquidity with 1B supply = $0.000000003 per token
+      //
+      // Price formula: price = USDC_in_pool / tokens_in_pool
+      // As buys increase USDC, price goes UP ↑
+      // As sells decrease USDC, price goes DOWN ↓
       // ─────────────────────────────────────────────────────────────────────
-      const INITIAL_LIQUIDITY_USDC = 500; // Responsive pool for real trading impact
+      const INITIAL_LIQUIDITY_USDC = Number(
+        token.initial_liquidity || 
+        token.liquidity || 
+        3  // Default: 3 USDC (real launch amount)
+      );
 
       const totalSupply = Number(
         token.initial_supply || token.supply || 1_000_000_000

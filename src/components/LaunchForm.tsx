@@ -207,6 +207,8 @@ export function LaunchForm() {
           ticker: formData.ticker,
           supply: Number(formData.supply), 
           initial_supply: Number(formData.supply),
+          initial_liquidity: 3,  // 3 USDC initial liquidity (real launch amount)
+          liquidity: 3,           // current liquidity
           image_url: formData.image || null
         });
 

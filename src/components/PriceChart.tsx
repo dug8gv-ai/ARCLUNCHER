@@ -159,25 +159,30 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         return;
       }
 
-      // ── AMM BONDING CURVE — VIRTUAL $20K FDV LAUNCH ────────────────────
-      // Every token launches with a VIRTUAL seed of 20,000 USDC so that
-      // the opening FDV is always $20,000 regardless of actual on-chain
-      // liquidity (which is only 3 USDC).
+      // ── REAL MARKET PRICE CALCULATION ─────────────────────────────────
+      // Listing Price = Actual Liquidity / Total Supply
       //
-      //   Opening price  = VIRTUAL_SEED / totalSupply
-      //   Opening FDV    = VIRTUAL_SEED  = $20,000
+      // Example: If token launches with 3 USDC liquidity and 1B supply:
+      //   Price = 3 / 1,000,000,000 = 0.000000003 USDC per token
       //
-      // Chart uses a damping factor (0.1) ONLY for visual smoothing so that
-      // small trades don't create huge spikes on the chart. The actual trade
-      // math in TradingPanel uses the real pool state without damping.
+      // Chart shows real price movements based on buy/sell volume
+      // – As buys happen: price goes UP (more USDC in pool)
+      // – As sells happen: price goes DOWN (less USDC in pool)
       // ─────────────────────────────────────────────────────────────────────
-      const INITIAL_LIQUIDITY_USDC = 500; // Must match TradingPanel exactly
+      
+      // Get actual initial liquidity from token data (default to 3 USDC if not set)
+      const INITIAL_LIQUIDITY_USDC = Number(
+        selectedToken.initial_liquidity || 
+        selectedToken.liquidity || 
+        3  // Default: 3 USDC (real launch amount)
+      );
 
       const totalSupply = Number(
         selectedToken.initial_supply || selectedToken.supply || 1_000_000_000
       );
 
-      // Opening price = deposited USDC / total token supply
+      // REAL LISTING PRICE = Liquidity / Supply
+      // This is the true initial price based on AMM formula: price = k/x where k is constant product
       const INITIAL_PRICE = INITIAL_LIQUIDITY_USDC / totalSupply;
 
       // Draw the floor price line on the chart using the real initial price
@@ -190,7 +195,9 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         title: 'Floor Price',
       });
 
-      // Virtual pool seeded so that spot price = INITIAL_PRICE
+      // Virtual pool starts with ACTUAL initial liquidity amounts
+      // Pool balance = INITIAL_LIQUIDITY_USDC of USDC and totalSupply tokens
+      // Constant product: k = USDC × Tokens (stays constant through trades)
       const VIRTUAL_USDC   = INITIAL_LIQUIDITY_USDC;
       const VIRTUAL_TOKENS = totalSupply;
       const k = VIRTUAL_USDC * VIRTUAL_TOKENS;
