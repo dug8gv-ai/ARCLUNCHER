@@ -7,7 +7,7 @@
 // Immutable Spin & Game Economics
 export const ARCSLOTS_CONFIG = {
   // Spin Fee (denominated in USDC, 6 decimals)
-  SPIN_FEE: "1",
+  SPIN_FEE: "0.1",
   SPIN_FEE_USDC_DECIMALS: 6,
   
   // Claim/Withdrawal Fee (percentage, 0.01 = 1%)
@@ -26,18 +26,21 @@ export const ARCSLOTS_CONFIG = {
 
 // Token Addresses (Arc Testnet)
 export const ARCSLOTS_TOKENS = {
-  USDC_ADDRESS: "0x94B008aA00579c1307B0EF2c499aD98a8ce58e58",
+  USDC_ADDRESS: process.env.NEXT_PUBLIC_ARCSLOTS_USDC_ADDRESS || process.env.NEXT_PUBLIC_USDC_ADDRESS || "0x94B008aA00579c1307B0EF2c499aD98a8ce58e58",
   USDC_DECIMALS: 6,
   
-  ARC_ADDRESS: "0x9d3A36Aa1e8C0f52cE0fcCC7baECfCe34d68D4B7",
+  ARC_ADDRESS: process.env.NEXT_PUBLIC_ARCSLOTS_ARC_ADDRESS || "0x9d3A36Aa1e8C0f52cE0fcCC7baECfCe34d68D4B7",
   ARC_DECIMALS: 18,
 } as const;
 
 // ArcSlots Contract Address
-export const ARCSLOTS_ADDRESS = "0x2e4CDd1E1F8eFB8eF8f8e8e8eFb8eFB8eF8eFB8";
+export const ARCSLOTS_ADDRESS = process.env.NEXT_PUBLIC_ARCSLOTS_ADDRESS || "0x2e4CDd1E1F8eFB8eF8f8e8e8eFb8eFB8eF8eFB8";
+
+// Treasury Address for claim fee / platform revenue
+export const ARCSLOTS_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_ARCSLOTS_TREASURY_ADDRESS || process.env.NEXT_PUBLIC_TREASURY_ADDRESS || "0x0000000000000000000000000000000000000000";
 
 // Spin Fee in USDC (with 6 decimals)
-export const SPIN_FEE_USDC = "100000"; // 0.1 USDC = 100000 units @ 6 decimals
+export const SPIN_FEE_USDC = process.env.NEXT_PUBLIC_ARCSLOTS_SPIN_FEE_USDC || "100000"; // 0.1 USDC = 100000 units @ 6 decimals
 
 // Supabase Isolated Table Names
 export const ARCSLOTS_TABLES = {

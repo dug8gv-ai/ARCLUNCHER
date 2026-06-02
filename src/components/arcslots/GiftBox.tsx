@@ -7,7 +7,9 @@
 
 import { useState, useCallback } from 'react';
 import { useAccount, useSendTransaction } from 'wagmi';
+import { parseEther } from 'viem';
 import { getPendingPayouts, claimJackpot } from '@/lib/arcslots/arcslots.functions';
+import { ARCSLOTS_CONFIG, ARCSLOTS_TREASURY_ADDRESS } from '@/lib/arcslots/arcslots.constants';
 import { Gift, Loader2, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -65,13 +67,16 @@ export function GiftBox({ isOpen, onClose, onClaimSuccess }: GiftBoxProps) {
       }
 
       try {
+        if (!ARCSLOTS_TREASURY_ADDRESS || ARCSLOTS_TREASURY_ADDRESS === '0x0000000000000000000000000000000000000000') {
+          throw new Error('Treasury address is not configured for claim fee payment.');
+        }
+
         setClaimingId(payoutId);
 
-        // Send on-chain claim transaction
+        // Send native ARC claim fee to the treasury address
         const claimTx = await sendTransactionAsync({
-          to: userAddress as `0x${string}`,
-          value: BigInt(0),
-          data: '0x', // Placeholder: encodes actual claim call to contract
+          to: ARCSLOTS_TREASURY_ADDRESS as `0x${string}`,
+          value: parseEther(ARCSLOTS_CONFIG.CLAIM_FEE),
         });
 
         toast.loading('Recording claim on-chain...');

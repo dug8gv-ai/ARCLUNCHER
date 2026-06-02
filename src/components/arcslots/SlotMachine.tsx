@@ -6,11 +6,11 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useAccount, useSendTransaction, useWriteContract, useChainId } from 'wagmi';
+import { useAccount, useWriteContract, useChainId, usePublicClient } from 'wagmi';
 import { parseUnits, erc20Abi } from 'viem';
 import { confirmSpin } from '@/lib/arcslots/arcslots.functions';
 import { ARCSLOTS_CONFIG, ARCSLOTS_TOKENS, ARCSLOTS_ADDRESS, SLOT_SYMBOLS } from '@/lib/arcslots/arcslots.constants';
-import { Zap, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Zap, Loader2, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface SlotMachineProps {
@@ -21,13 +21,41 @@ interface SlotMachineProps {
 export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachineProps) {
   const { isConnected, address: userAddress } = useAccount();
   const chainId = useChainId();
-  const { sendTransactionAsync } = useSendTransaction();
+  const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
   const [numSpins, setNumSpins] = useState('1');
   const [isSpinning, setIsSpinning] = useState(false);
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [lastSymbols, setLastSymbols] = useState<string[]>([]);
+
+  const ARCSLOTS_CONTRACT_ABI = [
+    {
+      name: 'spin',
+      type: 'function',
+      stateMutability: 'nonpayable',
+      inputs: [{ internalType: 'uint256', name: 'seed', type: 'uint256' }],
+      outputs: [
+        { internalType: 'uint8', name: 's1', type: 'uint8' },
+        { internalType: 'uint8', name: 's2', type: 'uint8' },
+        { internalType: 'uint8', name: 's3', type: 'uint8' },
+        { internalType: 'bool', name: 'wonJackpot', type: 'bool' },
+        { internalType: 'uint256', name: 'payout', type: 'uint256' },
+      ],
+    },
+    {
+      name: 'Spin',
+      type: 'event',
+      anonymous: false,
+      inputs: [
+        { indexed: true, internalType: 'address', name: 'player', type: 'address' },
+        { indexed: false, internalType: 'uint8', name: 's1', type: 'uint8' },
+        { indexed: false, internalType: 'uint8', name: 's2', type: 'uint8' },
+        { indexed: false, internalType: 'uint8', name: 's3', type: 'uint8' },
+        { indexed: false, internalType: 'uint256', name: 'payout', type: 'uint256' },
+      ],
+    },
+  ];
 
   // ⚠️ CRITICAL: Network Validation (Arc Testnet ID: 5042002)
   const EXPECTED_CHAIN_ID = 5042002;
@@ -77,36 +105,39 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
       const spinFeePerTx = parseUnits(ARCSLOTS_CONFIG.SPIN_FEE, ARCSLOTS_CONFIG.SPIN_FEE_USDC_DECIMALS);
       const totalFeeBN = spinFeePerTx * BigInt(spinCount);
 
-      // Step 2: Approve USDC spending
-      const approveTx = await writeContractAsync({
+      // Step 2: Approve USDC spending to ArcSlots contract
+      const approveHash = await writeContractAsync({
         address: ARCSLOTS_TOKENS.USDC_ADDRESS as `0x${string}`,
         abi: erc20Abi,
         functionName: 'approve',
         args: [ARCSLOTS_ADDRESS as `0x${string}`, totalFeeBN],
       });
-
       toast.loading('Approving USDC...');
+      await publicClient.waitForTransactionReceipt({ hash: approveHash, timeout: 120_000 });
+      toast.success('USDC approved. Sending spin...');
 
-      // Step 3: Generate spin results (random symbols)
+      // Step 3: Call ArcSlots spin() on-chain with a local seed
+      const seed = BigInt(Date.now());
+      const spinHash = await writeContractAsync({
+        address: ARCSLOTS_ADDRESS as `0x${string}`,
+        abi: ARCSLOTS_CONTRACT_ABI,
+        functionName: 'spin',
+        args: [seed],
+      });
+      toast.loading('Spin submitted to ArcSlots contract...');
+      await publicClient.waitForTransactionReceipt({ hash: spinHash, timeout: 120_000 });
+
+      // Step 4: Generate display symbols locally while the contract handles payment
       const symbols = Array.from({ length: 3 }, () =>
         SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)]
       );
       setLastSymbols(symbols);
 
-      // Step 4: Record spin on-chain with ArcSlots contract
-      const spinTx = await sendTransactionAsync({
-        to: ARCSLOTS_ADDRESS as `0x${string}`,
-        data: '0x', // Placeholder: normally encodes spin function call
-        value: BigInt(0),
-      });
-
-      toast.success('Spin recorded! Processing results...');
-
-      // Step 5: Confirm spin in database
+      // Step 5: Confirm spin in database backend
       const result = await confirmSpin(
         userAddress,
         spinCount,
-        spinTx,
+        spinHash,
         symbols
       );
 
@@ -120,7 +151,7 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
     } finally {
       setIsSpinning(false);
     }
-  }, [numSpins, userAddress, isConnected, isCorrectNetwork, sendTransactionAsync, writeContractAsync, onSpinComplete]);
+  }, [numSpins, userAddress, isConnected, isCorrectNetwork, writeContractAsync, onSpinComplete]);
 
   return (
     <div className="w-full max-w-md mx-auto p-6 rounded-xl bg-gradient-to-b from-slate-800 via-slate-900 to-black border border-cyan-500/20 shadow-2xl">
