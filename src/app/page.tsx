@@ -11,7 +11,7 @@ import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
 import { parseUnits, formatUnits, erc20Abi } from 'viem';
-import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp, Briefcase, PieChart } from 'lucide-react';
+import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp, Briefcase, PieChart, Dices } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi, USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS } from '@/lib/arcDefiAbi';
 import dynamic from 'next/dynamic';
@@ -61,10 +61,10 @@ export default function Home() {
   const getInitialView = () => {
     if (typeof window === 'undefined') return 'launcher';
     const hash = window.location.hash.replace('#', '');
-    const validViews = ['launcher','trade','social-pay','leaderboard','affiliates','earn','wallet','guide','staking','gigs','prediction-market'];
+    const validViews = ['launcher','trade','social-pay','leaderboard','affiliates','earn','wallet','guide','staking','gigs','prediction-market','slots'];
     return validViews.includes(hash) ? hash as any : 'launcher';
   };
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'staking' | 'gigs' | 'prediction-market'>(getInitialView);
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'staking' | 'gigs' | 'prediction-market' | 'slots'>(getInitialView);
 
   // Sync URL hash whenever view changes so refresh preserves position
   useEffect(() => {
@@ -929,6 +929,19 @@ export default function Home() {
               Predictions
             </button>
 
+            {/* ArcSlots Tab */}
+            <button 
+              onClick={() => setCurrentView('slots')}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'slots'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Dices size={16} className={currentView === 'slots' ? 'text-blue-600' : 'text-slate-400'} />
+              ArcSlots
+            </button>
+
             {/* Dedicated Leaderboard Tab */}
             <button 
               onClick={() => setCurrentView('leaderboard')}
@@ -1253,6 +1266,30 @@ export default function Home() {
             {/* PREDICTION MARKET TAB VIEW */}
             {currentView === 'prediction-market' && (
               <PredictionDashboard />
+            )}
+
+            {/* ARCSLOTS TAB VIEW */}
+            {currentView === 'slots' && (
+              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
+                <div className="text-center space-y-6 py-8">
+                  <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto">
+                    <Dices size={32} />
+                  </div>
+                  <div className="space-y-2 max-w-md mx-auto">
+                    <h2 className="text-2xl font-black text-slate-900">ArcSlots Game</h2>
+                    <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                      Click below to open the full ArcSlots experience with real-time gameplay, prize tables, and instant payouts.
+                    </p>
+                  </div>
+                  <a 
+                    href="/slots"
+                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm rounded-2xl shadow-lg shadow-blue-500/20 transition-all hover:shadow-lg hover:shadow-blue-500/30 active:scale-95 cursor-pointer"
+                  >
+                    <Dices size={18} />
+                    Play ArcSlots Now
+                  </a>
+                </div>
+              </div>
             )}
 
             {/* LEADERBOARD TAB VIEW */}
