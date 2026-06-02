@@ -113,6 +113,9 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
         args: [ARCSLOTS_ADDRESS as `0x${string}`, totalFeeBN],
       });
       toast.loading('Approving USDC...');
+      if (!publicClient) {
+        throw new Error('Network client unavailable. Please refresh and try again.');
+      }
       await publicClient.waitForTransactionReceipt({ hash: approveHash, timeout: 120_000 });
       toast.success('USDC approved. Sending spin...');
 
