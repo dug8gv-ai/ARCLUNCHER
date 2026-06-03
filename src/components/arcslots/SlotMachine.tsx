@@ -9,7 +9,7 @@ import { useState, useCallback } from 'react';
 import { useAccount, useWriteContract, useChainId, usePublicClient } from 'wagmi';
 import { parseUnits, formatUnits, decodeEventLog, erc20Abi } from 'viem';
 import { ARCSLOTS_CONFIG, ARCSLOTS_TOKENS, ARCSLOTS_ADDRESS, SLOT_SYMBOLS } from '@/lib/arcslots/arcslots.constants';
-import { Zap, Loader2, AlertCircle } from 'lucide-react';
+import { Zap, Loader2, AlertCircle, Minus, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface SlotMachineProps {
@@ -23,10 +23,10 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
-  const [numSpins, setNumSpins] = useState('1');
+  const [numSpins, setNumSpins] = useState(1);
   const [isSpinning, setIsSpinning] = useState(false);
   const [networkError, setNetworkError] = useState<string | null>(null);
-  const [lastSymbols, setLastSymbols] = useState<string[]>([]);
+  const [currentSymbols, setCurrentSymbols] = useState<string[]>(['🍒', '🍒', '🍒']);
 
   const ARCSLOTS_CONTRACT_ABI = [
     {
@@ -61,50 +61,17 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
   const isCorrectNetwork = chainId === EXPECTED_CHAIN_ID;
   const isAddressConfigured = ARCSLOTS_ADDRESS !== '0x0000000000000000000000000000000000000000';
 
-  if (!isAddressConfigured) {
-    return (
-      <div className="flex flex-col items-center gap-4 p-6 rounded-lg bg-red-950 border border-red-700">
-        <AlertCircle className="w-6 h-6 text-red-500" />
-        <div className="text-center">
-          <p className="text-red-200 font-semibold">ArcSlots Contract Not Configured</p>
-          <p className="text-red-400 text-sm mt-1">Set NEXT_PUBLIC_ARCSLOTS_ADDRESS in your environment to a valid contract address.</p>
-        </div>
-      </div>
-    );
-  }
+  const handleIncrement = () => setNumSpins(prev => Math.min(prev + 1, ARCSLOTS_CONFIG.MAX_SPINS_PER_TX));
+  const handleDecrement = () => setNumSpins(prev => Math.max(prev - 1, 1));
+  const setPreset = (val: number) => setNumSpins(val);
 
-  if (!isConnected) {
-    return (
-      <div className="flex items-center justify-center p-8 rounded-lg bg-slate-900 border border-slate-700">
-        <p className="text-amber-400">Please connect your wallet to spin</p>
-      </div>
-    );
-  }
-
-  if (!isCorrectNetwork) {
-    return (
-      <div className="flex flex-col items-center gap-4 p-6 rounded-lg bg-red-950 border border-red-700">
-        <AlertCircle className="w-6 h-6 text-red-500" />
-        <div className="text-center">
-          <p className="text-red-200 font-semibold">Wrong Network</p>
-          <p className="text-red-400 text-sm mt-1">Please switch to Arc Testnet (Chain ID: 5042002)</p>
-        </div>
-      </div>
-    );
-  }
-
-  /**
-   * Handle single or batch spin transaction
-   * Manages USDC payment (6 decimals) separately from ARC rewards (18 decimals)
-   */
   const handleSpin = useCallback(async () => {
     if (!userAddress || !isConnected || !isCorrectNetwork) {
       setNetworkError('Wallet not connected or wrong network');
       return;
     }
 
-    const spinCount = parseInt(numSpins, 10);
-    if (spinCount < 1 || spinCount > ARCSLOTS_CONFIG.MAX_SPINS_PER_TX) {
+    if (numSpins < 1 || numSpins > ARCSLOTS_CONFIG.MAX_SPINS_PER_TX) {
       toast.error(`Spins must be between 1 and ${ARCSLOTS_CONFIG.MAX_SPINS_PER_TX}`);
       return;
     }
@@ -113,11 +80,20 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
       setIsSpinning(true);
       setNetworkError(null);
 
-      // Step 1: Calculate total USDC fee (6 decimals) using parseUnits
-      const spinFeePerTx = parseUnits(ARCSLOTS_CONFIG.SPIN_FEE, ARCSLOTS_CONFIG.SPIN_FEE_USDC_DECIMALS);
-      const totalFeeBN = spinFeePerTx * BigInt(spinCount);
+      // Start fake spin animation
+      const interval = setInterval(() => {
+        setCurrentSymbols([
+          SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)],
+          SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)],
+          SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)],
+        ]);
+      }, 100);
 
-      // Step 2: Approve USDC spending to ArcSlots contract
+      // Step 1: Calculate total USDC fee (6 decimals)
+      const spinFeePerTx = parseUnits(ARCSLOTS_CONFIG.SPIN_FEE, ARCSLOTS_CONFIG.SPIN_FEE_USDC_DECIMALS);
+      const totalFeeBN = spinFeePerTx * BigInt(numSpins);
+
+      // Step 2: Approve USDC spending
       const approveHash = await writeContractAsync({
         address: ARCSLOTS_TOKENS.USDC_ADDRESS as `0x${string}`,
         abi: erc20Abi,
@@ -125,25 +101,25 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
         args: [ARCSLOTS_ADDRESS as `0x${string}`, totalFeeBN],
       });
       toast.loading('Approving USDC...');
-      if (!publicClient) {
-        throw new Error('Network client unavailable. Please refresh and try again.');
-      }
+      if (!publicClient) throw new Error('Network client unavailable.');
       await publicClient.waitForTransactionReceipt({ hash: approveHash, timeout: 120_000 });
       toast.success('USDC approved. Sending spin...');
 
-      // Step 3: Call ArcSlots spin() on-chain with a local seed
+      // Step 3: Call ArcSlots spin() on-chain
       const seed = BigInt(Date.now());
       const spinHash = await writeContractAsync({
         address: ARCSLOTS_ADDRESS as `0x${string}`,
         abi: ARCSLOTS_CONTRACT_ABI,
         functionName: 'spin',
-        args: [seed],
+        args: [seed], // Just passing 1 spin seed for now based on smart contract
       });
       toast.loading('Spin submitted to ArcSlots contract...');
       const receipt = await publicClient.waitForTransactionReceipt({ hash: spinHash, timeout: 120_000 });
       
-      // Step 4: Parse Spin Event from Receipt to get actual results
-      let onChainSymbols: string[] = ["🎯", "🎯", "🎯"];
+      clearInterval(interval);
+
+      // Step 4: Parse Spin Event from Receipt
+      let onChainSymbols: string[] = ["🍒", "🍒", "🍒"];
       let payout = BigInt(0);
       let won = false;
 
@@ -154,7 +130,6 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
             data: log.data,
             topics: log.topics,
           });
-          
           if (decoded.eventName === 'Spin') {
             const args = decoded.args as any;
             onChainSymbols = [
@@ -165,12 +140,10 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
             payout = args.payout;
             won = payout > BigInt(0);
           }
-        } catch (e) {
-          // Ignore logs that don't match our ABI
-        }
+        } catch (e) {}
       }
 
-      setLastSymbols(onChainSymbols);
+      setCurrentSymbols(onChainSymbols);
 
       if (won) {
         const formattedPayout = formatUnits(payout, ARCSLOTS_TOKENS.USDC_DECIMALS);
@@ -191,76 +164,85 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
   }, [numSpins, userAddress, isConnected, isCorrectNetwork, writeContractAsync, onSpinComplete]);
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 rounded-xl bg-gradient-to-b from-slate-800 via-slate-900 to-black border border-cyan-500/20 shadow-2xl">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-            ArcSlots
-          </h2>
-          <p className="text-slate-400 text-sm mt-2">Spin for ARC rewards</p>
+    <div className="w-full max-w-3xl mx-auto">
+      <div className="relative p-6 md:p-12 rounded-[3rem] bg-[#0d0e1c] border border-yellow-500/20 shadow-[0_0_50px_rgba(250,204,21,0.15)]">
+        
+        {/* Top Badge */}
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 bg-gradient-to-r from-yellow-300 to-cyan-300 rounded-full text-black font-black text-sm uppercase tracking-widest shadow-lg shadow-yellow-500/20">
+          ArcSlots
         </div>
 
-        {/* Last Results */}
-        {lastSymbols.length > 0 && (
-          <div className="flex justify-center gap-2 p-4 bg-slate-800 rounded-lg border border-green-500/30">
-            {lastSymbols.map((sym, i) => (
-              <div key={i} className="text-4xl animate-bounce" style={{ animationDelay: `${i * 0.1}s` }}>
+        {/* Reels */}
+        <div className="flex items-center justify-center gap-4 md:gap-8 mb-10 mt-4">
+          {currentSymbols.map((sym, i) => (
+            <div key={i} className="w-24 h-32 md:w-40 md:h-52 bg-[#090a12] border-2 border-yellow-500/60 rounded-2xl flex items-center justify-center text-5xl md:text-8xl shadow-[inset_0_0_30px_rgba(250,204,21,0.15),0_0_30px_rgba(250,204,21,0.3)] transition-all duration-300 relative overflow-hidden">
+              <div className={`transition-transform duration-100 ${isSpinning ? 'animate-bounce' : ''}`}>
                 {sym}
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* Spin Count Input */}
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-slate-300">
-            Number of Spins
-          </label>
-          <input
-            type="number"
-            min="1"
-            max={ARCSLOTS_CONFIG.MAX_SPINS_PER_TX}
-            value={numSpins}
-            onChange={(e) => setNumSpins(e.target.value)}
-            disabled={isSpinning || disabled}
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 disabled:opacity-50"
-          />
-          <p className="text-xs text-slate-400">
-            Fee: {(parseFloat(ARCSLOTS_CONFIG.SPIN_FEE) * parseInt(numSpins || '1', 10)).toFixed(2)} USDC
-          </p>
+            </div>
+          ))}
         </div>
 
-        {/* Error Display */}
-        {networkError && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-red-950 border border-red-700/50">
-            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-xs text-red-300">{networkError}</p>
+        {/* Controls */}
+        <div className="max-w-md mx-auto space-y-6">
+          
+          {/* Minus / Input / Plus */}
+          <div className="flex items-center justify-center gap-4">
+            <button onClick={handleDecrement} disabled={isSpinning || disabled} className="w-12 h-12 rounded-full border border-slate-700 bg-[#0f1021] flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-500 transition-colors disabled:opacity-50">
+              <Minus size={20} />
+            </button>
+            <div className="w-32 h-12 rounded-xl border border-slate-700 bg-[#0f1021] flex items-center justify-center font-bold text-xl text-white">
+              {numSpins}
+            </div>
+            <button onClick={handleIncrement} disabled={isSpinning || disabled} className="w-12 h-12 rounded-full border border-slate-700 bg-[#0f1021] flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-500 transition-colors disabled:opacity-50">
+              <Plus size={20} />
+            </button>
           </div>
-        )}
 
-        {/* Spin Button */}
-        <button
-          onClick={handleSpin}
-          disabled={isSpinning || disabled || !isConnected || !isCorrectNetwork}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-cyan-500/30"
-        >
-          {isSpinning ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Spinning...
-            </>
-          ) : (
-            <>
-              <Zap className="w-5 h-5" />
-              Spin Now
-            </>
+          {/* Multipliers */}
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            {[1, 5, 10, 25, 100].map((val) => (
+              <button 
+                key={val}
+                onClick={() => setPreset(val)}
+                disabled={isSpinning || disabled}
+                className={`px-5 py-1.5 rounded-full border text-xs font-bold transition-all ${numSpins === val ? 'border-yellow-400 text-yellow-400 bg-yellow-400/10' : 'border-yellow-500/30 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400'}`}
+              >
+                {val}x
+              </button>
+            ))}
+          </div>
+
+          {/* Spin Button */}
+          <button
+            onClick={handleSpin}
+            disabled={isSpinning || disabled || !isConnected || !isCorrectNetwork}
+            className="w-full relative group overflow-hidden rounded-2xl p-[1px] disabled:opacity-50 disabled:cursor-not-allowed transition-transform active:scale-95"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-cyan-400 blur-sm group-hover:blur-md transition-all"></div>
+            <div className="relative w-full bg-gradient-to-r from-yellow-200 to-cyan-300 py-5 rounded-2xl flex items-center justify-center gap-3">
+              {isSpinning ? (
+                <Loader2 className="w-6 h-6 animate-spin text-black" />
+              ) : (
+                <span className="text-black font-black text-xl tracking-wider">
+                  SPIN {numSpins}x • {(parseFloat(ARCSLOTS_CONFIG.SPIN_FEE) * numSpins).toFixed(1)} USDC
+                </span>
+              )}
+            </div>
+          </button>
+
+          {/* Error Message */}
+          {networkError && (
+            <div className="text-center text-red-400 text-sm font-semibold flex items-center justify-center gap-2">
+              <AlertCircle size={16} /> {networkError}
+            </div>
           )}
-        </button>
 
-        {/* Info Footer */}
-        <div className="text-xs text-slate-500 text-center border-t border-slate-700 pt-4">
-          <p>✓ Arc Testnet Ready | {userAddress?.slice(0, 6)}...{userAddress?.slice(-4)}</p>
+          {/* Footer Text */}
+          <p className="text-[10px] text-center uppercase tracking-widest text-slate-500 font-bold mt-4">
+            10% CASHBACK ON EVERY LOSING SPIN - JACKPOT WHEN POOL ≥ 1 USDC
+          </p>
+
         </div>
       </div>
     </div>

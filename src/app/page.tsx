@@ -27,6 +27,7 @@ import UserGuide from '@/components/UserGuide';
 import { FreelanceHub } from '@/components/FreelanceHub';
 import { PredictionDashboard } from '@/components/PredictionDashboard';
 import { SlotMachine } from '@/components/arcslots/SlotMachine';
+import { ArcSlotsDashboard } from '@/components/arcslots/ArcSlotsDashboard';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -1272,7 +1273,7 @@ export default function Home() {
             {/* ARCSLOTS TAB VIEW */}
             {currentView === 'slots' && (
               <div className="animate-in fade-in duration-200">
-                <SlotMachine />
+                <ArcSlotsDashboard />
               </div>
             )}
 

@@ -1,0 +1,90 @@
+<USER_REQUEST>
+es arcslot game feature ko completely real live kerdo contract ager depyed kerna hy to kerlo cahy sirf eor sirf arcslot ko shi kerna other kesi bi code ko nhi touch kerna . tum arcslote walal code check kerlo ArcSlots — Project Code Book
+Complete source dump: smart contract, server functions, database migrations, frontend components, and config.
+Stack: TanStack Start (React 19) + Vite + Tailwind v4 + Supabase + Wagmi/RainbowKit + Arc Testnet (chain
+5042002) + Cloudflare Workers.  Smart Contract — contracts/ArcSlots.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+/// @notice Minimal ERC20 interface
+interface IERC20 {
+ function transferFrom(address from, address to, uint256 amount) external returns (bool);
+ function transfer(address to, uint256 amount) external returns (bool);
+ function balanceOf(address account) external view returns (uint256);
+}
+/// @title ArcSlots — Decentralized Global Pool Slot Machine
+/// @notice Each spin costs `spinFee` USDC. 90% accumulates in the global pool,
+/// 10% goes to the treasury. Matching three jackpot symbols pays the
+/// entire pool to the winner (minus a small platform fee).
+contract ArcSlots {
+ IERC20 public immutable usdc;
+ address public treasury;
+ address public owner;
+ uint256 public spinFee = 100_000; // 0.1 USDC (6 decimals)
+ uint256 public poolBps = 9_000; // 90% to pool
+ uint256 public platformFeeBps = 200; // 2% taken from jackpot payout
+ uint256 public poolBalance;
+ uint256 private nonce;
+ uint8 public constant SYMBOLS = 8;
+ uint8 public constant JACKPOT_SYMBOL = 7;
+ event Spin(address indexed player, uint8 s1, uint8 s2, uint8 s3, uint256 payout);
+ event Jackpot(address indexed winner, uint256 amount);
+ modifier onlyOwner() { require(msg.sender == owner, "not owner"); _; }
+ constructor(address _usdc, address _treasury) {
+ usdc = IERC20(_usdc);
+ treasury = _treasury;
+ owner = msg.sender;
+ }
+ function spin(uint256 seed) external returns (uint8 s1, uint8 s2, uint8 s3, bool wonJackpot, uint256 payout) {
+ // Pull spin fee
+ require(usdc.t
+<truncated 45215 bytes>
+) + 8px);
+ --radius-3xl: calc(var(--radius) + 12px);
+ --radius-4xl: calc(var(--radius) + 16px);
+ --color-background: var(--background);
+ --color-foreground: var(--foreground);
+ --color-card: var(--card);
+ --color-card-foreground: var(--card-foreground);
+ --color-popover: var(--popover);
+ --color-popover-foreground: var(--popover-foreground);
+ --color-primary: var(--primary);
+ --color-primary-foreground: var(--primary-foreground);
+ --color-secondary: var(--secondary);
+ --color-secondary-foreground: var(--secondary-foreground);
+ --color-muted: var(--muted);
+ --color-muted-foreground: var(--muted-foreground);
+ --color-accent: var(--accent);
+ --color-accent-foreground: var(--accent-foreground);
+ --color-destructive: var(--destructive);
+ --color-destructive-foreground: var(--destructive-foreground);
+ --color-border: var(--border);
+ --color-input: var(--input);
+ --color-ring: var(--ring);
+ --color-ring-offset-background: var(--background);
+ --color-chart-1: var(--chart-1);
+ --color-chart-2: var(--chart-2);
+ --color-chart-3: var(--chart-3);
+ --color-chart-4: var(--chart-4);
+ --color-chart-5: var(--chart-5);
+ --color-sidebar: var(--sidebar);
+ --color-sidebar-foreground: var(--sidebar-foreground);
+ --color-sidebar-primary: var(--sidebar-primary);
+ --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+ --color-sidebar-accent: var(--sidebar-accent);
+ --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+ --color-sidebar-border: var(--sidebar-border);
+ --color-sidebar-ring: var(--sidebar-ring);
+}
+:root {
+ --radius: 0.625rem;
+ /* Luxury Casino Neon — gold + cyan on deep midnight */
+ --background: oklch(0.16 0.04 270);
+ --foreground: oklch(0.97 0.02 95);
+ --card: oklch(0.21 0.05 270);
+ --card-foreground: oklch(0.97 0.02 95);
+ --popover: oklch(0.21 0.05 270);
+ --popover-foreground: oklch(0.97 0.02 95);
+ --primary: oklch(0.85 0.17 90); /* 
+<truncated 24352 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

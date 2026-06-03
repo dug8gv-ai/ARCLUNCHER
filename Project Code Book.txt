@@ -1,0 +1,3 @@
+Complete source dump: smart contract, server functions, database migrations, frontend components, and config.
+Stack: TanStack Start (React 19) + Vite + Tailwind v4 + Supabase + Wagmi/RainbowKit + Arc Testnet (chain
+5042002) + Cloudflare Workers.  Smart Contract 
