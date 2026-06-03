@@ -57,27 +57,30 @@ export function UserProfileDrawer() {
         return;
       }
 
-      // Case 2: Username search (strip leading @)
-      const username = input.startsWith('@') ? input.slice(1) : input;
+      // Case 2: Username search — try all variants
+      const withAt = input.startsWith('@') ? input : `@${input}`;
+      const withoutAt = input.startsWith('@') ? input.slice(1) : input;
 
-      const { data, error } = await supabase
+      // Try exact match with @, without @, and partial match
+      const { data } = await supabase
         .from('profiles')
         .select('wallet, name, avatar, twitter, discord')
-        .ilike('name', username)
-        .limit(1)
-        .single();
+        .or(`name.ilike.${withAt},name.ilike.${withoutAt},name.ilike.%${withoutAt}%`)
+        .limit(1);
 
-      if (error || !data) {
+      if (!data || data.length === 0) {
         toast.error(`No user found with username "${input}"`);
         return;
       }
 
+      const found = data[0];
+
       setActiveProfile({
-        wallet: data.wallet,
-        name: data.name,
-        avatar: data.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${data.wallet}`,
-        twitter: data.twitter,
-        discord: data.discord,
+        wallet: found.wallet,
+        name: found.name,
+        avatar: found.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${found.wallet}`,
+        twitter: found.twitter,
+        discord: found.discord,
       });
     } catch (err) {
       console.error('Search error:', err);
