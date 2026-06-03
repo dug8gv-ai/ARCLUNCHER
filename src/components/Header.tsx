@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { erc20Abi, formatUnits } from 'viem';
 import { USDC_ADDRESS, EURC_ADDRESS } from '@/lib/arcDefiAbi';
+import toast from 'react-hot-toast';
 
 // Premium Web3 preset avatars for single-click selection
 const PRESET_AVATARS = [
@@ -228,14 +229,14 @@ export function Header() {
       }
 
       if (error) {
-        alert('Error saving profile: ' + error.message);
+        toast.error('Error saving profile: ' + error.message);
       } else {
         setIsModalOpen(false);
         fetchProfileAndStats();
       }
     } catch (err: any) {
       console.error(err);
-      alert('Error updating profile: ' + err.message);
+      toast.error('Error updating profile: ' + err.message);
     } finally {
       setSaving(false);
     }
@@ -440,7 +441,7 @@ export function Header() {
                         const file = e.target.files?.[0];
                         if (file) {
                           if (file.size > 200 * 1024) {
-                            alert("Image is too large! Please upload a photo under 200KB.");
+                            toast.error("Image is too large! Please upload a photo under 200KB.");
                             return;
                           }
                           const reader = new FileReader();

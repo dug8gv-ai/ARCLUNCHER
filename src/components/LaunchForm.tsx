@@ -5,6 +5,7 @@ import { Rocket, CheckCircle2, Loader2 } from 'lucide-react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { parseUnits, erc20Abi, decodeEventLog } from 'viem';
 import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 
 // ABI snippet for ArcOmni
 const ARC_LAUNCHER_ABI = [
@@ -89,7 +90,7 @@ export function LaunchForm() {
       setFormData({ ...formData, image: publicUrl });
     } catch (error: any) {
       console.error('Error uploading image:', error.message);
-      alert('Error uploading image: ' + error.message);
+      toast.error('Error uploading image: ' + error.message);
     } finally {
       setUploading(false);
     }
@@ -97,11 +98,11 @@ export function LaunchForm() {
 
   const handleLaunch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isConnected) return alert("Please connect your wallet first.");
-    if (!publicClient) return alert("Network error. Please refresh.");
+    if (!isConnected) return toast.error("Please connect your wallet first.");
+    if (!publicClient) return toast.error("Network error. Please refresh.");
     
     if (ARC_LAUNCHER_ADDRESS === '0x0000000000000000000000000000000000000000') {
-      return alert("Launcher address is not configured. Please set NEXT_PUBLIC_LAUNCHER_ADDRESS.");
+      return toast.error("Launcher address is not configured. Please set NEXT_PUBLIC_LAUNCHER_ADDRESS.");
     }
 
     try {
@@ -193,7 +194,7 @@ export function LaunchForm() {
       }
 
       console.log("FINAL TOKEN ADDRESS:", finalTokenAddress);
-      alert(`TOKEN CREATED!\nAddress: ${finalTokenAddress}\nSyncing with dashboard...`);
+      toast.success(`TOKEN CREATED! Syncing with dashboard...`);
 
 
       // Step 4: Sync with Database (Supabase)
@@ -207,13 +208,12 @@ export function LaunchForm() {
           ticker: formData.ticker,
           supply: Number(formData.supply), 
           initial_supply: Number(formData.supply),
-          liquidity: 3,           // current liquidity
           image_url: formData.image || null
         });
 
       if (dbError) {
         console.error("Database sync error:", dbError);
-        alert("Transaction successful, but failed to sync with dashboard: " + dbError.message);
+        toast.error("Transaction successful, but failed to sync with dashboard: " + dbError.message);
       } else {
         console.log("Database synced successfully!");
       }
@@ -231,7 +231,7 @@ export function LaunchForm() {
       setStatus('idle');
       // Show more specific error if available
       const errorMsg = error?.shortMessage || error?.message || "Transaction failed or was rejected.";
-      alert(errorMsg);
+      toast.error(errorMsg);
     }
   };
 

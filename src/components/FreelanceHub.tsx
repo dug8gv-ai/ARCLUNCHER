@@ -5,6 +5,7 @@ import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { parseUnits, erc20Abi } from 'viem';
 import { supabase } from '@/lib/supabase';
 import { Briefcase, Loader2, Plus, Clock, CheckCircle2, DollarSign, Send, MessageCircle, X, ImagePlus, AlertTriangle, Trash2, Bell } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x3600000000000000000000000000000000000000';
 
@@ -197,7 +198,7 @@ export function FreelanceHub() {
 
   const handlePostGig = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userAddress) return alert('Please connect wallet first.');
+    if (!userAddress) return toast.error('Please connect wallet first.');
     try {
       setPostLoading(true);
       const { error } = await supabase.from('freelance_gigs').insert({
@@ -207,7 +208,7 @@ export function FreelanceHub() {
         proposal_image1: isProposal ? (proposalImage1 || null) : null,
         proposal_image2: isProposal ? (proposalImage2 || null) : null,
       });
-      if (error) { alert('Failed to post gig: ' + error.message); return; }
+      if (error) { toast.error('Failed to post gig: ' + error.message); return; }
       setIsPosting(false); setNewTitle(''); setNewDesc(''); setNewBudget('');
       setNewImage(null); setIsProposal(false); setProposalImage1(null); setProposalImage2(null);
       fetchGigs();
@@ -222,7 +223,7 @@ export function FreelanceHub() {
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
     if (Date.now() - lastDelete < oneWeek) {
       const daysLeft = Math.ceil((oneWeek - (Date.now() - lastDelete)) / (24 * 60 * 60 * 1000));
-      alert(`You can only delete 1 gig per week. Try again in ${daysLeft} day(s).`);
+      toast.error(`You can only delete 1 gig per week. Try again in ${daysLeft} day(s).`);
       return;
     }
     if (!confirm(`Delete "${gig.title}"? This cannot be undone.`)) return;
@@ -230,14 +231,14 @@ export function FreelanceHub() {
       setDeleteLoading(gig.id);
       await supabase.from('gig_messages').delete().eq('gig_id', gig.id);
       const { error } = await supabase.from('freelance_gigs').delete().eq('id', gig.id);
-      if (error) { alert('Delete failed: ' + error.message); return; }
+      if (error) { toast.error('Delete failed: ' + error.message); return; }
       localStorage.setItem(key, String(Date.now()));
       fetchGigs();
     } catch (err) { console.error(err); } finally { setDeleteLoading(null); }
   };
 
   const handleApply = async (gigId: string) => {
-    if (!userAddress) return alert('Please connect wallet.');
+    if (!userAddress) return toast.error('Please connect wallet.');
     await supabase.from('freelance_gigs').update({ status: 'IN_PROGRESS', freelancer_wallet: userAddress.toLowerCase() }).eq('id', gigId);
     fetchGigs();
   };
@@ -259,7 +260,7 @@ export function FreelanceHub() {
       setPayConfirmGig(null);
       fetchGigs();
     } catch (err: any) {
-      alert('Payment failed: ' + (err.shortMessage || err.message || 'Unknown error'));
+      toast.error('Payment failed: ' + (err.shortMessage || err.message || 'Unknown error'));
     } finally { setPayLoading(false); }
   };
 
@@ -276,11 +277,11 @@ export function FreelanceHub() {
         args: [directPayTarget.wallet as `0x${string}`, amountWei],
       });
       await publicClient?.waitForTransactionReceipt({ hash: txHash });
-      alert(`✓ Sent ${directPayAmount} USDC to ${directPayTarget.name}`);
+      toast.success(`✓ Sent ${directPayAmount} USDC to ${directPayTarget.name}`);
       setDirectPayTarget(null);
       setDirectPayAmount('');
     } catch (err: any) {
-      alert('Payment failed: ' + (err.shortMessage || err.message || 'Unknown error'));
+      toast.error('Payment failed: ' + (err.shortMessage || err.message || 'Unknown error'));
     } finally { setDirectPayLoading(false); }
   };
 
@@ -296,7 +297,7 @@ export function FreelanceHub() {
       });
       if (error) {
         console.error('Chat insert error:', error);
-        alert('Message failed: ' + error.message + '\n\nFix: Run this SQL in Supabase:\nALTER TABLE gig_messages DISABLE ROW LEVEL SECURITY;');
+        toast.error('Message failed: ' + error.message + '\n\nFix: Run this SQL in Supabase:\nALTER TABLE gig_messages DISABLE ROW LEVEL SECURITY;');
         return;
       }
       setChatInput('');
@@ -304,7 +305,7 @@ export function FreelanceHub() {
       await fetchChatMessages(chatGig.id);
     } catch (err: any) {
       console.error(err);
-      alert('Message failed: ' + (err.message || 'Unknown error'));
+      toast.error('Message failed: ' + (err.message || 'Unknown error'));
     } finally { setChatSending(false); }
   };
 
