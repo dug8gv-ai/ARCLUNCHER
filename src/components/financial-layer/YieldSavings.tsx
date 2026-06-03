@@ -259,7 +259,7 @@ export default function YieldSavings() {
     <div className="space-y-6">
       
       {/* Tab Selectors */}
-      <div className="flex gap-2 p-1 bg-slate-100 border border-slate-200/50 rounded-2xl">
+      <div className="flex gap-2 p-1 bg-slate-100 border border-[var(--border-dim)] rounded-2xl">
         <button
           type="button"
           onClick={() => {
@@ -267,7 +267,7 @@ export default function YieldSavings() {
             setAmountInput('');
           }}
           className={`flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-            activeTab === 'USDC' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'USDC' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
           💵 USDC Staking Vault (8.5% APY)
@@ -279,7 +279,7 @@ export default function YieldSavings() {
             setAmountInput('');
           }}
           className={`flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-            activeTab === 'EURC' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'EURC' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
           🇪🇺 EURC Staking Vault (6.2% APY)
@@ -289,40 +289,40 @@ export default function YieldSavings() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* Real-time Ticker Card */}
-        <div className="md:col-span-7 bg-slate-900 border border-slate-850 rounded-[32px] p-6 sm:p-8 text-white relative overflow-hidden shadow-xl flex flex-col justify-between min-h-[300px]">
+        <div className="md:col-span-7 bg-slate-900 border border-[var(--border-dim)] rounded-[32px] p-6 sm:p-8 text-white relative overflow-hidden shadow-xl flex flex-col justify-between min-h-[300px]">
           {/* Subtle neon glowing backdrops */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none -z-10" />
+          <div className="absolute top-0 right-0 w-48 h-48 bg-[rgba(0,242,254,0.05)]0/10 rounded-full blur-[80px] pointer-events-none -z-10" />
           <div className="absolute bottom-0 left-0 w-36 h-36 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none -z-10" />
 
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="bg-blue-500/20 text-blue-300 border border-blue-500/20 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1">
+              <span className="bg-[rgba(0,242,254,0.05)]0/20 text-blue-300 border border-blue-500/20 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1">
                 <ShieldCheck size={11} /> Secured Smart Yield
               </span>
-              <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1"><Clock size={12} /> Compounding Live</span>
+              <span className="text-[10px] text-[var(--text-secondary)] font-bold flex items-center gap-1"><Clock size={12} /> Compounding Live</span>
             </div>
 
             <div className="space-y-1.5 pt-4">
-              <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block">Total Yield Earned</span>
+              <span className="text-[10px] text-[var(--text-secondary)] font-black uppercase tracking-widest block">Total Yield Earned</span>
               
               {/* Giant Digital Counter */}
               <div className="text-3xl sm:text-4xl font-black font-mono tracking-tight text-blue-400 flex items-baseline gap-1">
                 <span>{currentInterestEarned.toFixed(8)}</span>
-                <span className="text-sm text-slate-400 font-extrabold">{activeTab}</span>
+                <span className="text-sm text-[var(--text-secondary)] font-extrabold">{activeTab}</span>
               </div>
             </div>
           </div>
 
           {/* Stats Bar */}
-          <div className="grid grid-cols-2 gap-4 border-t border-slate-800 pt-6 mt-6">
+          <div className="grid grid-cols-2 gap-4 border-t border-[var(--border-dim)] pt-6 mt-6">
             <div className="space-y-1">
-              <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">My Staked Balance</span>
+              <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">My Staked Balance</span>
               <span className="text-lg font-black text-slate-100 font-mono">
                 {currentVaultBalance.toFixed(2)} {activeTab}
               </span>
             </div>
             <div className="space-y-1 text-right">
-              <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Estimated Annual APY</span>
+              <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Estimated Annual APY</span>
               <span className="text-lg font-black text-emerald-400 flex items-center justify-end gap-0.5">
                 <Percent size={14} className="mt-0.5" /> {(activeApy * 100).toFixed(1)}%
               </span>
@@ -332,9 +332,9 @@ export default function YieldSavings() {
         </div>
 
         {/* Action Panel */}
-        <div className="md:col-span-5 bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm flex flex-col justify-between">
+        <div className="md:col-span-5 card rounded-[32px] p-6 shadow-sm flex flex-col justify-between">
           <div className="space-y-4">
-            <div className="flex gap-2 p-1 bg-slate-50 border border-slate-100 rounded-xl">
+            <div className="flex gap-2 p-1 bg-slate-50 border border-[var(--border-dim)] rounded-xl">
               <button
                 type="button"
                 onClick={() => {
@@ -342,7 +342,7 @@ export default function YieldSavings() {
                   setAmountInput('');
                 }}
                 className={`flex-1 py-2 rounded-lg font-extrabold text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
-                  txType === 'deposit' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/20' : 'text-slate-400'
+                  txType === 'deposit' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)]'
                 }`}
               >
                 <ArrowDown size={11} className="inline mr-1" /> Deposit
@@ -354,7 +354,7 @@ export default function YieldSavings() {
                   setAmountInput('');
                 }}
                 className={`flex-1 py-2 rounded-lg font-extrabold text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
-                  txType === 'withdraw' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/20' : 'text-slate-400'
+                  txType === 'withdraw' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)]'
                 }`}
               >
                 <ArrowUp size={11} className="inline mr-1" /> Withdraw
@@ -367,7 +367,7 @@ export default function YieldSavings() {
                   <label className="text-[9px] font-black text-slate-450 uppercase tracking-widest block">
                     {txType === 'deposit' ? 'Stake Amount' : 'Withdraw Amount'}
                   </label>
-                  <span className="text-[9px] text-slate-400 font-bold">
+                  <span className="text-[9px] text-[var(--text-secondary)] font-bold">
                     Available: {txType === 'deposit' ? (activeTab === 'USDC' ? walletUsdc : walletEurc) : (activeTab === 'USDC' ? vaultUsdc : vaultEurc)} {activeTab}
                   </span>
                 </div>
@@ -379,12 +379,12 @@ export default function YieldSavings() {
                     placeholder="0.00"
                     value={amountInput}
                     onChange={(e) => setAmountInput(e.target.value)}
-                    className="w-full pl-4 pr-16 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-white transition-all"
+                    className="w-full pl-4 pr-16 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                   />
                   <button
                     type="button"
                     onClick={handleMaxAmount}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-blue-600 hover:bg-blue-50 border border-blue-200/30 px-2 py-1.5 rounded-lg transition-all cursor-pointer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-[var(--accent-cyan)] hover:bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] px-2 py-1.5 rounded-lg transition-all cursor-pointer"
                   >
                     MAX
                   </button>
@@ -401,7 +401,7 @@ export default function YieldSavings() {
             </form>
           </div>
 
-          <div className="border-t border-slate-100 pt-4 mt-4 text-[9.5px] font-bold text-slate-400 leading-normal flex items-start gap-2">
+          <div className="border-t border-[var(--border-dim)] pt-4 mt-4 text-[9.5px] font-bold text-[var(--text-secondary)] leading-normal flex items-start gap-2">
             <TrendingUp className="text-emerald-500 shrink-0 mt-0.5" size={13} />
             <span>
               Yield compounds continuously in real-time. Depositing stablecoins removes them from your active wallet, securing them inside the smart sandbox vault.
@@ -412,25 +412,25 @@ export default function YieldSavings() {
       </div>
 
       {/* Projections Section */}
-      <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-4">
-        <h3 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1"><TrendingUp size={15} className="text-blue-550" /> Wealth Generation Forecast</h3>
-        <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Estimated earnings projected based on your current vault balance. Actual gains accumulate dynamically every second.</p>
+      <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm space-y-4">
+        <h3 className="font-extrabold text-[var(--text-primary)] text-xs uppercase tracking-wider flex items-center gap-1"><TrendingUp size={15} className="text-blue-550" /> Wealth Generation Forecast</h3>
+        <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-0.5">Estimated earnings projected based on your current vault balance. Actual gains accumulate dynamically every second.</p>
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div className="bg-slate-50 border border-slate-200/50 p-4.5 rounded-2xl flex flex-col justify-between">
-            <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Daily Est. Reward</span>
-            <span className="text-base font-black text-slate-800 font-mono mt-1.5">
+          <div className="bg-slate-50 border border-[var(--border-dim)] p-4.5 rounded-2xl flex flex-col justify-between">
+            <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Daily Est. Reward</span>
+            <span className="text-base font-black text-[var(--text-primary)] font-mono mt-1.5">
               +{dailyEarnings.toFixed(4)} {activeTab}
             </span>
           </div>
-          <div className="bg-slate-50 border border-slate-200/50 p-4.5 rounded-2xl flex flex-col justify-between">
-            <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Monthly Est. Reward</span>
-            <span className="text-base font-black text-slate-800 font-mono mt-1.5">
+          <div className="bg-slate-50 border border-[var(--border-dim)] p-4.5 rounded-2xl flex flex-col justify-between">
+            <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Monthly Est. Reward</span>
+            <span className="text-base font-black text-[var(--text-primary)] font-mono mt-1.5">
               +{monthlyEarnings.toFixed(2)} {activeTab}
             </span>
           </div>
-          <div className="bg-slate-50 border border-slate-200/50 p-4.5 rounded-2xl flex flex-col justify-between">
-            <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Yearly Est. Reward</span>
+          <div className="bg-slate-50 border border-[var(--border-dim)] p-4.5 rounded-2xl flex flex-col justify-between">
+            <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Yearly Est. Reward</span>
             <span className="text-base font-black text-emerald-600 font-mono mt-1.5">
               +{yearlyEarnings.toFixed(2)} {activeTab}
             </span>

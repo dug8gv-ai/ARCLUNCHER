@@ -383,22 +383,22 @@ export function TradingPanel({ token }: TradingPanelProps) {
   };
 
   return (
-    <div className="glass-panel p-6 bg-white border border-slate-200/80">
+    <div className="glass-panel p-6 card">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="font-extrabold text-slate-800 flex items-center gap-2 text-base">
-          <ArrowUpDown size={18} className="text-blue-600" />
+        <h3 className="font-extrabold text-[var(--text-primary)] flex items-center gap-2 text-base">
+          <ArrowUpDown size={18} className="text-[var(--accent-cyan)]" />
           Trade {token.ticker}
         </h3>
         <div className="flex bg-slate-100 rounded-xl p-1 text-xs items-center gap-0.5">
           <button 
             onClick={() => setIsBuy(true)}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${isBuy ? 'bg-green-100 text-green-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${isBuy ? 'bg-green-100 text-green-700 shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
           >
             BUY
           </button>
           <button 
             onClick={() => setIsBuy(false)}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${!isBuy ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${!isBuy ? 'bg-red-100 text-red-700 shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
           >
             SELL
           </button>
@@ -406,7 +406,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
             onClick={() => {
               window.dispatchEvent(new CustomEvent('open-locker'));
             }}
-            className="px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold text-blue-600 hover:bg-blue-50/50 flex items-center gap-0.5"
+            className="px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold text-[var(--accent-cyan)] hover:bg-[rgba(0,242,254,0.05)] flex items-center gap-0.5"
           >
             🔒 LOCK
           </button>
@@ -414,23 +414,23 @@ export function TradingPanel({ token }: TradingPanelProps) {
       </div>
 
       <div className="space-y-5">
-        <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4">
-          <div className="flex justify-between text-[11px] text-slate-500 font-bold mb-2.5">
+        <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4">
+          <div className="flex justify-between text-[11px] text-[var(--text-secondary)] font-bold mb-2.5">
             <span>{isBuy ? 'Amount in USDC' : `Amount in ${token.ticker}`}</span>
             <div className="flex items-center gap-3">
               {isBuy ? (
                 <>
-                  <span className="flex items-center gap-1 font-medium"><Wallet size={11} className="text-slate-400" /> {balance} USDC</span>
+                  <span className="flex items-center gap-1 font-medium"><Wallet size={11} className="text-[var(--text-secondary)]" /> {balance} USDC</span>
                   <button 
                     onClick={() => setAmount(balance)}
-                    className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md border border-blue-100 hover:bg-blue-600 hover:text-white transition-all text-[10px] font-black cursor-pointer"
+                    className="bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] px-2 py-0.5 rounded-md border border-[var(--border-dim)] hover:bg-blue-600 hover:text-white transition-all text-[10px] font-black cursor-pointer"
                   >
                     MAX BUY
                   </button>
                 </>
               ) : (
                 <>
-                  <span className="flex items-center gap-1 font-medium"><TrendingUp size={11} className="text-slate-400" /> {tokenBalance} {token.ticker}</span>
+                  <span className="flex items-center gap-1 font-medium"><TrendingUp size={11} className="text-[var(--text-secondary)]" /> {tokenBalance} {token.ticker}</span>
                   <button 
                     onClick={() => setAmount(tokenBalance)}
                     className="bg-red-50 text-red-600 px-2 py-0.5 rounded-md border border-red-100 hover:bg-red-600 hover:text-white transition-all text-[10px] font-black cursor-pointer"
@@ -446,7 +446,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="w-full bg-transparent text-3xl font-bold font-mono text-slate-800 outline-none placeholder:text-slate-300"
+            className="w-full bg-transparent text-3xl font-bold font-mono text-[var(--text-primary)] outline-none placeholder:text-slate-300"
           />
         </div>
 
@@ -482,20 +482,20 @@ export function TradingPanel({ token }: TradingPanelProps) {
               });
             }
           }}
-          className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 text-xs hover:text-slate-800 hover:bg-slate-50 font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 rounded-xl border border-[var(--border-dim)] text-[var(--text-secondary)] text-xs hover:text-[var(--text-primary)] hover:bg-slate-50 font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
-          <Wallet size={14} className="text-slate-400" />
+          <Wallet size={14} className="text-[var(--text-secondary)]" />
           Add {token.ticker} to Wallet
         </button>
 
-        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-xs text-slate-500 space-y-1.5 font-medium">
+        <div className="bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] rounded-xl p-4 text-xs text-[var(--text-secondary)] space-y-1.5 font-medium">
           <p className="flex justify-between">
             <span>Price Impact</span>
-            <span className="text-slate-800">{'< 0.1%'}</span>
+            <span className="text-[var(--text-primary)]">{'< 0.1%'}</span>
           </p>
           <p className="flex justify-between">
             <span>Estimated {isBuy ? 'Received' : 'Output'}</span>
-            <span className="text-blue-600 font-extrabold">{estimatedTokens} {isBuy ? token.ticker : 'USDC'}</span>
+            <span className="text-[var(--accent-cyan)] font-extrabold">{estimatedTokens} {isBuy ? token.ticker : 'USDC'}</span>
           </p>
         </div>
       </div>
@@ -503,7 +503,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
       {/* Premium Styled Dialog Alert Overlay */}
       {premiumAlert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
-          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+          <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
             {/* Header Icon & Title */}
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${
@@ -511,7 +511,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
                   ? 'bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10' 
                   : premiumAlert.type === 'error'
                   ? 'bg-rose-500/10 text-rose-600 shadow-rose-500/10'
-                  : 'bg-blue-600/10 text-blue-600 shadow-blue-500/10'
+                  : 'bg-blue-600/10 text-[var(--accent-cyan)] shadow-blue-500/10'
               }`}>
                 {premiumAlert.type === 'success' ? (
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -522,17 +522,17 @@ export function TradingPanel({ token }: TradingPanelProps) {
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumAlert.title}</h3>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">ArcOmni Alert</p>
+                <h3 className="text-xs font-black tracking-wider text-[var(--text-primary)] uppercase">{premiumAlert.title}</h3>
+                <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">ArcOmni Alert</p>
               </div>
             </div>
 
             {/* Details List */}
-            <div className="space-y-3 bg-slate-50 border border-slate-100 rounded-2xl p-4 font-mono text-[10px] text-slate-600">
+            <div className="space-y-3 bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
               {premiumAlert.details.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-0.5">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
-                  <span className="text-[10px] font-bold text-slate-700 break-all select-all">{item.value}</span>
+                  <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">{item.label}</span>
+                  <span className="text-[10px] font-bold text-[var(--text-primary)] break-all select-all">{item.value}</span>
                 </div>
               ))}
             </div>

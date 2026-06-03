@@ -296,21 +296,21 @@ export default function SocialPay() {
     <div className="space-y-8 animate-in fade-in duration-200">
       
       {/* Brand Header */}
-      <div className="flex items-center justify-between bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+      <div className="flex items-center justify-between card rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600 shadow-sm shadow-blue-500/5">
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(0,242,254,0.05)] flex items-center justify-center border border-[var(--border-dim)] text-[var(--accent-cyan)] shadow-sm shadow-blue-500/5">
             <Send size={22} />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-extrabold tracking-widest text-blue-600 block">Freelance Gateway & Social Router</span>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">ARC Social Pay</h2>
+            <span className="text-[10px] uppercase font-extrabold tracking-widest text-[var(--accent-cyan)] block">Freelance Gateway & Social Router</span>
+            <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">ARC Social Pay</h2>
           </div>
         </div>
         
         {isConnected && myProfile && (
           <button
             onClick={() => setIsProfileModalOpen(true)}
-            className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 px-4 py-2 rounded-2xl text-xs font-bold transition-all shadow-sm"
+            className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-[var(--border-dim)] text-[var(--text-primary)] px-4 py-2 rounded-2xl text-xs font-bold transition-all shadow-sm"
           >
             <Settings size={14} />
             Setup Profile
@@ -324,12 +324,12 @@ export default function SocialPay() {
         <div className="lg:col-span-8 space-y-6">
           
           {/* Sub-Tab Selector Capsule */}
-          <div className="flex gap-2 p-1 bg-slate-100/80 border border-slate-200/40 rounded-2xl max-w-lg mb-6">
+          <div className="flex gap-2 p-1 bg-slate-100/80 border border-[var(--border-dim)] rounded-2xl max-w-lg mb-6">
             <button
               type="button"
               onClick={() => setActiveSubTab('instant')}
               className={`flex-1 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                activeSubTab === 'instant' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+                activeSubTab === 'instant' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               ⚡ Instant Pay
@@ -338,7 +338,7 @@ export default function SocialPay() {
               type="button"
               onClick={() => setActiveSubTab('escrow')}
               className={`flex-1 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                activeSubTab === 'escrow' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+                activeSubTab === 'escrow' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               🤝 Escrow Milestones
@@ -347,7 +347,7 @@ export default function SocialPay() {
               type="button"
               onClick={() => setActiveSubTab('autopay')}
               className={`flex-1 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                activeSubTab === 'autopay' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+                activeSubTab === 'autopay' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               📅 AutoPay Payroll
@@ -356,31 +356,31 @@ export default function SocialPay() {
 
           {activeSubTab === 'instant' && (
             <>
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
-                <div className="border-b border-slate-100 pb-5">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Send Secure Payments</h3>
-                  <p className="text-[10px] text-slate-500 font-semibold">Input a username to find and send USDC or EURC funds.</p>
+              <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="border-b border-[var(--border-dim)] pb-5">
+                  <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Send Secure Payments</h3>
+                  <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Input a username to find and send USDC or EURC funds.</p>
                 </div>
 
                 <form onSubmit={handleSendPayment} className="space-y-6">
                   
                   {/* Recipient Selection */}
                   <div className="space-y-3">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Recipient</label>
+                    <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Recipient</label>
                     
                     {selectedRecipient ? (
-                      <div className="flex items-center justify-between p-4 bg-blue-50/40 border border-blue-200/50 rounded-2xl">
+                      <div className="flex items-center justify-between p-4 bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] rounded-2xl">
                         <div className="flex items-center gap-3">
-                          <img src={selectedRecipient.avatar} className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200" alt="" />
+                          <img src={selectedRecipient.avatar} className="w-10 h-10 rounded-xl overflow-hidden border border-[var(--border-dim)]" alt="" />
                           <div>
-                            <h4 className="font-black text-slate-800 text-xs">@{selectedRecipient.name}</h4>
-                            <p className="text-[9px] text-slate-400 font-mono mt-0.5">{selectedRecipient.wallet.slice(0, 10)}...{selectedRecipient.wallet.slice(-8)}</p>
+                            <h4 className="font-black text-[var(--text-primary)] text-xs">@{selectedRecipient.name}</h4>
+                            <p className="text-[9px] text-[var(--text-secondary)] font-mono mt-0.5">{selectedRecipient.wallet.slice(0, 10)}...{selectedRecipient.wallet.slice(-8)}</p>
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => setSelectedRecipient(null)}
-                          className="text-[10px] font-extrabold text-blue-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl hover:bg-slate-50"
+                          className="text-[10px] font-extrabold text-[var(--accent-cyan)] card px-3 py-1.5 rounded-xl hover:bg-slate-50"
                         >
                           Change
                         </button>
@@ -389,20 +389,20 @@ export default function SocialPay() {
                       <div className="space-y-3.5">
                         {/* Search box */}
                         <div className="relative">
-                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={15} />
                           <input
                             type="text"
                             placeholder="Search custom @username (e.g. Frianowzki)..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-white transition-all"
+                            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                           />
-                          {searchLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-blue-600 size-4" />}
+                          {searchLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-[var(--accent-cyan)] size-4" />}
                         </div>
 
                         {/* Results Dropdown */}
                         {searchResults.length > 0 && (
-                          <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xl max-h-[200px] overflow-y-auto">
+                          <div className="border border-[var(--border-dim)] rounded-2xl overflow-hidden card shadow-xl max-h-[200px] overflow-y-auto">
                             {searchResults.map((p) => (
                               <button
                                 key={p.wallet}
@@ -412,13 +412,13 @@ export default function SocialPay() {
                                   setSearchQuery('');
                                   setSearchResults([]);
                                 }}
-                                className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 border-b border-slate-100 last:border-0 text-left cursor-pointer"
+                                className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 border-b border-[var(--border-dim)] last:border-0 text-left cursor-pointer"
                               >
                                 <div className="flex items-center gap-3">
-                                  <img src={p.avatar} className="w-8 h-8 rounded-lg border border-slate-200" alt="" />
+                                  <img src={p.avatar} className="w-8 h-8 rounded-lg border border-[var(--border-dim)]" alt="" />
                                   <div>
-                                    <span className="text-xs font-black text-slate-800 block">@{p.name}</span>
-                                    <span className="text-[8px] text-slate-400 font-mono block mt-0.5">{p.wallet}</span>
+                                    <span className="text-xs font-black text-[var(--text-primary)] block">@{p.name}</span>
+                                    <span className="text-[8px] text-[var(--text-secondary)] font-mono block mt-0.5">{p.wallet}</span>
                                   </div>
                                 </div>
                                 <ArrowRight size={14} className="text-slate-300" />
@@ -428,13 +428,13 @@ export default function SocialPay() {
                         )}
 
                         <div className="flex items-center gap-3">
-                          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Or Paste Custom Wallet</span>
-                          <hr className="flex-1 border-slate-100" />
+                          <span className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Or Paste Custom Wallet</span>
+                          <hr className="flex-1 border-[var(--border-dim)]" />
                         </div>
 
                         {/* Wallet Input */}
                         <div className="relative">
-                          <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                          <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={15} />
                           <input
                             type="text"
                             placeholder="Paste recipient wallet address (0x...)"
@@ -449,7 +449,7 @@ export default function SocialPay() {
                                 });
                               }
                             }}
-                            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-white transition-all"
+                            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                           />
                         </div>
                       </div>
@@ -459,15 +459,15 @@ export default function SocialPay() {
 
                   {/* Asset Select */}
                   <div className="space-y-3">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Asset</label>
+                    <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Select Asset</label>
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
                         onClick={() => setPaymentAsset('USDC')}
                         className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
                           paymentAsset === 'USDC'
-                            ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
-                            : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                            ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] shadow-sm'
+                            : 'border-[var(--border-dim)] bg-slate-50 hover:bg-slate-100/50 text-[var(--text-secondary)]'
                         }`}
                       >
                         USDC Stablecoin
@@ -477,8 +477,8 @@ export default function SocialPay() {
                         onClick={() => setPaymentAsset('EURC')}
                         className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
                           paymentAsset === 'EURC'
-                            ? 'border-blue-500 bg-blue-50/50 text-blue-600 shadow-sm'
-                            : 'border-slate-200 bg-slate-50 hover:bg-slate-100/50 text-slate-600'
+                            ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] shadow-sm'
+                            : 'border-[var(--border-dim)] bg-slate-50 hover:bg-slate-100/50 text-[var(--text-secondary)]'
                         }`}
                       >
                         EURC Stablecoin
@@ -487,8 +487,8 @@ export default function SocialPay() {
                   </div>
 
                   {/* Amount Box */}
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
-                    <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Amount to Send</span>
+                  <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-2">
+                    <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Amount to Send</span>
                     <input
                       type="number"
                       placeholder="0.00"
@@ -497,7 +497,7 @@ export default function SocialPay() {
                       value={payAmount}
                       disabled={isPaying}
                       onChange={(e) => setPayAmount(e.target.value)}
-                      className="w-full bg-transparent text-3xl font-black font-mono text-slate-800 outline-none placeholder:text-slate-350"
+                      className="w-full bg-transparent text-3xl font-black font-mono text-[var(--text-primary)] outline-none placeholder:text-slate-350"
                     />
                   </div>
 
@@ -527,34 +527,34 @@ export default function SocialPay() {
               </div>
 
               {/* Invoice Freelance Utility Box */}
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
-                <div className="border-b border-slate-100 pb-5">
-                  <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5"><FileText size={18} className="text-blue-500" /> Freelance Payment Request Generator</h3>
-                  <p className="text-[10px] text-slate-500 font-semibold">Generate structured shareable invoices prefilled with USDC parameters.</p>
+              <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="border-b border-[var(--border-dim)] pb-5">
+                  <h3 className="font-extrabold text-[var(--text-primary)] text-sm flex items-center gap-1.5"><FileText size={18} className="text-[var(--accent-cyan)]" /> Freelance Payment Request Generator</h3>
+                  <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Generate structured shareable invoices prefilled with USDC parameters.</p>
                 </div>
 
                 <form onSubmit={handleGenerateInvoice} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Invoice description</label>
+                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Invoice description</label>
                       <input
                         type="text"
                         required
                         placeholder="e.g. Design Services"
                         value={invoiceReason}
                         onChange={(e) => setInvoiceReason(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
+                        className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Request Amount (USDC)</label>
+                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Request Amount (USDC)</label>
                       <input
                         type="number"
                         required
                         placeholder="0.00"
                         value={invoiceAmount}
                         onChange={(e) => setInvoiceAmount(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:border-blue-500"
+                        className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -568,8 +568,8 @@ export default function SocialPay() {
                 </form>
 
                 {generatedInvoiceLink && (
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center animate-in fade-in slide-in-from-top-1 duration-150">
-                    <span className="text-[10.5px] font-mono text-slate-500 truncate mr-4">{generatedInvoiceLink}</span>
+                  <div className="bg-slate-50 border border-[var(--border-dim)] rounded-xl p-4 flex justify-between items-center animate-in fade-in slide-in-from-top-1 duration-150">
+                    <span className="text-[10.5px] font-mono text-[var(--text-secondary)] truncate mr-4">{generatedInvoiceLink}</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -577,7 +577,7 @@ export default function SocialPay() {
                         setCopiedInvoice(true);
                         setTimeout(() => setCopiedInvoice(false), 2000);
                       }}
-                      className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[10px] px-3.5 py-2 rounded-xl shadow-sm hover:scale-[1.02] active:scale-98 cursor-pointer transition-all"
+                      className="card text-[var(--text-secondary)] font-extrabold text-[10px] px-3.5 py-2 rounded-xl shadow-sm hover:scale-[1.02] active:scale-98 cursor-pointer transition-all"
                     >
                       {copiedInvoice ? <Check className="text-green-600" size={13} /> : 'Copy'}
                     </button>
@@ -598,58 +598,58 @@ export default function SocialPay() {
 
         {/* Right Section: Pay Me QR */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm flex flex-col items-center text-center space-y-5 relative">
+          <div className="card rounded-[32px] p-6 shadow-sm flex flex-col items-center text-center space-y-5 relative">
             <span className="absolute top-4 left-4 bg-emerald-500/10 text-emerald-600 border border-emerald-100 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
               Verified
             </span>
 
             {myProfile ? (
               <>
-                <div className="w-18 h-18 rounded-2xl overflow-hidden border border-slate-200 bg-white mt-2">
+                <div className="w-18 h-18 rounded-2xl overflow-hidden border border-[var(--border-dim)] bg-[var(--bg-card)] mt-2">
                   <img src={myProfile.avatar} alt="" className="w-full h-full object-contain p-0.5" />
                 </div>
                 <div>
-                  <h4 className="font-black text-slate-800 text-sm">@{myProfile.name}</h4>
-                  <p className="text-[10px] text-slate-400 font-mono mt-0.5">{myProfile.wallet.slice(0, 8)}...{myProfile.wallet.slice(-6)}</p>
+                  <h4 className="font-black text-[var(--text-primary)] text-sm">@{myProfile.name}</h4>
+                  <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">{myProfile.wallet.slice(0, 8)}...{myProfile.wallet.slice(-6)}</p>
                 </div>
               </>
             ) : (
               <div className="py-4 flex flex-col items-center gap-1.5">
-                <Loader2 className="animate-spin text-blue-600" />
-                <span className="text-[10px] text-slate-400 font-semibold">Loading profile...</span>
+                <Loader2 className="animate-spin text-[var(--accent-cyan)]" />
+                <span className="text-[10px] text-[var(--text-secondary)] font-semibold">Loading profile...</span>
               </div>
             )}
 
-            <hr className="w-full border-slate-100" />
+            <hr className="w-full border-[var(--border-dim)]" />
 
             {/* Premium QR Code */}
             {userAddress ? (
               <div className="space-y-3.5 flex flex-col items-center w-full">
-                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">My Personal QR Code</span>
-                <div className="p-3 bg-white border border-slate-200 rounded-3xl shadow-sm flex items-center justify-center">
+                <span className="text-[10px] text-[var(--text-secondary)] font-black uppercase tracking-widest">My Personal QR Code</span>
+                <div className="p-3 card rounded-3xl shadow-sm flex items-center justify-center">
                   <img
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&color=0052ff&data=${userAddress}`}
                     alt=""
                     className="w-40 h-40 object-contain"
                   />
                 </div>
-                <p className="text-[9px] text-slate-400 font-semibold max-w-[190px] leading-relaxed">
+                <p className="text-[9px] text-[var(--text-secondary)] font-semibold max-w-[190px] leading-relaxed">
                   Clients can scan this QR code to route instant USDC transfers to your profile.
                 </p>
               </div>
             ) : (
-              <div className="py-8 text-center text-slate-400 space-y-2">
+              <div className="py-8 text-center text-[var(--text-secondary)] space-y-2">
                 <QrCode size={30} className="mx-auto text-slate-300" />
                 <p className="text-[9px] font-semibold">Connect wallet to load personal QR</p>
               </div>
             )}
 
-            <hr className="w-full border-slate-100" />
+            <hr className="w-full border-[var(--border-dim)]" />
 
             <button
               onClick={handleCopyQRLink}
               disabled={!userAddress}
-              className="w-full py-3 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 rounded-xl text-[10px] font-bold tracking-wide uppercase transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+              className="w-full py-3 bg-[rgba(0,242,254,0.05)] hover:bg-blue-600 hover:text-white text-[var(--accent-cyan)] rounded-xl text-[10px] font-bold tracking-wide uppercase transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
               {copiedLink ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
               Copy Profile Payment Link
@@ -662,64 +662,64 @@ export default function SocialPay() {
       {/* Profile Settings Modal Overlay */}
       {isProfileModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white border border-slate-200 p-8 space-y-6 relative rounded-[28px] shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md card p-8 space-y-6 relative rounded-[28px] shadow-2xl animate-in zoom-in-95 duration-200">
             <button
               onClick={() => setIsProfileModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-50 cursor-pointer"
+              className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] p-2 rounded-full hover:bg-slate-50 cursor-pointer"
             >
               ✕
             </button>
 
             <div className="text-center space-y-1">
-              <h2 className="text-lg font-black text-slate-900 flex items-center justify-center gap-1.5">
+              <h2 className="text-lg font-black text-[var(--text-primary)] flex items-center justify-center gap-1.5">
                 Setup Global Profile
               </h2>
-              <p className="text-[10px] text-slate-500">Configure your username routing identity securely on Supabase.</p>
+              <p className="text-[10px] text-[var(--text-secondary)]">Configure your username routing identity securely on Supabase.</p>
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-widest">Username</label>
+                <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Username</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Frianowzki"
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-white"
+                  className="w-full p-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-widest">Avatar Image URL</label>
+                <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Avatar Image URL</label>
                 <input
                   type="url"
                   placeholder="https://api.dicebear.com/..."
                   value={profileAvatar}
                   onChange={(e) => setProfileAvatar(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-white"
+                  className="w-full p-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest block">Twitter / X</label>
+                  <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Twitter / X</label>
                   <input
                     type="text"
                     placeholder="@handle"
                     value={profileTwitter}
                     onChange={(e) => setProfileTwitter(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500"
+                    className="w-full p-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs outline-none focus:border-blue-500"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest block">Discord</label>
+                  <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Discord</label>
                   <input
                     type="text"
                     placeholder="handle#0000"
                     value={profileDiscord}
                     onChange={(e) => setProfileDiscord(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500"
+                    className="w-full p-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs outline-none focus:border-blue-500"
                   />
                 </div>
               </div>

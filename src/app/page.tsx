@@ -847,10 +847,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#f4f7fc] text-slate-800 antialiased selection:bg-blue-100">
+    <div className="min-h-screen flex antialiased selection:bg-blue-900 selection:text-white">
       
       {/* 1. Desktop Sidebar Navigation (Luxury White & Calm Blue layout) */}
-      <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-slate-100 p-6 space-y-8 sticky top-0 h-screen justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] z-30">
+      <aside className="hidden lg:flex w-72 flex-col bg-[var(--bg-sidebar)] border-r border-[var(--border-dim)] p-6 space-y-8 sticky top-0 h-screen justify-between z-30">
         <div className="space-y-8">
           {/* Brand header */}
           <div className="flex items-center gap-3 px-2">
@@ -858,8 +858,8 @@ export default function Home() {
               <img src="/main-logo.jpg" alt="ArcOmni" className="w-full h-full object-contain p-0.5" />
             </div>
             <div>
-              <span className="text-sm font-black tracking-wide text-slate-900 block">ARCOMNI</span>
-              <span className="text-[9px] block font-extrabold text-blue-600 tracking-widest mt-[-2px] uppercase">PRO</span>
+              <span className="text-sm font-black tracking-wide text-[var(--text-primary)] block">ARCOMNI</span>
+              <span className="text-[9px] block font-extrabold text-[var(--accent-cyan)] tracking-widest mt-[-2px] uppercase">PRO</span>
             </div>
           </div>
 
@@ -872,11 +872,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'launcher'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Rocket size={16} className={currentView === 'launcher' ? 'text-blue-600' : 'text-slate-400'} />
+              <Rocket size={16} className={currentView === 'launcher' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Launcher
             </button>
 
@@ -887,11 +887,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'builder'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Layers size={16} className={currentView === 'builder' ? 'text-blue-600' : 'text-slate-400'} />
+              <Layers size={16} className={currentView === 'builder' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Builder
             </button>
 
@@ -902,11 +902,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'trade'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <TrendingUp size={16} className={currentView === 'trade' ? 'text-blue-600' : 'text-slate-400'} />
+              <TrendingUp size={16} className={currentView === 'trade' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Trade
             </button>
 
@@ -917,11 +917,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'guide'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Info size={16} className={currentView === 'guide' ? 'text-blue-600' : 'text-slate-400'} />
+              <Info size={16} className={currentView === 'guide' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               User Guide
             </button>
 
@@ -932,11 +932,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'staking'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <TrendingUp size={16} className={currentView === 'staking' ? 'text-blue-600' : 'text-slate-400'} />
+              <TrendingUp size={16} className={currentView === 'staking' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Staking & Yield
             </button>
 
@@ -946,12 +946,12 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'social-pay'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
               <div className="relative flex items-center justify-center">
-                <Send size={16} className={currentView === 'social-pay' ? 'text-blue-600' : 'text-slate-400'} />
+                <Send size={16} className={currentView === 'social-pay' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
                 {unreadChatCount > 0 && (
                   <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
                     {unreadChatCount > 9 ? '9+' : unreadChatCount}
@@ -968,11 +968,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'gigs'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Briefcase size={16} className={currentView === 'gigs' ? 'text-blue-600' : 'text-slate-400'} />
+              <Briefcase size={16} className={currentView === 'gigs' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Arc Gigs
             </button>
 
@@ -981,11 +981,11 @@ export default function Home() {
               onClick={() => setCurrentView('prediction-market')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'prediction-market'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <PieChart size={16} className={currentView === 'prediction-market' ? 'text-blue-600' : 'text-slate-400'} />
+              <PieChart size={16} className={currentView === 'prediction-market' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Predictions
             </button>
 
@@ -994,11 +994,11 @@ export default function Home() {
               onClick={() => setCurrentView('slots')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'slots'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Dices size={16} className={currentView === 'slots' ? 'text-blue-600' : 'text-slate-400'} />
+              <Dices size={16} className={currentView === 'slots' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               ArcSlots
             </button>
 
@@ -1007,11 +1007,11 @@ export default function Home() {
               onClick={() => setCurrentView('leaderboard')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'leaderboard'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Trophy size={16} className={currentView === 'leaderboard' ? 'text-blue-600' : 'text-slate-400'} />
+              <Trophy size={16} className={currentView === 'leaderboard' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Leaderboard
             </button>
 
@@ -1020,11 +1020,11 @@ export default function Home() {
               onClick={() => setCurrentView('affiliates')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'affiliates'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Users size={16} className={currentView === 'affiliates' ? 'text-blue-600' : 'text-slate-400'} />
+              <Users size={16} className={currentView === 'affiliates' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Affiliates
             </button>
 
@@ -1033,9 +1033,9 @@ export default function Home() {
               href="https://faucet.circle.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all text-slate-500 hover:bg-slate-50 hover:text-slate-800 hover:scale-[1.01] border border-transparent"
+              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all text-[var(--text-secondary)] hover:bg-slate-50 hover:text-[var(--text-primary)] hover:scale-[1.01] border border-transparent"
             >
-              <Droplet size={16} className="text-slate-400" />
+              <Droplet size={16} className="text-[var(--text-secondary)]" />
               USDC Faucet
             </a>
 
@@ -1046,16 +1046,16 @@ export default function Home() {
               }}
               className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'earn'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
               <div className="flex items-center gap-3.5">
-                <Coins size={16} className={currentView === 'earn' ? 'text-blue-600' : 'text-slate-400'} />
+                <Coins size={16} className={currentView === 'earn' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
                 <span>Earn Points</span>
               </div>
               {/* Glowing Pill badge */}
-              <span className="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-200/50 animate-pulse">
+              <span className="text-[9px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-[var(--border-dim)] animate-pulse">
                 Soon
               </span>
             </button>
@@ -1067,15 +1067,15 @@ export default function Home() {
               }}
               className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'wallet'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
               <div className="flex items-center gap-3.5">
-                <Coins size={16} className={currentView === 'wallet' ? 'text-blue-600' : 'text-slate-400'} />
+                <Coins size={16} className={currentView === 'wallet' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
                 <span>Global Wallet</span>
               </div>
-              <span className="text-[9px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
+              <span className="text-[9px] bg-[rgba(0,242,254,0.05)]0 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
                 Live
               </span>
             </button>
@@ -1084,9 +1084,9 @@ export default function Home() {
             <button 
               type="button"
               onClick={(e) => { e.stopPropagation(); setIsRulesOpen(true); setIsLockerOpen(false); }}
-              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all hover:text-slate-800 border border-transparent"
+              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold text-[var(--text-secondary)] hover:bg-slate-50 transition-all hover:text-[var(--text-primary)] border border-transparent"
             >
-              <HelpCircle size={16} className="text-slate-400" />
+              <HelpCircle size={16} className="text-[var(--text-secondary)]" />
               Airdrop Rules
             </button>
           </nav>
@@ -1094,10 +1094,10 @@ export default function Home() {
 
         {/* Your Wallet Balances Card */}
         {isConnected && (
-          <div className="bg-white border border-slate-100 rounded-3xl p-5 space-y-3 shadow-sm select-none">
+          <div className="card p-5 space-y-3 select-none">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Your Wallet</span>
-              <span className="text-[9px] bg-slate-100 text-slate-600 font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider">Your Wallet</span>
+              <span className="text-[9px] bg-slate-100 text-[var(--text-secondary)] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                 Arc Chain Assets
               </span>
             </div>
@@ -1105,9 +1105,9 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xs">🔵</span>
-                  <span className="text-[11px] font-bold text-slate-700">USDC Balance</span>
+                  <span className="text-[11px] font-bold text-[var(--text-primary)]">USDC Balance</span>
                 </div>
-                <span className="text-xs font-extrabold text-slate-900">
+                <span className="text-xs font-extrabold text-[var(--text-primary)]">
                   {usdcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -1115,9 +1115,9 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xs">🟣</span>
-                  <span className="text-[11px] font-bold text-slate-700">EURC (Euro) Balance</span>
+                  <span className="text-[11px] font-bold text-[var(--text-primary)]">EURC (Euro) Balance</span>
                 </div>
-                <span className="text-xs font-extrabold text-slate-900">
+                <span className="text-xs font-extrabold text-[var(--text-primary)]">
                   {eurcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -1125,9 +1125,9 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xs">🟡</span>
-                  <span className="text-[11px] font-bold text-slate-700">cirBTC Balance</span>
+                  <span className="text-[11px] font-bold text-[var(--text-primary)]">cirBTC Balance</span>
                 </div>
-                <span className="text-xs font-extrabold text-slate-900">
+                <span className="text-xs font-extrabold text-[var(--text-primary)]">
                   {cirbtcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 8, maximumFractionDigits: 8 })}
                 </span>
               </div>
@@ -1142,19 +1142,19 @@ export default function Home() {
             setCurrentView('staking');
             setIsRulesOpen(false);
           }}
-          className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 rounded-3xl p-5 space-y-3.5 shadow-sm cursor-pointer group transition-all text-left"
+          className="card p-5 space-y-3.5 cursor-pointer group text-left"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider group-hover:text-blue-600 transition-colors">Staking & Yield</span>
-            <span className="bg-blue-100 text-blue-700 border border-blue-200/50 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+            <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider group-hover:text-[var(--accent-cyan)] transition-colors">Staking & Yield</span>
+            <span className="bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] border border-[var(--border-dim)] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
               Live
             </span>
           </div>
           <div>
-            <h4 className="text-lg font-black text-slate-900 tracking-tight">
+            <h4 className="text-lg font-black text-[var(--text-primary)] tracking-tight">
               Open the live vaults
             </h4>
-            <p className="text-[10px] text-slate-500 font-semibold mt-2 leading-relaxed">
+            <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-2 leading-relaxed">
               Review APY, wallets, and wallet-signed staking actions for USDC, EURC, and cirBTC in one place.
             </p>
           </div>
@@ -1172,12 +1172,12 @@ export default function Home() {
             {currentView === 'launcher' && (
               <>
                 {/* Elegant Welcome Banner */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 card rounded-[32px] p-6 shadow-sm">
                   <div>
-                    <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                    <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center gap-2">
                       Hello, {profileName} 👋
                     </h2>
-                    <p className="text-xs text-slate-500 font-semibold mt-0.5">Explore active markets, launch customized tokens, and claim points allocations.</p>
+                    <p className="text-xs text-[var(--text-secondary)] font-semibold mt-0.5">Explore active markets, launch customized tokens, and claim points allocations.</p>
                   </div>
 
                   {/* Daily Check-in Interaction Block */}
@@ -1189,7 +1189,7 @@ export default function Home() {
                         className={`px-5 py-3 rounded-2xl text-xs font-black tracking-wide uppercase transition-all duration-150 flex items-center gap-2 shadow-md cursor-pointer ${
                           !!(checkinStats?.last_checkin && new Date(checkinStats.last_checkin).toDateString() === new Date().toDateString())
                             ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-200/30 cursor-not-allowed shadow-none'
-                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/20 active:scale-[0.98]'
+                            : 'btn-primary hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/20 active:scale-[0.98]'
                         }`}
                       >
                         {checkinLoading ? (
@@ -1211,8 +1211,8 @@ export default function Home() {
                       {/* Tiny Streak info display */}
                       {checkinStats && (
                         <div className="text-left font-semibold">
-                          <span className="text-[10px] text-slate-400 block uppercase tracking-widest">Check-in Streak</span>
-                          <span className="text-xs text-slate-700 font-extrabold flex items-center gap-1">
+                          <span className="text-[10px] text-[var(--text-secondary)] block uppercase tracking-widest">Check-in Streak</span>
+                          <span className="text-xs text-[var(--text-primary)] font-extrabold flex items-center gap-1">
                             🔥 {checkinStats.streak_count} Days 
                             <span className="text-slate-300 font-normal">|</span> 
                             ⚠️ {checkinStats.missed_count} Missed
@@ -1236,8 +1236,8 @@ export default function Home() {
                   {/* Right Column - Recent Token Releases List */}
                   <div className="lg:col-span-2 space-y-8">
                     <div className="h-[600px] flex flex-col">
-                      <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-3xl mb-4 text-xs font-bold text-blue-600 flex items-center gap-2">
-                        <Info size={14} className="text-blue-500" />
+                      <div className="p-4 bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] rounded-3xl mb-4 text-xs font-bold text-[var(--accent-cyan)] flex items-center gap-2">
+                        <Info size={14} className="text-[var(--accent-cyan)]" />
                         Click any token on the markets list below to open its dedicated Trade desk & Price Charts!
                       </div>
                       <div className="flex-1 min-h-0">
@@ -1255,26 +1255,26 @@ export default function Home() {
                 {selectedToken ? (
                   <div className="space-y-8 animate-in fade-in duration-200">
                     {/* Dynamic title bar for trade */}
-                    <div className="flex items-center justify-between bg-white border border-slate-200/80 rounded-[28px] p-5 shadow-sm">
+                    <div className="flex items-center justify-between card rounded-[28px] p-5 shadow-sm">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center">
+                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-[var(--border-dim)] flex items-center justify-center">
                           {selectedToken.image_url ? (
                             <img src={selectedToken.image_url} alt="" className="w-full h-full object-contain p-0.5" />
                           ) : (
-                            <TrendingUp className="text-slate-400" size={18} />
+                            <TrendingUp className="text-[var(--text-secondary)]" size={18} />
                           )}
                         </div>
                         <div>
-                          <h3 className="font-extrabold text-slate-800 text-base flex items-center gap-1.5">
+                          <h3 className="font-extrabold text-[var(--text-primary)] text-base flex items-center gap-1.5">
                             {selectedToken.name}
-                            <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
+                            <span className="text-xs bg-slate-100 text-[var(--text-secondary)] px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
                           </h3>
-                          <p className="text-[10px] text-slate-400 font-mono mt-0.5">{selectedToken.token_address}</p>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">{selectedToken.token_address}</p>
                         </div>
                       </div>
                       <button
                         onClick={() => handleSelectToken(null)}
-                        className="text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-extrabold px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm"
+                        className="text-xs bg-slate-50 hover:bg-slate-100 border border-[var(--border-dim)] text-[var(--text-secondary)] font-extrabold px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm"
                       >
                         ← View Other Markets
                       </button>
@@ -1293,11 +1293,11 @@ export default function Home() {
                   </div>
                 ) : (
                   /* Market Selector if no token is currently selected */
-                  <div className="bg-white border border-slate-200/80 rounded-[32px] p-8 shadow-sm space-y-6 animate-in fade-in duration-200">
+                  <div className="card rounded-[32px] p-8 shadow-sm space-y-6 animate-in fade-in duration-200">
                     <div className="text-center max-w-md mx-auto space-y-2 py-4">
-                      <TrendingUp className="mx-auto text-blue-600" size={32} />
-                      <h2 className="text-xl font-black text-slate-900">Meme Markets Trading Desk</h2>
-                      <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                      <TrendingUp className="mx-auto text-[var(--accent-cyan)]" size={32} />
+                      <h2 className="text-xl font-black text-[var(--text-primary)]">Meme Markets Trading Desk</h2>
+                      <p className="text-xs text-[var(--text-secondary)] font-semibold leading-relaxed">
                         Select an active token from the live markets index below to open live charts, view transactions history, and place trades instantly.
                       </p>
                     </div>
@@ -1344,7 +1344,7 @@ export default function Home() {
 
             {/* LEADERBOARD TAB VIEW */}
             {currentView === 'leaderboard' && (
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
+              <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
                 <Leaderboard onSelectToken={handleSelectToken} />
               </div>
             )}
@@ -1360,35 +1360,35 @@ export default function Home() {
             {currentView === 'earn' && (
               <div className="animate-in fade-in duration-200 space-y-8">
                 <DiscreteTasks onPointsEarned={(points) => { console.log(`Earned ${points}`); }} />
-                <div className="bg-white border border-slate-200/80 rounded-[32px] p-8 shadow-sm text-center max-w-xl mx-auto space-y-6 py-12">
-                  <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto animate-bounce">
+                <div className="card rounded-[32px] p-8 shadow-sm text-center max-w-xl mx-auto space-y-6 py-12">
+                  <div className="w-16 h-16 rounded-3xl bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] text-[var(--accent-cyan)] flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto animate-bounce">
                   <Coins size={32} />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-black text-slate-900 flex items-center justify-center gap-2">
+                  <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center justify-center gap-2">
                     Earn Points Program
-                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-200/50 animate-pulse">Soon</span>
+                    <span className="text-[10px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-[var(--border-dim)] animate-pulse">Soon</span>
                   </h2>
-                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                  <p className="text-xs text-[var(--text-secondary)] font-semibold leading-relaxed">
                     Earn yields, multiply your ARCL points allocations, and unlock VIP privileges. The referral and points-staking protocol is launching soon on Arc Chain.
                   </p>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4 text-left pt-4">
-                  <div className="border border-slate-100 p-4.5 bg-slate-50/50 rounded-2xl">
+                  <div className="border border-[var(--border-dim)] p-4.5 bg-slate-50/50 rounded-2xl">
                     <span className="text-lg block mb-1">🤝</span>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Referral Bonanza</h4>
-                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">Invite friends and earn 10% of all points they accumulate forever.</p>
+                    <h4 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider">Referral Bonanza</h4>
+                    <p className="text-[10px] text-[var(--text-secondary)] mt-1 font-semibold leading-normal">Invite friends and earn 10% of all points they accumulate forever.</p>
                   </div>
-                  <div className="border border-slate-100 p-4.5 bg-slate-50/50 rounded-2xl">
+                  <div className="border border-[var(--border-dim)] p-4.5 bg-slate-50/50 rounded-2xl">
                     <span className="text-lg block mb-1">🔥</span>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Streaks Boost</h4>
-                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">Keep check-in streaks to earn up to 2.5x multiplier on trading points.</p>
+                    <h4 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider">Streaks Boost</h4>
+                    <p className="text-[10px] text-[var(--text-secondary)] mt-1 font-semibold leading-normal">Keep check-in streaks to earn up to 2.5x multiplier on trading points.</p>
                   </div>
-                  <div className="border border-slate-100 p-4.5 bg-slate-50/50 rounded-2xl">
+                  <div className="border border-[var(--border-dim)] p-4.5 bg-slate-50/50 rounded-2xl">
                     <span className="text-lg block mb-1">💎</span>
-                    <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Staking Rewards</h4>
-                    <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">Stake ARCL points or locks to earn direct USDC gas rebates.</p>
+                    <h4 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider">Staking Rewards</h4>
+                    <p className="text-[10px] text-[var(--text-secondary)] mt-1 font-semibold leading-normal">Stake ARCL points or locks to earn direct USDC gas rebates.</p>
                   </div>
                 </div>
               </div>
@@ -1417,47 +1417,47 @@ export default function Home() {
           <div className="w-full max-w-md glass-modal p-8 space-y-6 relative border border-white">
             <button
               onClick={() => setIsRulesOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] p-2 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
             >
               ✕
             </button>
 
             <div className="text-center space-y-1.5">
-              <Award className="text-blue-600 mx-auto" size={32} />
-              <h2 className="text-xl font-black text-slate-900">Airdrop points mechanics</h2>
-              <p className="text-xs text-slate-500">Every swap you execute generates points allocations instantly.</p>
+              <Award className="text-[var(--accent-cyan)] mx-auto" size={32} />
+              <h2 className="text-xl font-black text-[var(--text-primary)]">Airdrop points mechanics</h2>
+              <p className="text-xs text-[var(--text-secondary)]">Every swap you execute generates points allocations instantly.</p>
             </div>
 
-            <div className="space-y-4 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200/50 p-5 rounded-2xl">
+            <div className="space-y-4 text-xs font-semibold text-[var(--text-primary)] bg-slate-50 border border-[var(--border-dim)] p-5 rounded-2xl">
               <div className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</div>
+                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</div>
                 <div>
-                  <p className="text-slate-800 font-extrabold text-sm mb-0.5">High-Frequency Swaps</p>
-                  <p className="text-slate-500 text-xs font-medium leading-relaxed">Each trade on active tokens counts toward volume. Whether you buy or sell, you accumulate trading weight.</p>
+                  <p className="text-[var(--text-primary)] font-extrabold text-sm mb-0.5">High-Frequency Swaps</p>
+                  <p className="text-[var(--text-secondary)] text-xs font-medium leading-relaxed">Each trade on active tokens counts toward volume. Whether you buy or sell, you accumulate trading weight.</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 border-t border-slate-200/40 pt-3">
-                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</div>
+              <div className="flex items-start gap-3 border-t border-[var(--border-dim)] pt-3">
+                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</div>
                 <div>
-                  <p className="text-slate-800 font-extrabold text-sm mb-0.5">10 USDC = 1 ARCL Point</p>
-                  <p className="text-slate-500 text-xs font-medium leading-relaxed">Points are computed in real-time on database insertion: total USD volume traded divided by 10. These accumulate forever.</p>
+                  <p className="text-[var(--text-primary)] font-extrabold text-sm mb-0.5">10 USDC = 1 ARCL Point</p>
+                  <p className="text-[var(--text-secondary)] text-xs font-medium leading-relaxed">Points are computed in real-time on database insertion: total USD volume traded divided by 10. These accumulate forever.</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 border-t border-slate-200/40 pt-3">
-                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</div>
+              <div className="flex items-start gap-3 border-t border-[var(--border-dim)] pt-3">
+                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</div>
                 <div>
-                  <p className="text-slate-800 font-extrabold text-sm mb-0.5">Claim Rewards Later</p>
-                  <p className="text-slate-500 text-xs font-medium leading-relaxed">Points determine your share of the upcoming ARCL Airdrop pool. The higher you rank on the earners list, the larger your payout!</p>
+                  <p className="text-[var(--text-primary)] font-extrabold text-sm mb-0.5">Claim Rewards Later</p>
+                  <p className="text-[var(--text-secondary)] text-xs font-medium leading-relaxed">Points determine your share of the upcoming ARCL Airdrop pool. The higher you rank on the earners list, the larger your payout!</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 border-t border-slate-200/40 pt-3">
-                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">4</div>
+              <div className="flex items-start gap-3 border-t border-[var(--border-dim)] pt-3">
+                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">4</div>
                 <div>
-                  <p className="text-slate-800 font-extrabold text-sm mb-0.5">⭐ Partner Affiliate Badge</p>
-                  <p className="text-slate-500 text-xs font-medium leading-relaxed">Get the exclusive Partner Affiliate badge by either: (1) Launching a token whose price successfully touches $1.00 USDC, OR (2) Completing 30 consecutive days of Daily Check-ins!</p>
+                  <p className="text-[var(--text-primary)] font-extrabold text-sm mb-0.5">⭐ Partner Affiliate Badge</p>
+                  <p className="text-[var(--text-secondary)] text-xs font-medium leading-relaxed">Get the exclusive Partner Affiliate badge by either: (1) Launching a token whose price successfully touches $1.00 USDC, OR (2) Completing 30 consecutive days of Daily Check-ins!</p>
                 </div>
               </div>
             </div>
@@ -1471,7 +1471,7 @@ export default function Home() {
               {/* Premium Liquidity Locker Modal (Version 2 Upgraded) */}
       {isLockerOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/40 transition-all duration-200 animate-in fade-in">
-          <div className="bg-slate-950/95 border border-slate-800 shadow-2xl rounded-[32px] p-6 max-w-lg w-full space-y-6 transform transition-all scale-100 animate-in zoom-in-95 duration-200 text-slate-100">
+          <div className="bg-slate-950/95 border border-[var(--border-dim)] shadow-2xl rounded-[32px] p-6 max-w-lg w-full space-y-6 transform transition-all scale-100 animate-in zoom-in-95 duration-200 text-slate-100">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -1480,19 +1480,19 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black tracking-wider text-white uppercase">Liquidity Locker V2</h3>
-                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Lock and claim USDC, EURC, & Tokens</p>
+                  <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Lock and claim USDC, EURC, & Tokens</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsLockerOpen(false)}
-                className="text-slate-500 hover:text-slate-200 text-xs font-black cursor-pointer bg-slate-900 hover:bg-slate-800 p-2 rounded-full transition-all"
+                className="text-[var(--text-secondary)] hover:text-slate-200 text-xs font-black cursor-pointer bg-slate-900 hover:bg-slate-800 p-2 rounded-full transition-all"
               >
                 ✕
               </button>
             </div>
 
             {/* Total Locked Display inside Modal */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-5 text-white flex items-center justify-between shadow-lg shadow-blue-500/20">
+            <div className="btn-primary rounded-3xl p-5 text-white flex items-center justify-between shadow-lg shadow-blue-500/20">
               <div>
                 <p className="text-[8px] font-black uppercase tracking-widest text-blue-100">Total System Locked</p>
                 <h4 className="text-3xl font-black mt-1">
@@ -1501,7 +1501,7 @@ export default function Home() {
               </div>
               <div className="text-right">
                 <p className="text-[8px] font-black uppercase tracking-widest text-blue-100">Lock Duration</p>
-                <p className="text-xs font-bold mt-1 bg-white/10 px-3 py-1 rounded-full border border-white/20">30 Days (1 Month)</p>
+                <p className="text-xs font-bold mt-1 bg-[var(--bg-card)]/10 px-3 py-1 rounded-full border border-white/20">30 Days (1 Month)</p>
               </div>
             </div>
 
@@ -1511,8 +1511,8 @@ export default function Home() {
                 onClick={() => setLockerTab('lock')}
                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                   lockerTab === 'lock' 
-                    ? 'bg-slate-850 text-white shadow-sm border border-slate-700/50' 
-                    : 'text-slate-500 hover:text-slate-350'
+                    ? 'bg-slate-850 text-white shadow-sm border border-[var(--border-dim)]' 
+                    : 'text-[var(--text-secondary)] hover:text-slate-350'
                 }`}
               >
                 Create Lock
@@ -1521,8 +1521,8 @@ export default function Home() {
                 onClick={() => setLockerTab('my_locks')}
                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   lockerTab === 'my_locks' 
-                    ? 'bg-slate-850 text-white shadow-sm border border-slate-700/50' 
-                    : 'text-slate-500 hover:text-slate-350'
+                    ? 'bg-slate-850 text-white shadow-sm border border-[var(--border-dim)]' 
+                    : 'text-[var(--text-secondary)] hover:text-slate-350'
                 }`}
               >
                 My Active Locks
@@ -1539,7 +1539,7 @@ export default function Home() {
               <div className="space-y-4">
                 {/* Asset Type Selector */}
                 <div className="space-y-1.5">
-                  <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Select Asset to Lock</span>
+                  <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Select Asset to Lock</span>
                   <div className="grid grid-cols-4 gap-2">
                     {[
                       { type: 'USDC', label: 'USDC', desc: '$1.00 USD' },
@@ -1566,11 +1566,11 @@ export default function Home() {
                         className={`py-2 px-1 rounded-xl font-black text-[10px] transition-all border cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
                           lockAssetType === item.type
                             ? 'border-blue-500 bg-blue-950/40 text-blue-400' 
-                            : 'border-slate-800 bg-slate-900/40 text-slate-400 hover:bg-slate-900/70'
+                            : 'border-[var(--border-dim)] bg-slate-900/40 text-[var(--text-secondary)] hover:bg-slate-900/70'
                         }`}
                       >
                         <span>{item.label}</span>
-                        <span className="text-[7.5px] font-mono text-slate-500 font-bold">{item.desc}</span>
+                        <span className="text-[7.5px] font-mono text-[var(--text-secondary)] font-bold">{item.desc}</span>
                       </button>
                     ))}
                   </div>
@@ -1579,10 +1579,10 @@ export default function Home() {
                 {/* Dynamic Selection for Launched Platform Meme Tokens */}
                 {lockAssetType === 'PLATFORM_TOKEN' && (
                   <div className="space-y-1.5">
-                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Select Launched Meme Token</span>
-                    <div className="grid grid-cols-3 gap-2 max-h-[90px] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl p-2 pr-1">
+                    <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Select Launched Meme Token</span>
+                    <div className="grid grid-cols-3 gap-2 max-h-[90px] overflow-y-auto bg-slate-900 border border-[var(--border-dim)] rounded-2xl p-2 pr-1">
                       {tokensList.length === 0 ? (
-                        <p className="text-[9px] text-slate-500 col-span-3 text-center py-2">No active tokens launched yet.</p>
+                        <p className="text-[9px] text-[var(--text-secondary)] col-span-3 text-center py-2">No active tokens launched yet.</p>
                       ) : (
                         tokensList.map((tok: any) => (
                           <button
@@ -1595,11 +1595,11 @@ export default function Home() {
                             className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                               lockAddress.toLowerCase() === tok.token_address.toLowerCase()
                                 ? 'border-blue-500 bg-blue-950/60'
-                                : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                                : 'border-[var(--border-dim)] bg-slate-950 hover:border-[var(--border-dim)]'
                             }`}
                           >
                             <span className="text-[9px] font-black text-white truncate block">{tok.ticker}</span>
-                            <span className="text-[7px] text-slate-500 font-mono truncate block">{tok.name}</span>
+                            <span className="text-[7px] text-[var(--text-secondary)] font-mono truncate block">{tok.name}</span>
                           </button>
                         ))
                       )}
@@ -1609,37 +1609,37 @@ export default function Home() {
 
                 {/* Custom Token Details Inputs */}
                 {lockAssetType === 'CUSTOM_ERC20' && (
-                  <div className="space-y-3 p-3 bg-slate-900/50 border border-slate-800 rounded-2xl animate-in slide-in-from-top-2 duration-150">
+                  <div className="space-y-3 p-3 bg-slate-900/50 border border-[var(--border-dim)] rounded-2xl animate-in slide-in-from-top-2 duration-150">
                     <div className="space-y-1">
-                      <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Contract Address</span>
+                      <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Contract Address</span>
                       <input
                         type="text"
                         value={lockAddress}
                         onChange={(e) => setLockAddress(e.target.value)}
                         placeholder="0x..."
-                        className="w-full bg-slate-955 border border-slate-800 text-white placeholder-slate-700 rounded-xl p-2.5 text-xs font-mono outline-none focus:border-blue-500"
+                        className="w-full bg-slate-955 border border-[var(--border-dim)] text-white placeholder-slate-700 rounded-xl p-2.5 text-xs font-mono outline-none focus:border-blue-500"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Ticker Symbol</span>
+                        <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Ticker Symbol</span>
                         <input
                           type="text"
                           value={lockTicker}
                           onChange={(e) => setLockTicker(e.target.value)}
                           placeholder="e.g. LINK"
-                          className="w-full bg-slate-955 border border-slate-800 text-white placeholder-slate-700 rounded-xl p-2.5 text-xs font-black outline-none focus:border-blue-500 uppercase"
+                          className="w-full bg-slate-955 border border-[var(--border-dim)] text-white placeholder-slate-700 rounded-xl p-2.5 text-xs font-black outline-none focus:border-blue-500 uppercase"
                         />
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">USD Price Estimate ($)</span>
+                        <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">USD Price Estimate ($)</span>
                         <input
                           type="number"
                           step="0.01"
                           value={lockCustomPrice}
                           onChange={(e) => setLockCustomPrice(e.target.value)}
                           placeholder="1.00"
-                          className="w-full bg-slate-955 border border-slate-800 text-white placeholder-slate-700 rounded-xl p-2.5 text-xs font-bold outline-none focus:border-blue-500"
+                          className="w-full bg-slate-955 border border-[var(--border-dim)] text-white placeholder-slate-700 rounded-xl p-2.5 text-xs font-bold outline-none focus:border-blue-500"
                         />
                       </div>
                     </div>
@@ -1648,7 +1648,7 @@ export default function Home() {
 
                 {/* Amount Input */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[8px] font-black text-slate-500 uppercase tracking-widest">
+                  <div className="flex justify-between items-center text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
                     <span>Amount to Lock</span>
                     <span className="flex items-center gap-1">
                       Available: <span className="text-slate-350 font-bold">{tokenBalance.toFixed(2)} {lockTicker || 'TOKENS'}</span>
@@ -1660,25 +1660,25 @@ export default function Home() {
                       value={lockAmount}
                       onChange={(e) => setLockAmount(e.target.value)}
                       placeholder="0.00"
-                      className="w-full bg-slate-900 border border-slate-800 text-white placeholder-slate-650 rounded-2xl p-4.5 pr-20 text-sm font-extrabold outline-none focus:border-blue-500 focus:bg-slate-950"
+                      className="w-full bg-slate-900 border border-[var(--border-dim)] text-white placeholder-slate-650 rounded-2xl p-4.5 pr-20 text-sm font-extrabold outline-none focus:border-blue-500 focus:bg-slate-950"
                     />
                     <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setLockAmount(tokenBalance.toString())}
-                        className="text-[8.5px] uppercase font-black px-2 py-1 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/50 cursor-pointer shadow-sm"
+                        className="text-[8.5px] uppercase font-black px-2 py-1 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 border border-[var(--border-dim)] cursor-pointer shadow-sm"
                       >
                         Max
                       </button>
-                      <span className="text-[10px] font-black text-slate-400 tracking-wider">
+                      <span className="text-[10px] font-black text-[var(--text-secondary)] tracking-wider">
                         {lockTicker || 'TOKEN'}
                       </span>
                     </div>
                   </div>
 
                   {/* Worth Display */}
-                  <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-3 flex justify-between items-center text-[10px] font-bold">
-                    <span className="text-slate-500">Estimated Worth (USD):</span>
+                  <div className="bg-slate-900 border border-[var(--border-dim)] rounded-2xl p-3 flex justify-between items-center text-[10px] font-bold">
+                    <span className="text-[var(--text-secondary)]">Estimated Worth (USD):</span>
                     <span className="text-emerald-400 font-mono font-black flex items-center gap-1.5">
                       {isFetchingWorth ? (
                         <span className="w-2.5 h-2.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></span>
@@ -1701,8 +1701,8 @@ export default function Home() {
               /* MY LOCKS LIST */
               <div className="space-y-3 max-h-[250px] overflow-auto pr-1">
                 {myLocks.length === 0 ? (
-                  <div className="text-center py-10 text-slate-500 space-y-1">
-                    <p className="text-xs font-bold text-slate-400">No active locks found.</p>
+                  <div className="text-center py-10 text-[var(--text-secondary)] space-y-1">
+                    <p className="text-xs font-bold text-[var(--text-secondary)]">No active locks found.</p>
                     <p className="text-[10px]">Create a lock first to secure your assets!</p>
                   </div>
                 ) : (
@@ -1717,7 +1717,7 @@ export default function Home() {
                     const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
 
                     return (
-                      <div key={lock.id} className="bg-slate-900 border border-slate-800/60 rounded-2xl p-4 flex items-center justify-between gap-4">
+                      <div key={lock.id} className="bg-slate-900 border border-[var(--border-dim)] rounded-2xl p-4 flex items-center justify-between gap-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-black text-white">
@@ -1725,7 +1725,7 @@ export default function Home() {
                             </span>
                             <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${
                               lock.is_withdrawn
-                                ? 'bg-slate-800 text-slate-500'
+                                ? 'bg-slate-800 text-[var(--text-secondary)]'
                                 : isUnlockable
                                 ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-900/30 animate-pulse'
                                 : 'bg-amber-950/80 text-amber-400 border border-amber-900/30'
@@ -1733,7 +1733,7 @@ export default function Home() {
                               {lock.is_withdrawn ? 'Withdrawn' : isUnlockable ? 'Unlockable' : `${remainingDays}d Left`}
                             </span>
                           </div>
-                          <div className="flex flex-col gap-0.5 text-[8px] text-slate-500 font-mono">
+                          <div className="flex flex-col gap-0.5 text-[8px] text-[var(--text-secondary)] font-mono">
                             <p>USD Worth: <span className="text-emerald-500 font-bold">${Number(lock.usdc_worth || 0).toFixed(2)}</span></p>
                             <p>Locked: {lockedDate.toLocaleDateString()} | Unlocks: {unlockDate.toLocaleDateString()}</p>
                           </div>
@@ -1747,7 +1747,7 @@ export default function Home() {
                             className={`px-3 py-2 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
                               isUnlockable
                                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/20'
-                                : 'bg-slate-800 text-slate-650 cursor-not-allowed border border-slate-700/40'
+                                : 'bg-slate-800 text-slate-650 cursor-not-allowed border border-[var(--border-dim)]'
                             }`}
                           >
                             Withdraw 🔓
@@ -1769,7 +1769,7 @@ export default function Home() {
       {/* Premium Styled Dialog Alert Overlay */}
       {premiumAlert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
-          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+          <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
             {/* Header Icon & Title */}
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${
@@ -1777,7 +1777,7 @@ export default function Home() {
                   ? 'bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10' 
                   : premiumAlert.type === 'error'
                   ? 'bg-rose-500/10 text-rose-600 shadow-rose-500/10'
-                  : 'bg-blue-600/10 text-blue-600 shadow-blue-500/10'
+                  : 'bg-blue-600/10 text-[var(--accent-cyan)] shadow-blue-500/10'
               }`}>
                 {premiumAlert.type === 'success' ? (
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -1788,17 +1788,17 @@ export default function Home() {
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumAlert.title}</h3>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">ArcOmni Alert</p>
+                <h3 className="text-xs font-black tracking-wider text-[var(--text-primary)] uppercase">{premiumAlert.title}</h3>
+                <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">ArcOmni Alert</p>
               </div>
             </div>
 
             {/* Details List */}
-            <div className="space-y-3 bg-slate-50 border border-slate-100 rounded-2xl p-4 font-mono text-[10px] text-slate-600">
+            <div className="space-y-3 bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
               {premiumAlert.details.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-0.5">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
-                  <span className="text-[10px] font-bold text-slate-700 break-all select-all">{item.value}</span>
+                  <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">{item.label}</span>
+                  <span className="text-[10px] font-bold text-[var(--text-primary)] break-all select-all">{item.value}</span>
                 </div>
               ))}
             </div>

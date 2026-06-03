@@ -118,22 +118,22 @@ export function ArcPayHistory({ onOpenProfile }: ArcPayHistoryProps) {
 
   if (!address) {
     return (
-      <div className="bg-white border border-slate-200/80 rounded-[28px] p-8 text-center">
-        <p className="text-sm text-slate-500 font-semibold">Connect wallet to view your inbox</p>
+      <div className="card rounded-[28px] p-8 text-center">
+        <p className="text-sm text-[var(--text-secondary)] font-semibold">Connect wallet to view your inbox</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-[28px] overflow-hidden shadow-sm">
+    <div className="card rounded-[28px] overflow-hidden shadow-sm">
       {/* Header */}
-      <div className="p-5 border-b border-slate-100 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
-          <Inbox size={18} className="text-blue-600" />
+      <div className="p-5 border-b border-[var(--border-dim)] flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] flex items-center justify-center">
+          <Inbox size={18} className="text-[var(--accent-cyan)]" />
         </div>
         <div>
-          <h3 className="text-sm font-black text-slate-900">Inbox</h3>
-          <p className="text-[10px] text-slate-400 font-semibold">Recent conversations & payments</p>
+          <h3 className="text-sm font-black text-[var(--text-primary)]">Inbox</h3>
+          <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Recent conversations & payments</p>
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export function ArcPayHistory({ onOpenProfile }: ArcPayHistoryProps) {
         ) : conversations.length === 0 ? (
           <div className="text-center p-12 space-y-3">
             <MessageCircle size={32} className="text-slate-300 mx-auto" />
-            <p className="text-xs text-slate-400 font-semibold">No conversations yet</p>
+            <p className="text-xs text-[var(--text-secondary)] font-semibold">No conversations yet</p>
             <p className="text-[10px] text-slate-300">Search a username above to start chatting</p>
           </div>
         ) : (
@@ -155,11 +155,11 @@ export function ArcPayHistory({ onOpenProfile }: ArcPayHistoryProps) {
               <button
                 key={conv.wallet}
                 onClick={() => onOpenProfile?.(conv.name)}
-                className="w-full p-4 hover:bg-blue-50/50 transition-colors flex items-center gap-3.5 text-left group cursor-pointer"
+                className="w-full p-4 hover:bg-[rgba(0,242,254,0.05)] transition-colors flex items-center gap-3.5 text-left group cursor-pointer"
               >
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-slate-100">
+                  <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-[var(--border-dim)]">
                     <img
                       src={conv.avatar}
                       alt={conv.name}
@@ -177,16 +177,16 @@ export function ArcPayHistory({ onOpenProfile }: ArcPayHistoryProps) {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center mb-0.5">
-                    <span className="text-sm font-bold text-slate-800 truncate">{conv.name}</span>
-                    <span className="text-[9px] text-slate-400 font-semibold flex-shrink-0 ml-2">
+                    <span className="text-sm font-bold text-[var(--text-primary)] truncate">{conv.name}</span>
+                    <span className="text-[9px] text-[var(--text-secondary)] font-semibold flex-shrink-0 ml-2">
                       {formatTimeAgo(conv.lastTime)}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 truncate font-medium">{conv.lastMessage}</p>
+                  <p className="text-xs text-[var(--text-secondary)] truncate font-medium">{conv.lastMessage}</p>
                 </div>
 
                 {/* Arrow */}
-                <ArrowRight size={14} className="text-slate-300 group-hover:text-blue-500 transition-colors flex-shrink-0" />
+                <ArrowRight size={14} className="text-slate-300 group-hover:text-[var(--accent-cyan)] transition-colors flex-shrink-0" />
               </button>
             ))}
           </div>

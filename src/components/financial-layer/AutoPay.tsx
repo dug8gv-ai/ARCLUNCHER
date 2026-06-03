@@ -376,12 +376,12 @@ export default function AutoPay() {
     <div className="space-y-6">
       
       {/* Top Controller Tabs */}
-      <div className="flex gap-2 p-1.5 bg-slate-100 border border-slate-200/50 rounded-2xl">
+      <div className="flex gap-2 p-1.5 bg-slate-100 border border-[var(--border-dim)] rounded-2xl">
         <button
           type="button"
           onClick={() => setActiveTab('schedules')}
           className={`flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-            activeTab === 'schedules' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'schedules' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
           📅 Active Automations Registry
@@ -390,7 +390,7 @@ export default function AutoPay() {
           type="button"
           onClick={() => setActiveTab('create')}
           className={`flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-            activeTab === 'create' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'create' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
           ➕ Configure AutoPay Schedule
@@ -401,30 +401,30 @@ export default function AutoPay() {
         
         {/* CREATE AUTO-PAY SCHEDULE TAB */}
         {activeTab === 'create' && (
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-5">
-              <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2"><Clock className="text-blue-600" size={18} /> Schedule Stablecoin Payroll transfer</h3>
-              <p className="text-[10px] text-slate-500 font-semibold">Setup monthly payroll triggers or post-dated one-time stablecoin allocations targeting custom usernames.</p>
+          <div className="card rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="border-b border-[var(--border-dim)] pb-5">
+              <h3 className="font-extrabold text-[var(--text-primary)] text-sm flex items-center gap-2"><Clock className="text-[var(--accent-cyan)]" size={18} /> Schedule Stablecoin Payroll transfer</h3>
+              <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Setup monthly payroll triggers or post-dated one-time stablecoin allocations targeting custom usernames.</p>
             </div>
 
             <form onSubmit={handleCreateSchedule} className="space-y-6">
               
               {/* Recipient Selection */}
               <div className="space-y-3">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Recipient Username / Wallet</label>
+                <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Recipient Username / Wallet</label>
                 {selectedRecipient ? (
-                  <div className="flex items-center justify-between p-4 bg-blue-50/45 border border-blue-200/40 rounded-2xl">
+                  <div className="flex items-center justify-between p-4 bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] rounded-2xl">
                     <div className="flex items-center gap-3">
-                      <img src={selectedRecipient.avatar} className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200" alt="" />
+                      <img src={selectedRecipient.avatar} className="w-10 h-10 rounded-xl overflow-hidden border border-[var(--border-dim)]" alt="" />
                       <div>
-                        <h4 className="font-black text-slate-800 text-xs">@{selectedRecipient.name}</h4>
-                        <p className="text-[9px] text-slate-400 font-mono mt-0.5">{selectedRecipient.wallet.slice(0, 10)}...{selectedRecipient.wallet.slice(-8)}</p>
+                        <h4 className="font-black text-[var(--text-primary)] text-xs">@{selectedRecipient.name}</h4>
+                        <p className="text-[9px] text-[var(--text-secondary)] font-mono mt-0.5">{selectedRecipient.wallet.slice(0, 10)}...{selectedRecipient.wallet.slice(-8)}</p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setSelectedRecipient(null)}
-                      className="text-[10px] font-extrabold text-blue-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-all"
+                      className="text-[10px] font-extrabold text-[var(--accent-cyan)] card px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-all"
                     >
                       Change
                     </button>
@@ -432,19 +432,19 @@ export default function AutoPay() {
                 ) : (
                   <div className="space-y-3">
                     <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={15} />
                       <input
                         type="text"
                         placeholder="Search recipient username (e.g. Frianowzki)..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-white transition-all"
+                        className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                       />
-                      {searchLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-blue-600 size-4" />}
+                      {searchLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-[var(--accent-cyan)] size-4" />}
                     </div>
 
                     {searchResults.length > 0 && (
-                      <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xl max-h-[180px] overflow-y-auto">
+                      <div className="border border-[var(--border-dim)] rounded-2xl overflow-hidden card shadow-xl max-h-[180px] overflow-y-auto">
                         {searchResults.map((p) => (
                           <button
                             key={p.wallet}
@@ -454,13 +454,13 @@ export default function AutoPay() {
                               setSearchQuery('');
                               setSearchResults([]);
                             }}
-                            className="w-full flex items-center justify-between p-3 hover:bg-slate-50 border-b border-slate-100 last:border-0 text-left cursor-pointer"
+                            className="w-full flex items-center justify-between p-3 hover:bg-slate-50 border-b border-[var(--border-dim)] last:border-0 text-left cursor-pointer"
                           >
                             <div className="flex items-center gap-3">
-                              <img src={p.avatar} className="w-8 h-8 rounded-lg border border-slate-200" alt="" />
+                              <img src={p.avatar} className="w-8 h-8 rounded-lg border border-[var(--border-dim)]" alt="" />
                               <div>
-                                <span className="text-xs font-black text-slate-800 block">@{p.name}</span>
-                                <span className="text-[8px] text-slate-400 font-mono block mt-0.5">{p.wallet}</span>
+                                <span className="text-xs font-black text-[var(--text-primary)] block">@{p.name}</span>
+                                <span className="text-[8px] text-[var(--text-secondary)] font-mono block mt-0.5">{p.wallet}</span>
                               </div>
                             </div>
                           </button>
@@ -469,8 +469,8 @@ export default function AutoPay() {
                     )}
 
                     <div className="flex items-center gap-3">
-                      <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Or Input Custom Destination Wallet</span>
-                      <hr className="flex-1 border-slate-100" />
+                      <span className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Or Input Custom Destination Wallet</span>
+                      <hr className="flex-1 border-[var(--border-dim)]" />
                     </div>
 
                     <input
@@ -478,7 +478,7 @@ export default function AutoPay() {
                       placeholder="Enter custom wallet address (0x...)"
                       value={customWallet}
                       onChange={(e) => setCustomWallet(e.target.value)}
-                      className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                     />
                   </div>
                 )}
@@ -487,13 +487,13 @@ export default function AutoPay() {
               {/* Asset Select */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Select Stablecoin</label>
+                  <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Select Stablecoin</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setFormAsset('USDC')}
                       className={`py-3 rounded-xl border text-xs font-bold transition-all ${
-                        formAsset === 'USDC' ? 'border-blue-500 bg-blue-50/50 text-blue-600' : 'border-slate-200 bg-slate-50'
+                        formAsset === 'USDC' ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)]' : 'border-[var(--border-dim)] bg-slate-50'
                       }`}
                     >
                       USDC Stablecoin
@@ -502,7 +502,7 @@ export default function AutoPay() {
                       type="button"
                       onClick={() => setFormAsset('EURC')}
                       className={`py-3 rounded-xl border text-xs font-bold transition-all ${
-                        formAsset === 'EURC' ? 'border-blue-500 bg-blue-50/50 text-blue-600' : 'border-slate-200 bg-slate-50'
+                        formAsset === 'EURC' ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)]' : 'border-[var(--border-dim)] bg-slate-50'
                       }`}
                     >
                       EURC Stablecoin
@@ -511,14 +511,14 @@ export default function AutoPay() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Payment Amount</label>
+                  <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Payment Amount</label>
                   <input
                     type="number"
                     required
                     placeholder="0.00"
                     value={formAmount}
                     onChange={(e) => setFormAmount(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-white transition-all"
+                    className="w-full px-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                   />
                 </div>
               </div>
@@ -526,13 +526,13 @@ export default function AutoPay() {
               {/* Schedule Select */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Frequency Configuration</label>
+                  <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Frequency Configuration</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setFormFrequency('monthly')}
                       className={`py-3 rounded-xl border text-xs font-bold transition-all ${
-                        formFrequency === 'monthly' ? 'border-blue-500 bg-blue-50/50 text-blue-600' : 'border-slate-200 bg-slate-50'
+                        formFrequency === 'monthly' ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)]' : 'border-[var(--border-dim)] bg-slate-50'
                       }`}
                     >
                       Monthly Payroll
@@ -541,7 +541,7 @@ export default function AutoPay() {
                       type="button"
                       onClick={() => setFormFrequency('onetime')}
                       className={`py-3 rounded-xl border text-xs font-bold transition-all ${
-                        formFrequency === 'onetime' ? 'border-blue-500 bg-blue-50/50 text-blue-600' : 'border-slate-200 bg-slate-50'
+                        formFrequency === 'onetime' ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)]' : 'border-[var(--border-dim)] bg-slate-50'
                       }`}
                     >
                       One-Time Scheduled
@@ -550,19 +550,19 @@ export default function AutoPay() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1"><Calendar size={13} /> Trigger Date & Time</label>
+                  <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-1"><Calendar size={13} /> Trigger Date & Time</label>
                   <input
                     type="datetime-local"
                     required
                     value={formDate}
                     onChange={(e) => setFormDate(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-white transition-all"
+                    className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                   />
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-[10px] font-bold text-slate-500 leading-normal flex items-start gap-2.5">
-                <AlertCircle className="text-blue-500 shrink-0 mt-0.5" size={15} />
+              <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 text-[10px] font-bold text-[var(--text-secondary)] leading-normal flex items-start gap-2.5">
+                <AlertCircle className="text-[var(--accent-cyan)] shrink-0 mt-0.5" size={15} />
                 <span>
                   By initiating this scheduler, you configure an automated client-side trigger. The payment engine will continuously check current system dates and execute the transfers instantly from your wallet balance when the scheduled time arrives.
                 </span>
@@ -581,23 +581,23 @@ export default function AutoPay() {
 
         {/* ACTIVE SCHEDULES LIST TAB */}
         {activeTab === 'schedules' && (
-          <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-5">
-              <h3 className="font-extrabold text-slate-800 text-sm">Automated Billing Registry</h3>
-              <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Manage automated payroll runs, paused loops, and historical one-time schedules.</p>
+          <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="border-b border-[var(--border-dim)] pb-5">
+              <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Automated Billing Registry</h3>
+              <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-0.5">Manage automated payroll runs, paused loops, and historical one-time schedules.</p>
             </div>
 
             {jobs.length === 0 ? (
-              <div className="text-center py-16 text-slate-400 space-y-2 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+              <div className="text-center py-16 text-[var(--text-secondary)] space-y-2 border border-dashed border-[var(--border-dim)] rounded-2xl bg-slate-50/50">
                 <Clock size={32} className="mx-auto text-slate-200" />
-                <p className="text-xs font-black uppercase tracking-wider text-slate-500">No Automation Jobs Active</p>
+                <p className="text-xs font-black uppercase tracking-wider text-[var(--text-secondary)]">No Automation Jobs Active</p>
                 <p className="text-[10px] max-w-xs mx-auto text-slate-450 leading-relaxed font-semibold">Click the Configure tab above to setup a scheduled recurring stablecoin transfer for payrolls or post-dated bills.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left text-xs font-semibold text-slate-500">
+                <table className="w-full border-collapse text-left text-xs font-semibold text-[var(--text-secondary)]">
                   <thead>
-                    <tr className="border-b border-slate-100 text-[10px] text-slate-400 uppercase tracking-widest font-black">
+                    <tr className="border-b border-[var(--border-dim)] text-[10px] text-[var(--text-secondary)] uppercase tracking-widest font-black">
                       <th className="pb-3 pr-4">Recipient</th>
                       <th className="pb-3 px-4">Amount & Asset</th>
                       <th className="pb-3 px-4">Schedule</th>
@@ -616,16 +616,16 @@ export default function AutoPay() {
                           {/* Recipient info */}
                           <td className="py-4 pr-4">
                             <div className="flex items-center gap-3">
-                              <img src={job.recipientAvatar} className="w-8 h-8 rounded-lg border border-slate-200" alt="" />
+                              <img src={job.recipientAvatar} className="w-8 h-8 rounded-lg border border-[var(--border-dim)]" alt="" />
                               <div>
-                                <span className="font-extrabold text-slate-800 block text-xs">@{job.recipientName}</span>
-                                <span className="font-mono text-[9px] text-slate-400 block mt-0.5">{job.recipientWallet.slice(0, 8)}...{job.recipientWallet.slice(-6)}</span>
+                                <span className="font-extrabold text-[var(--text-primary)] block text-xs">@{job.recipientName}</span>
+                                <span className="font-mono text-[9px] text-[var(--text-secondary)] block mt-0.5">{job.recipientWallet.slice(0, 8)}...{job.recipientWallet.slice(-6)}</span>
                               </div>
                             </div>
                           </td>
 
                           {/* Amount */}
-                          <td className="py-4 px-4 font-mono font-bold text-slate-800 text-xs">
+                          <td className="py-4 px-4 font-mono font-bold text-[var(--text-primary)] text-xs">
                             {job.amount} {job.asset}
                           </td>
 
@@ -639,12 +639,12 @@ export default function AutoPay() {
                           {/* Next execution time */}
                           <td className="py-4 px-4">
                             {job.status === 'Executed' ? (
-                              <span className="text-[9.5px] text-slate-400 font-bold block">
+                              <span className="text-[9.5px] text-[var(--text-secondary)] font-bold block">
                                 Executed: {job.lastExecutedAt ? new Date(job.lastExecutedAt).toLocaleDateString() : 'N/A'}
                               </span>
                             ) : (
                               <div className="space-y-1">
-                                <span className="text-[10px] font-bold text-slate-700 block">
+                                <span className="text-[10px] font-bold text-[var(--text-primary)] block">
                                   {nextDate.toLocaleString()}
                                 </span>
                                 {job.status === 'Active' && isOverdue && (
@@ -662,9 +662,9 @@ export default function AutoPay() {
                               job.status === 'Active'
                                 ? 'bg-emerald-50 border-emerald-100 text-emerald-600'
                                 : job.status === 'Paused'
-                                ? 'bg-slate-50 border-slate-150 text-slate-450'
+                                ? 'bg-slate-50 border-[var(--border-dim)] text-slate-450'
                                 : job.status === 'Executed'
-                                ? 'bg-blue-50 border-blue-100 text-blue-600'
+                                ? 'bg-[rgba(0,242,254,0.05)] border-[var(--border-dim)] text-[var(--accent-cyan)]'
                                 : 'bg-rose-50 border-rose-100 text-rose-600'
                             }`}>
                               {job.status}
@@ -680,7 +680,7 @@ export default function AutoPay() {
                                   type="button"
                                   onClick={() => handleToggleJob(job.id)}
                                   title={job.status === 'Paused' ? 'Resume Autopay' : 'Pause Autopay'}
-                                  className="p-2 border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-xl cursor-pointer transition-all"
+                                  className="p-2 border border-[var(--border-dim)] text-slate-650 hover:bg-slate-50 rounded-xl cursor-pointer transition-all"
                                 >
                                   {job.status === 'Paused' ? <Play size={13} className="text-emerald-500" /> : <Pause size={13} />}
                                 </button>
@@ -692,7 +692,7 @@ export default function AutoPay() {
                                   type="button"
                                   onClick={() => handleForceTrigger(job.id)}
                                   title="Trigger payment now for testing"
-                                  className="px-2.5 py-2 border border-blue-200 bg-blue-50/20 text-blue-600 text-[10px] font-bold uppercase tracking-wider hover:bg-blue-50 rounded-xl cursor-pointer transition-all"
+                                  className="px-2.5 py-2 border border-[var(--border-dim)] bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] text-[10px] font-bold uppercase tracking-wider hover:bg-[rgba(0,242,254,0.05)] rounded-xl cursor-pointer transition-all"
                                 >
                                   Trigger Now
                                 </button>
@@ -703,7 +703,7 @@ export default function AutoPay() {
                                 type="button"
                                 onClick={() => handleDeleteJob(job.id)}
                                 title="Delete Automation job"
-                                className="p-2 border border-slate-200 text-rose-500 hover:bg-rose-50 rounded-xl cursor-pointer transition-all"
+                                className="p-2 border border-[var(--border-dim)] text-rose-500 hover:bg-rose-50 rounded-xl cursor-pointer transition-all"
                               >
                                 <Trash2 size={13} />
                               </button>

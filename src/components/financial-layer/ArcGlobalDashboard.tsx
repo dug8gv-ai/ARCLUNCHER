@@ -136,10 +136,10 @@ export default function ArcGlobalDashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen flex bg-[#f4f7fc] text-slate-800 antialiased selection:bg-blue-100">
+    <div className="min-h-screen flex bg-[#f4f7fc] text-[var(--text-primary)] antialiased selection:bg-[rgba(0,242,254,0.1)]">
       
       {/* SIDEBAR NAVIGATION - LUXURY BLUE & WHITE BRANDED */}
-      <aside className="hidden lg:flex w-72 flex-col bg-white border-r border-slate-100 p-6 space-y-8 sticky top-0 h-screen justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] z-30">
+      <aside className="hidden lg:flex w-72 flex-col bg-[var(--bg-card)] border-r border-[var(--border-dim)] p-6 space-y-8 sticky top-0 h-screen justify-between shadow-[0_8px_30px_rgb(0,0,0,0.02)] z-30">
         <div className="space-y-8">
           {/* Brand header */}
           <div className="flex items-center gap-3 px-2">
@@ -151,8 +151,8 @@ export default function ArcGlobalDashboard() {
               <img src="/main-logo.jpg" alt="ArcOmni" className="w-full h-full object-contain p-0.5" />
             </motion.div>
             <div>
-              <span className="text-sm font-black tracking-wide text-slate-900 block">ARC GLOBAL</span>
-              <span className="text-[9px] block font-extrabold text-blue-600 tracking-widest mt-[-2px] uppercase">FINANCIAL</span>
+              <span className="text-sm font-black tracking-wide text-[var(--text-primary)] block">ARC GLOBAL</span>
+              <span className="text-[9px] block font-extrabold text-[var(--accent-cyan)] tracking-widest mt-[-2px] uppercase">FINANCIAL</span>
             </div>
           </div>
 
@@ -163,11 +163,11 @@ export default function ArcGlobalDashboard() {
               onClick={() => setCurrentTab('wallet')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'wallet'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Wallet size={16} className={currentTab === 'wallet' ? 'text-blue-600' : 'text-slate-400'} />
+              <Wallet size={16} className={currentTab === 'wallet' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Arc Wallet
             </button>
 
@@ -176,11 +176,11 @@ export default function ArcGlobalDashboard() {
               onClick={() => setCurrentTab('social-pay')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'social-pay'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Send size={16} className={currentTab === 'social-pay' ? 'text-blue-600' : 'text-slate-400'} />
+              <Send size={16} className={currentTab === 'social-pay' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Social Pay
             </button>
 
@@ -189,11 +189,11 @@ export default function ArcGlobalDashboard() {
               onClick={() => setCurrentTab('leaderboard')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'leaderboard'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Trophy size={16} className={currentTab === 'leaderboard' ? 'text-blue-600' : 'text-slate-400'} />
+              <Trophy size={16} className={currentTab === 'leaderboard' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Leaderboard
             </button>
 
@@ -202,11 +202,11 @@ export default function ArcGlobalDashboard() {
               onClick={() => setCurrentTab('bridge')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'bridge'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Coins size={16} className={currentTab === 'bridge' ? 'text-blue-600' : 'text-slate-400'} />
+              <Coins size={16} className={currentTab === 'bridge' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
               Circle CCTP Bridge
             </button>
 
@@ -215,15 +215,15 @@ export default function ArcGlobalDashboard() {
               onClick={() => setCurrentTab('circle-hub')}
               className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'circle-hub'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
               <div className="flex items-center gap-3.5">
-                <CreditCard size={16} className={currentTab === 'circle-hub' ? 'text-blue-600' : 'text-slate-400'} />
+                <CreditCard size={16} className={currentTab === 'circle-hub' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
                 <span>Circle Hub</span>
               </div>
-              <span className="text-[9px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
+              <span className="text-[9px] bg-[rgba(0,242,254,0.05)]0 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
                 New
               </span>
             </button>
@@ -233,12 +233,12 @@ export default function ArcGlobalDashboard() {
               onClick={() => setCurrentTab('staking')}
               className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'staking'
-                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm'
-                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
               <div className="flex items-center gap-3.5">
-                <TrendingUp size={16} className={currentTab === 'staking' ? 'text-blue-600' : 'text-slate-400'} />
+                <TrendingUp size={16} className={currentTab === 'staking' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
                 <span>Staking & Yield</span>
               </div>
             </button>
@@ -249,19 +249,19 @@ export default function ArcGlobalDashboard() {
         <button
           type="button"
           onClick={() => setCurrentTab('staking')}
-          className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 rounded-3xl p-5 space-y-3.5 shadow-sm cursor-pointer text-left transition-all"
+          className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-[var(--border-dim)] hover:border-[var(--border-dim)] rounded-3xl p-5 space-y-3.5 shadow-sm cursor-pointer text-left transition-all"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Staking & Yield</span>
-            <span className="bg-blue-100 text-blue-700 border border-blue-200/50 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider">Staking & Yield</span>
+            <span className="bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] border border-[var(--border-dim)] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
               Live
             </span>
           </div>
           <div>
-            <h4 className="text-lg font-black text-slate-900 tracking-tight">
+            <h4 className="text-lg font-black text-[var(--text-primary)] tracking-tight">
               Open the live vaults
             </h4>
-            <p className="text-[10px] text-slate-500 font-semibold mt-2 leading-relaxed">
+            <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-2 leading-relaxed">
               Review APY, balances, and wallet-signed staking actions for USDC, EURC, and cirBTC.
             </p>
           </div>
@@ -277,7 +277,7 @@ export default function ArcGlobalDashboard() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="glass-panel px-6 py-4 mb-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40 bg-white/90 backdrop-blur-md"
+            className="glass-panel px-6 py-4 mb-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40 bg-[var(--bg-card)]/90 backdrop-blur-md"
           >
             <div className="flex items-center gap-3">
               <motion.div
@@ -288,10 +288,10 @@ export default function ArcGlobalDashboard() {
                 <img src="/main-logo.jpg" alt="ArcOmni" className="w-full h-full object-contain p-0.5" />
               </motion.div>
               <div>
-                <h1 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">
-                  ARC GLOBAL <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full font-bold">PRO</span>
+                <h1 className="text-xl font-black tracking-tight text-[var(--text-primary)] flex items-center gap-2">
+                  ARC GLOBAL <span className="text-xs bg-[rgba(0,242,254,0.05)]0/10 text-[var(--accent-cyan)] px-2 py-0.5 rounded-full font-bold">PRO</span>
                 </h1>
-                <p className="text-xs text-slate-500 hidden md:block font-semibold">Decentralized Multi-Asset Financial Hub</p>
+                <p className="text-xs text-[var(--text-secondary)] hidden md:block font-semibold">Decentralized Multi-Asset Financial Hub</p>
               </div>
             </div>
 
@@ -304,17 +304,17 @@ export default function ArcGlobalDashboard() {
                 <div className="relative">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-800 px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold cursor-pointer"
+                    className="flex items-center gap-2 bg-slate-50 border border-[var(--border-dim)] hover:bg-slate-100 text-[var(--text-primary)] px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold cursor-pointer"
                   >
-                    <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-350 bg-white">
+                    <div className="w-6 h-6 rounded-full overflow-hidden border border-[var(--border-dim)] bg-[var(--bg-card)]">
                       <img src={myProfile.avatar} alt="" className="w-full h-full object-contain p-0.5" />
                     </div>
-                    <span className="max-w-[80px] truncate text-slate-700">@{myProfile.name}</span>
-                    <ChevronDown size={14} className="text-slate-400" />
+                    <span className="max-w-[80px] truncate text-[var(--text-primary)]">@{myProfile.name}</span>
+                    <ChevronDown size={14} className="text-[var(--text-secondary)]" />
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2.5 w-44 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 text-xs font-medium text-slate-700 animate-in fade-in slide-in-from-top-1">
+                    <div className="absolute right-0 mt-2.5 w-44 card rounded-2xl shadow-xl py-2 z-50 text-xs font-medium text-[var(--text-primary)] animate-in fade-in slide-in-from-top-1">
                       <button
                         onClick={() => {
                           setIsDropdownOpen(false);
@@ -322,7 +322,7 @@ export default function ArcGlobalDashboard() {
                         }}
                         className="w-full px-4 py-2 hover:bg-slate-50 flex items-center gap-2 text-left cursor-pointer transition-colors"
                       >
-                        <Settings size={13} className="text-slate-500" />
+                        <Settings size={13} className="text-[var(--text-secondary)]" />
                         Profile Settings
                       </button>
                       <button
@@ -330,7 +330,7 @@ export default function ArcGlobalDashboard() {
                           setIsDropdownOpen(false);
                           disconnect();
                         }}
-                        className="w-full px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2 text-left cursor-pointer transition-colors border-t border-slate-100"
+                        className="w-full px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2 text-left cursor-pointer transition-colors border-t border-[var(--border-dim)]"
                       >
                         <LogOut size={13} />
                         Disconnect
@@ -367,10 +367,10 @@ export default function ArcGlobalDashboard() {
 
             {/* LEADERBOARD VIEW */}
             {currentTab === 'leaderboard' && (
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
+              <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
                 <div className="mb-4">
-                  <h3 className="text-lg font-black text-slate-900">ARC MEME LEADERBOARD</h3>
-                  <p className="text-xs text-slate-500 font-semibold mt-0.5">Click any active launch to open its charts and trade desks.</p>
+                  <h3 className="text-lg font-black text-[var(--text-primary)]">ARC MEME LEADERBOARD</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-semibold mt-0.5">Click any active launch to open its charts and trade desks.</p>
                 </div>
                 <Leaderboard onSelectToken={handleSelectToken} />
               </div>
@@ -388,21 +388,21 @@ export default function ArcGlobalDashboard() {
             {/* TRADING VIEW (ACTIVATED BY LEADERBOARD OR URL TOKEN) */}
             {currentTab === 'trade' && selectedToken && (
               <div className="space-y-8 animate-in fade-in duration-200">
-                <div className="flex items-center justify-between bg-white border border-slate-200/80 rounded-[28px] p-5 shadow-sm">
+                <div className="flex items-center justify-between card rounded-[28px] p-5 shadow-sm">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-[var(--border-dim)] flex items-center justify-center">
                       {selectedToken.image_url ? (
                         <img src={selectedToken.image_url} alt="" className="w-full h-full object-contain p-0.5" />
                       ) : (
-                        <TrendingUp className="text-slate-400" size={18} />
+                        <TrendingUp className="text-[var(--text-secondary)]" size={18} />
                       )}
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-slate-800 text-base flex items-center gap-1.5">
+                      <h3 className="font-extrabold text-[var(--text-primary)] text-base flex items-center gap-1.5">
                         {selectedToken.name}
-                        <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
+                        <span className="text-xs bg-slate-100 text-[var(--text-secondary)] px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
                       </h3>
-                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">{selectedToken.token_address}</p>
+                      <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">{selectedToken.token_address}</p>
                     </div>
                   </div>
                   <button
@@ -410,7 +410,7 @@ export default function ArcGlobalDashboard() {
                       setSelectedToken(null);
                       setCurrentTab('leaderboard');
                     }}
-                    className="text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-extrabold px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm"
+                    className="text-xs bg-slate-50 hover:bg-slate-100 border border-[var(--border-dim)] text-[var(--text-secondary)] font-extrabold px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm"
                   >
                     ← View Other Markets
                   </button>

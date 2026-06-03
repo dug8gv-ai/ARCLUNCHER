@@ -38,11 +38,11 @@ export default function SlotsPage() {
       {/* Content Wrapper */}
       <div className="relative z-10">
         {/* Header */}
-        <header className="sticky top-0 z-20 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-md">
+        <header className="sticky top-0 z-20 border-b border-[var(--border-dim)] bg-slate-900/80 backdrop-blur-md">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <Link
               href="/"
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               Back to Dashboard
@@ -68,7 +68,7 @@ export default function SlotsPage() {
             /* Connection Alert */
             <div className="max-w-md mx-auto p-8 rounded-xl bg-slate-800 border border-amber-500 text-center">
               <p className="text-amber-200 font-semibold mb-2">Wallet Required</p>
-              <p className="text-slate-400 text-sm">
+              <p className="text-[var(--text-secondary)] text-sm">
                 Connect your wallet to access ArcSlots and start earning ARC rewards.
               </p>
             </div>
@@ -90,7 +90,7 @@ export default function SlotsPage() {
                 />
 
                 {/* Game Rules & Info */}
-                <div className="p-6 rounded-xl bg-slate-800/50 border border-slate-700">
+                <div className="p-6 rounded-xl bg-slate-800/50 border border-[var(--border-dim)]">
                   <h3 className="text-lg font-bold text-white mb-4">How to Play</h3>
                   <div className="space-y-3 text-sm text-slate-300">
                     <p>
@@ -109,24 +109,24 @@ export default function SlotsPage() {
                 </div>
 
                 {/* Prize Table */}
-                <div className="p-6 rounded-xl bg-slate-800/50 border border-slate-700">
+                <div className="p-6 rounded-xl bg-slate-800/50 border border-[var(--border-dim)]">
                   <h3 className="text-lg font-bold text-white mb-4">Prize Multipliers</h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="p-3 bg-slate-700/50 rounded border border-slate-600">
+                    <div className="p-3 bg-slate-700/50 rounded border border-[var(--border-dim)]">
                       <p className="text-cyan-300 font-semibold">🎯🎯🎯</p>
-                      <p className="text-slate-400">10x</p>
+                      <p className="text-[var(--text-secondary)]">10x</p>
                     </div>
-                    <div className="p-3 bg-slate-700/50 rounded border border-slate-600">
+                    <div className="p-3 bg-slate-700/50 rounded border border-[var(--border-dim)]">
                       <p className="text-cyan-300 font-semibold">💎💎💎</p>
-                      <p className="text-slate-400">50x</p>
+                      <p className="text-[var(--text-secondary)]">50x</p>
                     </div>
-                    <div className="p-3 bg-slate-700/50 rounded border border-slate-600">
+                    <div className="p-3 bg-slate-700/50 rounded border border-[var(--border-dim)]">
                       <p className="text-cyan-300 font-semibold">🏆🏆🏆</p>
-                      <p className="text-slate-400">100x</p>
+                      <p className="text-[var(--text-secondary)]">100x</p>
                     </div>
-                    <div className="p-3 bg-slate-700/50 rounded border border-slate-600">
+                    <div className="p-3 bg-slate-700/50 rounded border border-[var(--border-dim)]">
                       <p className="text-cyan-300 font-semibold">🌟🌟🌟</p>
-                      <p className="text-slate-400">200x</p>
+                      <p className="text-[var(--text-secondary)]">200x</p>
                     </div>
                   </div>
                 </div>
@@ -145,8 +145,8 @@ export default function SlotsPage() {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-slate-700/50 bg-slate-900/50 mt-20">
-          <div className="container mx-auto px-4 py-8 text-center text-sm text-slate-500">
+        <footer className="border-t border-[var(--border-dim)] bg-slate-900/50 mt-20">
+          <div className="container mx-auto px-4 py-8 text-center text-sm text-[var(--text-secondary)]">
             <p>🎰 ArcSlots on Arc Testnet • Secure • Isolated • Production-Ready</p>
             <p className="mt-2">
               Decimal Partition: USDC (6) | ARC Rewards (18) • Zero Regression Policy

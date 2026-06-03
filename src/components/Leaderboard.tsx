@@ -300,20 +300,20 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
   };
 
   return (
-    <div className="glass-panel p-6 h-full flex flex-col bg-white border border-slate-200/80">
+    <div className="glass-panel p-6 h-full flex flex-col card">
       {/* Leaderboard Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h2 className="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+        <h2 className="text-lg font-extrabold text-[var(--text-primary)] flex items-center gap-2">
           <Trophy className="text-amber-500" size={22} />
           Leaderboard
         </h2>
         
         {/* Toggle Switch Tabs */}
-        <div className="flex bg-slate-100/80 rounded-xl p-1 self-start sm:self-auto border border-slate-200/30">
+        <div className="flex bg-slate-100/80 rounded-xl p-1 self-start sm:self-auto border border-[var(--border-dim)]">
           <button 
             onClick={() => setActiveTab('tokens')}
             className={`px-4.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'tokens' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              activeTab === 'tokens' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             Live Markets
@@ -321,7 +321,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
           <button 
             onClick={() => setActiveTab('earners')}
             className={`px-4.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'earners' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              activeTab === 'earners' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             <Award size={13} />
@@ -333,15 +333,15 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
       {/* Main List Scroller Container */}
       <div className="flex-1 overflow-auto pr-1">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-2">
-            <span className="animate-spin text-blue-600 text-lg">⏳</span>
+          <div className="flex flex-col items-center justify-center py-20 text-[var(--text-secondary)] gap-2">
+            <span className="animate-spin text-[var(--accent-cyan)] text-lg">⏳</span>
             <p className="text-xs font-semibold">Syncing real-time database...</p>
           </div>
         ) : activeTab === 'tokens' ? (
           /* LIVE TOKENS (MARKETS) LIST */
           <div className="space-y-3">
             {tokens.length === 0 ? (
-              <p className="text-center text-slate-400 py-12 text-xs font-medium">No tokens launched yet.</p>
+              <p className="text-center text-[var(--text-secondary)] py-12 text-xs font-medium">No tokens launched yet.</p>
             ) : (
               tokens.map((token, i) => (
                 <motion.div 
@@ -350,30 +350,30 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                   transition={{ delay: Math.min(i * 0.05, 0.4) }}
                   key={token.id} 
                   onClick={() => onSelectToken?.(token)}
-                  className="bg-slate-50 hover:bg-slate-100/50 border border-slate-200/60 rounded-2xl p-4 hover:border-blue-300 transition-all cursor-pointer group flex items-center justify-between"
+                  className="bg-slate-50 hover:bg-slate-100/50 border border-[var(--border-dim)] rounded-2xl p-4 hover:border-blue-300 transition-all cursor-pointer group flex items-center justify-between"
                 >
                   <div className="flex gap-4.5 items-center">
                     {/* Token Logo */}
-                    <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-inner flex-shrink-0 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl overflow-hidden card shadow-inner flex-shrink-0 flex items-center justify-center">
                       {token.image_url ? (
                         <img src={token.image_url} alt={token.name} className="w-full h-full object-contain p-0.5" />
                       ) : (
-                        <TrendingUp className="text-slate-400" size={20} />
+                        <TrendingUp className="text-[var(--text-secondary)]" size={20} />
                       )}
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors text-sm flex items-center gap-1.5 flex-wrap">
+                      <h3 className="font-extrabold text-[var(--text-primary)] group-hover:text-[var(--accent-cyan)] transition-colors text-sm flex items-center gap-1.5 flex-wrap">
                         {token.is_pinned && (
                           <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black flex items-center gap-0.5 border border-amber-600/20">
                             📌 Pinned
                           </span>
                         )}
                         {token.name}
-                        <span className="text-[10px] bg-slate-200/80 text-slate-600 px-1.5 py-0.5 rounded font-black uppercase">
+                        <span className="text-[10px] bg-slate-200/80 text-[var(--text-secondary)] px-1.5 py-0.5 rounded font-black uppercase">
                           {token.ticker}
                         </span>
                         {token.badge_type === 'official' && (
-                          <span className="text-[8px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-blue-400/20">
+                          <span className="text-[8px] btn-primary text-white px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-blue-400/20">
                             👑 Official
                           </span>
                         )}
@@ -384,7 +384,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                         )}
                       </h3>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <p className="text-[10px] text-slate-400 font-mono">
+                        <p className="text-[10px] text-[var(--text-secondary)] font-mono">
                           {token.token_address.slice(0, 6)}...{token.token_address.slice(-4)}
                         </p>
                         <button 
@@ -393,21 +393,21 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                             navigator.clipboard.writeText(token.token_address);
                             await triggerAlert("ADDRESS COPIED", "The token contract address has been copied to your clipboard successfully.", "success");
                           }}
-                          className="p-1 hover:bg-slate-200 rounded transition-colors text-slate-400 hover:text-blue-600 cursor-pointer"
+                          className="p-1 hover:bg-slate-200 rounded transition-colors text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] cursor-pointer"
                         >
                           <Copy size={10} />
                         </button>
 
                         {/* Admin Action Buttons */}
                         {isAdmin && (
-                          <div className="flex items-center gap-1 bg-slate-100 border border-slate-200/60 p-0.5 rounded-lg ml-2">
+                          <div className="flex items-center gap-1 bg-slate-100 border border-[var(--border-dim)] p-0.5 rounded-lg ml-2">
                             {/* Pin Toggle */}
                             <button
                               onClick={(e) => handleTogglePin(e, token.id, !!token.is_pinned)}
                               className={`p-0.5 rounded cursor-pointer transition-colors ${
                                 token.is_pinned 
                                   ? 'bg-amber-100 text-amber-600' 
-                                  : 'text-slate-400 hover:text-amber-500 hover:bg-slate-200'
+                                  : 'text-[var(--text-secondary)] hover:text-amber-500 hover:bg-slate-200'
                               }`}
                               title={token.is_pinned ? "Unpin Token" : "Pin to Top"}
                             >
@@ -419,8 +419,8 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                               onClick={(e) => handleCycleBadge(e, token.id, token.badge_type)}
                               className={`p-0.5 rounded cursor-pointer transition-colors ${
                                 token.badge_type 
-                                  ? 'bg-blue-100 text-blue-600' 
-                                  : 'text-slate-400 hover:text-blue-500 hover:bg-slate-200'
+                                  ? 'bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)]' 
+                                  : 'text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] hover:bg-slate-200'
                               }`}
                               title={`Set Badge: ${token.badge_type || 'None'} (Click to cycle)`}
                             >
@@ -430,7 +430,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                             {/* Delete Trash */}
                             <button 
                               onClick={(e) => handleDelete(e, token.id, token.token_address)}
-                              className="p-0.5 hover:bg-red-50 rounded transition-colors text-slate-400 hover:text-red-500 cursor-pointer"
+                              className="p-0.5 hover:bg-red-50 rounded transition-colors text-[var(--text-secondary)] hover:text-red-500 cursor-pointer"
                               title="Delete Token permanently"
                             >
                               <Trash2 size={10} />
@@ -444,8 +444,8 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                   {/* Right hand stats */}
                   <div className="text-right">
                     <div className="flex items-center gap-1.5 justify-end mb-0.5">
-                      <Users size={13} className="text-blue-500" />
-                      <span className="text-xs font-bold text-slate-700">
+                      <Users size={13} className="text-[var(--accent-cyan)]" />
+                      <span className="text-xs font-bold text-[var(--text-primary)]">
                         {token.holders} Holders
                       </span>
                     </div>
@@ -462,7 +462,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
           /* AIRDROP EARNERS LEADERBOARD LIST */
           <div className="space-y-3">
             {earners.length === 0 ? (
-              <p className="text-center text-slate-400 py-12 text-xs font-medium">No stats tracked yet. Complete a trade to earn points!</p>
+              <p className="text-center text-[var(--text-secondary)] py-12 text-xs font-medium">No stats tracked yet. Complete a trade to earn points!</p>
             ) : (
               earners.map((earner, i) => (
                 <motion.div 
@@ -472,39 +472,39 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                   key={earner.wallet}
                   className={`border rounded-2xl p-4 flex items-center justify-between ${
                     userAddress?.toLowerCase() === earner.wallet.toLowerCase()
-                      ? 'bg-blue-50/50 border-blue-200/80'
-                      : 'bg-slate-50 hover:bg-slate-100/50 border-slate-200/60'
+                      ? 'bg-[rgba(0,242,254,0.05)] border-[var(--border-dim)]'
+                      : 'bg-slate-50 hover:bg-slate-100/50 border-[var(--border-dim)]'
                   }`}
                 >
                   <div className="flex gap-4 items-center">
                     {/* Rank Badge */}
-                    <div className="w-6 text-slate-400 font-extrabold text-xs text-center font-mono">
+                    <div className="w-6 text-[var(--text-secondary)] font-extrabold text-xs text-center font-mono">
                       {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
                     </div>
 
                     {/* Avatar */}
-                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-white flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-[var(--border-dim)] shadow-sm bg-[var(--bg-card)] flex-shrink-0">
                       <img src={earner.avatar} alt="" className="w-full h-full object-contain p-0.5" />
                     </div>
 
                     <div>
                       {/* Name */}
-                      <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                      <h3 className="font-extrabold text-[var(--text-primary)] text-sm flex items-center gap-2">
                         {earner.name}
                         {earner.is_affiliate && (
-                          <span className="text-[9px] bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                          <span className="text-[9px] btn-primary text-white px-2 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
                             ⭐ Affiliate
                           </span>
                         )}
                         {userAddress?.toLowerCase() === earner.wallet.toLowerCase() && (
-                          <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase">
+                          <span className="text-[9px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] px-1.5 py-0.5 rounded-full font-black uppercase">
                             You
                           </span>
                         )}
                       </h3>
                       
                       {/* Subtitles (Social Handles & Truncated Wallet) */}
-                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400 font-medium">
+                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--text-secondary)] font-medium">
                         <span className="font-mono">
                           {earner.wallet.slice(0, 6)}...{earner.wallet.slice(-4)}
                         </span>
@@ -514,10 +514,10 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                       </div>
 
                       {/* Daily Check-in Stats Display */}
-                      <div className="flex items-center gap-2 mt-1.5 text-[9px] font-bold text-slate-500 bg-slate-100/60 border border-slate-200/20 px-2.5 py-1 rounded-xl w-fit">
-                        <span>📅 Check-ins: <span className="text-blue-600 font-black">{earner.checkin_count || 0}d</span></span>
+                      <div className="flex items-center gap-2 mt-1.5 text-[9px] font-bold text-[var(--text-secondary)] bg-slate-100/60 border border-[var(--border-dim)] px-2.5 py-1 rounded-xl w-fit">
+                        <span>📅 Check-ins: <span className="text-[var(--accent-cyan)] font-black">{earner.checkin_count || 0}d</span></span>
                         <span className="text-slate-300 font-normal">|</span>
-                        <span>⚠️ Missed: <span className="text-slate-400 font-extrabold">{earner.missed_count || 0}d</span></span>
+                        <span>⚠️ Missed: <span className="text-[var(--text-secondary)] font-extrabold">{earner.missed_count || 0}d</span></span>
                       </div>
                     </div>
                   </div>
@@ -539,12 +539,12 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                     )}
 
                     <div className="text-right">
-                      <div className="flex items-center gap-1 justify-end text-[10px] text-slate-500 font-bold mb-0.5">
-                        <DollarSign size={11} className="text-slate-400" />
+                      <div className="flex items-center gap-1 justify-end text-[10px] text-[var(--text-secondary)] font-bold mb-0.5">
+                        <DollarSign size={11} className="text-[var(--text-secondary)]" />
                         <span>{Number(earner.total_volume || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} Vol</span>
                       </div>
-                      <div className="bg-blue-100/80 text-blue-700 font-black text-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm border border-blue-200/20">
-                        <Award size={12} className="text-blue-600" />
+                      <div className="bg-[rgba(0,242,254,0.1)]/80 text-[var(--accent-cyan)] font-black text-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm border border-[var(--border-dim)]">
+                        <Award size={12} className="text-[var(--accent-cyan)]" />
                         <span>{Number(earner.points || 0).toFixed(2)} pts</span>
                       </div>
                     </div>
@@ -559,7 +559,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
       {/* Premium Styled Dialog Alert Overlay */}
       {premiumAlert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
-          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+          <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
             {/* Header Icon & Title */}
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${
@@ -567,7 +567,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                   ? 'bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10' 
                   : premiumAlert.type === 'error'
                   ? 'bg-rose-500/10 text-rose-600 shadow-rose-500/10'
-                  : 'bg-blue-600/10 text-blue-600 shadow-blue-500/10'
+                  : 'bg-blue-600/10 text-[var(--accent-cyan)] shadow-blue-500/10'
               }`}>
                 {premiumAlert.type === 'success' ? (
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -578,17 +578,17 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumAlert.title}</h3>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">ArcOmni Alert</p>
+                <h3 className="text-xs font-black tracking-wider text-[var(--text-primary)] uppercase">{premiumAlert.title}</h3>
+                <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">ArcOmni Alert</p>
               </div>
             </div>
 
             {/* Details List */}
-            <div className="space-y-3 bg-slate-50 border border-slate-100 rounded-2xl p-4 font-mono text-[10px] text-slate-600">
+            <div className="space-y-3 bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
               {premiumAlert.details.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-0.5">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
-                  <span className="text-[10px] font-bold text-slate-700 break-all select-all">{item.value}</span>
+                  <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">{item.label}</span>
+                  <span className="text-[10px] font-bold text-[var(--text-primary)] break-all select-all">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -610,20 +610,20 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
       {/* Premium Styled Dialog Confirm Overlay */}
       {premiumConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
-          <div className="bg-white/95 border border-slate-200 shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+          <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
             {/* Header Icon & Title */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg bg-blue-600/10 text-blue-600 shadow-blue-500/10">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg bg-blue-600/10 text-[var(--accent-cyan)] shadow-blue-500/10">
                 <Info className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xs font-black tracking-wider text-slate-800 uppercase">{premiumConfirm.title}</h3>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Confirm Action</p>
+                <h3 className="text-xs font-black tracking-wider text-[var(--text-primary)] uppercase">{premiumConfirm.title}</h3>
+                <p className="text-[9px] text-[var(--text-secondary)] font-bold uppercase tracking-wider">Confirm Action</p>
               </div>
             </div>
 
             {/* Message Body */}
-            <p className="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50 border border-slate-100 rounded-2xl p-4">
+            <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4">
               {premiumConfirm.message}
             </p>
 
@@ -631,7 +631,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
             <div className="flex items-center gap-3">
               <button
                 onClick={premiumConfirm.onCancel}
-                className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-2xl font-bold text-xs tracking-wider uppercase transition-all cursor-pointer active:scale-[0.98] duration-150 flex items-center justify-center"
+                className="flex-1 py-3 border border-[var(--border-dim)] hover:bg-slate-50 text-[var(--text-secondary)] rounded-2xl font-bold text-xs tracking-wider uppercase transition-all cursor-pointer active:scale-[0.98] duration-150 flex items-center justify-center"
               >
                 Cancel
               </button>

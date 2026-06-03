@@ -66,11 +66,11 @@ export function AffiliatesView() {
     <div className="space-y-6">
       {/* Header section */}
       <div>
-        <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
-          <Users className="text-blue-600" size={24} />
+        <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center gap-2.5">
+          <Users className="text-[var(--accent-cyan)]" size={24} />
           Partner Affiliates
         </h2>
-        <p className="text-xs text-slate-500 font-semibold mt-1">
+        <p className="text-xs text-[var(--text-secondary)] font-semibold mt-1">
           Meet our verified partner affiliates and community leaders driving volume and building liquidity.
         </p>
       </div>
@@ -78,20 +78,20 @@ export function AffiliatesView() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 space-y-3">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Loading verified partners...</p>
+          <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-wider">Loading verified partners...</p>
         </div>
       ) : affiliates.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white border border-slate-200/80 rounded-[32px] p-10 text-center space-y-4 max-w-lg mx-auto shadow-sm"
+          className="card rounded-[32px] p-10 text-center space-y-4 max-w-lg mx-auto shadow-sm"
         >
-          <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-inner">
+          <div className="w-16 h-16 rounded-full bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] flex items-center justify-center mx-auto shadow-inner">
             <Users size={28} />
           </div>
           <div className="space-y-1">
-            <h3 className="font-extrabold text-slate-800 text-base">No Partner Affiliates Yet</h3>
-            <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+            <h3 className="font-extrabold text-[var(--text-primary)] text-base">No Partner Affiliates Yet</h3>
+            <p className="text-xs text-[var(--text-secondary)] font-semibold leading-relaxed">
               Our verified partner affiliate network is currently open for top traders. Contact the admin to grant your affiliate badge.
             </p>
           </div>
@@ -104,47 +104,47 @@ export function AffiliatesView() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.08 }}
               key={partner.wallet}
-              className="bg-white/80 backdrop-blur-sm border border-slate-200/80 rounded-[32px] p-6 hover:shadow-xl hover:border-blue-300 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
+              className="bg-[var(--bg-card)]/80 backdrop-blur-sm border border-[var(--border-dim)] rounded-[32px] p-6 hover:shadow-xl hover:border-blue-300 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
             >
               {/* Decorative top gradient accent */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500" />
+              <div className="absolute top-0 left-0 right-0 h-1.5 btn-primary" />
               
               <div className="space-y-4">
                 {/* Header Profile Info */}
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 shadow-sm flex-shrink-0">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-50 border border-[var(--border-dim)] shadow-sm flex-shrink-0">
                     <img src={partner.avatar} alt={partner.name} className="w-full h-full object-contain p-0.5" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="font-black text-slate-800 text-sm truncate">{partner.name}</h4>
-                      <span className="text-[8px] bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-wider flex-shrink-0">
+                      <h4 className="font-black text-[var(--text-primary)] text-sm truncate">{partner.name}</h4>
+                      <span className="text-[8px] btn-primary text-white px-2 py-0.5 rounded-full font-black uppercase tracking-wider flex-shrink-0">
                         Partner
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                    <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">
                       {partner.wallet.slice(0, 6)}...{partner.wallet.slice(-4)}
                     </p>
                   </div>
                 </div>
 
                 {/* Partner Stats */}
-                <div className="grid grid-cols-2 gap-3 bg-slate-50/50 border border-slate-100 rounded-2xl p-3 text-xs font-semibold">
+                <div className="grid grid-cols-2 gap-3 bg-slate-50/50 border border-[var(--border-dim)] rounded-2xl p-3 text-xs font-semibold">
                   <div className="space-y-0.5">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                      <DollarSign size={10} className="text-slate-400" />
+                    <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-1">
+                      <DollarSign size={10} className="text-[var(--text-secondary)]" />
                       Traded Volume
                     </span>
-                    <span className="text-slate-700 font-extrabold block">
+                    <span className="text-[var(--text-primary)] font-extrabold block">
                       ${Number(partner.total_volume || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     </span>
                   </div>
                   <div className="space-y-0.5">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                      <Award size={10} className="text-blue-500" />
+                    <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-1">
+                      <Award size={10} className="text-[var(--accent-cyan)]" />
                       ARCL Points
                     </span>
-                    <span className="text-blue-600 font-black block">
+                    <span className="text-[var(--accent-cyan)] font-black block">
                       {Number(partner.points || 0).toFixed(1)} pts
                     </span>
                   </div>
@@ -152,14 +152,14 @@ export function AffiliatesView() {
               </div>
 
               {/* Social Channels & Links */}
-              <div className="flex items-center justify-between border-t border-slate-100 mt-5 pt-4">
+              <div className="flex items-center justify-between border-t border-[var(--border-dim)] mt-5 pt-4">
                 <div className="flex items-center gap-2">
                   {partner.twitter && (
                     <a
                       href={`https://x.com/${partner.twitter.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200/60 hover:bg-blue-50 hover:text-[#1DA1F2] hover:border-blue-200 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                      className="w-8 h-8 rounded-xl bg-slate-50 border border-[var(--border-dim)] hover:bg-[rgba(0,242,254,0.05)] hover:text-[#1DA1F2] hover:border-[var(--border-dim)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                       title="Follow on X"
                     >
                       <XIcon />
@@ -167,7 +167,7 @@ export function AffiliatesView() {
                   )}
                   {partner.discord && (
                     <div
-                      className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200/60 hover:bg-indigo-50 hover:text-[#5865F2] hover:border-indigo-200 flex items-center justify-center text-slate-400 transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-xl bg-slate-50 border border-[var(--border-dim)] hover:bg-indigo-50 hover:text-[#5865F2] hover:border-indigo-200 flex items-center justify-center text-[var(--text-secondary)] transition-colors cursor-pointer"
                       title={`Discord: ${partner.discord}`}
                       onClick={() => alert(`Discord Handle: ${partner.discord}`)}
                     >
@@ -180,7 +180,7 @@ export function AffiliatesView() {
                   href={`https://explorer.arc.net/address/${partner.wallet}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[9px] font-black text-blue-600 group-hover:text-blue-700 transition-colors uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                  className="text-[9px] font-black text-[var(--accent-cyan)] group-hover:text-[var(--accent-cyan)] transition-colors uppercase tracking-wider flex items-center gap-1 cursor-pointer"
                 >
                   Explorer
                   <ExternalLink size={10} />

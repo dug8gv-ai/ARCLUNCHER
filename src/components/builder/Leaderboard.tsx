@@ -37,11 +37,11 @@ export function Leaderboard() {
   }, []);
 
   if (isLoading) {
-    return <div className="animate-pulse h-64 bg-[#090a12] rounded-2xl border border-slate-800"></div>;
+    return <div className="animate-pulse h-64 bg-[#090a12] rounded-2xl border border-[var(--border-dim)]"></div>;
   }
 
   return (
-    <div className="bg-[#0d0e1c] p-6 rounded-2xl border border-slate-800">
+    <div className="bg-[#0d0e1c] p-6 rounded-2xl border border-[var(--border-dim)]">
       <div className="flex items-center gap-3 mb-6">
         <Trophy className="text-yellow-400" size={24} />
         <h2 className="text-xl font-bold text-white">Ecosystem Developer Leaderboard</h2>
@@ -49,20 +49,20 @@ export function Leaderboard() {
 
       <div className="space-y-4">
         {apps.length === 0 ? (
-          <p className="text-slate-500 text-center py-8">No verified applications yet. Be the first!</p>
+          <p className="text-[var(--text-secondary)] text-center py-8">No verified applications yet. Be the first!</p>
         ) : (
           apps.map((app, index) => (
-            <div key={app.id} className="flex items-center gap-4 p-4 bg-[#090a12] rounded-xl border border-slate-800/50 hover:border-cyan-500/30 transition-colors">
+            <div key={app.id} className="flex items-center gap-4 p-4 bg-[#090a12] rounded-xl border border-[var(--border-dim)] hover:border-cyan-500/30 transition-colors">
               <div className="flex-shrink-0 w-8 text-center">
                 {index === 0 ? <Medal className="text-yellow-400 mx-auto" size={24} /> :
                  index === 1 ? <Medal className="text-slate-300 mx-auto" size={24} /> :
                  index === 2 ? <Medal className="text-amber-600 mx-auto" size={24} /> :
-                 <span className="text-slate-500 font-bold">#{index + 1}</span>}
+                 <span className="text-[var(--text-secondary)] font-bold">#{index + 1}</span>}
               </div>
               
               <div className="flex-1">
                 <h3 className="text-white font-bold">{app.app_name}</h3>
-                <p className="text-xs text-slate-500">{app.category} • Team: {app.team_size}</p>
+                <p className="text-xs text-[var(--text-secondary)]">{app.category} • Team: {app.team_size}</p>
               </div>
 
               <div className="text-right">

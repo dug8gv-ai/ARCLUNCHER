@@ -36,16 +36,16 @@ export function TransactionHistory({ tokenAddress }: { tokenAddress?: string }) 
   }, [tokenAddress]);
 
   return (
-    <div className="glass-panel p-6 bg-white border border-slate-200/80 overflow-hidden">
+    <div className="glass-panel p-6 card overflow-hidden">
       <div className="flex items-center gap-2 mb-6">
-        <History className="text-blue-500" size={20} />
-        <h3 className="font-extrabold text-slate-800 text-base">Live Transactions</h3>
+        <History className="text-[var(--accent-cyan)]" size={20} />
+        <h3 className="font-extrabold text-[var(--text-primary)] text-base">Live Transactions</h3>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs font-semibold">
           <thead>
-            <tr className="text-slate-400 border-b border-slate-100">
+            <tr className="text-[var(--text-secondary)] border-b border-[var(--border-dim)]">
               <th className="pb-3 font-bold uppercase tracking-wider">Type</th>
               <th className="pb-3 font-bold uppercase tracking-wider">Wallet</th>
               <th className="pb-3 font-bold uppercase tracking-wider text-right">USDC</th>
@@ -53,10 +53,10 @@ export function TransactionHistory({ tokenAddress }: { tokenAddress?: string }) 
               <th className="pb-3 font-bold uppercase tracking-wider text-right">Time</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-600">
+          <tbody className="divide-y divide-slate-100 text-[var(--text-secondary)]">
             {swaps.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-slate-400 italic">No transactions yet</td>
+                <td colSpan={5} className="py-8 text-center text-[var(--text-secondary)] italic">No transactions yet</td>
               </tr>
             ) : (
               swaps.map((swap) => (
@@ -67,16 +67,16 @@ export function TransactionHistory({ tokenAddress }: { tokenAddress?: string }) 
                       {swap.is_buy ? 'BUY' : 'SELL'}
                     </span>
                   </td>
-                  <td className="py-3 font-mono text-slate-400">
+                  <td className="py-3 font-mono text-[var(--text-secondary)]">
                     {swap.user_address.slice(0, 6)}...{swap.user_address.slice(-4)}
                   </td>
-                  <td className="py-3 text-right font-mono text-slate-800">
+                  <td className="py-3 text-right font-mono text-[var(--text-primary)]">
                     {Number(swap.usdc_amount).toFixed(2)}
                   </td>
-                  <td className="py-3 text-right font-mono text-blue-600">
+                  <td className="py-3 text-right font-mono text-[var(--accent-cyan)]">
                     {Number(swap.token_amount).toLocaleString()}
                   </td>
-                  <td className="py-3 text-right text-slate-400 text-xs font-medium">
+                  <td className="py-3 text-right text-[var(--text-secondary)] text-xs font-medium">
                     {new Date(swap.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </td>
                 </tr>

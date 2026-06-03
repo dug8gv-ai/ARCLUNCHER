@@ -46,7 +46,7 @@ export function PoolDisplay({ refreshInterval = 5000 }: PoolDisplayProps) {
 
   if (!isClient) {
     return (
-      <div className="p-4 rounded-lg bg-slate-900 border border-slate-700 animate-pulse">
+      <div className="p-4 rounded-lg bg-slate-900 border border-[var(--border-dim)] animate-pulse">
         <div className="h-6 bg-slate-700 rounded w-1/3"></div>
       </div>
     );
@@ -67,30 +67,30 @@ export function PoolDisplay({ refreshInterval = 5000 }: PoolDisplayProps) {
 
           {userPool ? (
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 rounded-lg bg-slate-700/50 border border-slate-600">
-                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">USDC Balance</p>
+              <div className="p-3 rounded-lg bg-slate-700/50 border border-[var(--border-dim)]">
+                <p className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">USDC Balance</p>
                 <p className="text-2xl font-bold text-white mt-1">{(userPool.balance_usdc || 0).toFixed(2)}</p>
-                <p className="text-xs text-slate-500 mt-1">6 decimals</p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">6 decimals</p>
               </div>
 
-              <div className="p-3 rounded-lg bg-slate-700/50 border border-slate-600">
-                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">ARC Balance</p>
+              <div className="p-3 rounded-lg bg-slate-700/50 border border-[var(--border-dim)]">
+                <p className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">ARC Balance</p>
                 <p className="text-2xl font-bold text-cyan-300 mt-1">{(userPool.balance_arc || 0).toFixed(2)}</p>
-                <p className="text-xs text-slate-500 mt-1">18 decimals</p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">18 decimals</p>
               </div>
 
-              <div className="p-3 rounded-lg bg-slate-700/50 border border-slate-600">
-                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Spins</p>
+              <div className="p-3 rounded-lg bg-slate-700/50 border border-[var(--border-dim)]">
+                <p className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">Total Spins</p>
                 <p className="text-2xl font-bold text-white mt-1">{userPool.total_spins || 0}</p>
               </div>
 
-              <div className="p-3 rounded-lg bg-slate-700/50 border border-slate-600">
-                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Won</p>
+              <div className="p-3 rounded-lg bg-slate-700/50 border border-[var(--border-dim)]">
+                <p className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">Total Won</p>
                 <p className="text-2xl font-bold text-green-400 mt-1">{(userPool.total_won || 0).toFixed(2)}</p>
               </div>
             </div>
           ) : (
-            <p className="text-slate-400">No pool data available. Make your first spin!</p>
+            <p className="text-[var(--text-secondary)]">No pool data available. Make your first spin!</p>
           )}
         </div>
       )}
@@ -107,26 +107,26 @@ export function PoolDisplay({ refreshInterval = 5000 }: PoolDisplayProps) {
 
         {globalStats ? (
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 rounded-lg bg-slate-700/50 border border-slate-600">
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Spins</p>
+            <div className="p-3 rounded-lg bg-slate-700/50 border border-[var(--border-dim)]">
+              <p className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">Total Spins</p>
               <p className="text-2xl font-bold text-white mt-1">{globalStats.total_spins || 0}</p>
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-700/50 border border-slate-600">
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Won</p>
+            <div className="p-3 rounded-lg bg-slate-700/50 border border-[var(--border-dim)]">
+              <p className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">Total Won</p>
               <p className="text-2xl font-bold text-green-400 mt-1">{(globalStats.total_won || 0).toFixed(2)}</p>
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-700/50 border border-slate-600 col-span-2">
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Active Players</p>
+            <div className="p-3 rounded-lg bg-slate-700/50 border border-[var(--border-dim)] col-span-2">
+              <p className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">Active Players</p>
               <p className="text-2xl font-bold text-white mt-1">{globalStats.active_players || 0}</p>
             </div>
           </div>
         ) : (
-          <p className="text-slate-400">Loading global statistics...</p>
+          <p className="text-[var(--text-secondary)]">Loading global statistics...</p>
         )}
 
-        <p className="text-xs text-slate-500 mt-4">Refreshes every {refreshInterval / 1000}s</p>
+        <p className="text-xs text-[var(--text-secondary)] mt-4">Refreshes every {refreshInterval / 1000}s</p>
       </div>
     </div>
   );

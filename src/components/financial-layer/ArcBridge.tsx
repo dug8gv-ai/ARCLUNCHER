@@ -93,19 +93,19 @@ export default function ArcBridge() {
     <div className="space-y-8 animate-in fade-in duration-200">
       
       {/* Header */}
-      <div className="flex items-center justify-between bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+      <div className="flex items-center justify-between card rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center border border-indigo-100 text-indigo-600 shadow-sm">
             <Network size={22} />
           </div>
           <div>
             <span className="text-[10px] uppercase font-extrabold tracking-widest text-indigo-600 block">Circle CCTP</span>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Arc Native USDC Bridge</h2>
+            <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">Arc Native USDC Bridge</h2>
           </div>
         </div>
         <button 
           onClick={fetchBalance}
-          className="p-3.5 hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all text-slate-500 hover:text-slate-800"
+          className="p-3.5 hover:bg-slate-50 border border-[var(--border-dim)] rounded-2xl transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           title="Refresh Balance"
         >
           <RefreshCw size={14} />
@@ -115,22 +115,22 @@ export default function ArcBridge() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         
         {/* Bridge Widget */}
-        <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex items-center gap-2 mb-6">
             <Link2 size={16} className="text-indigo-600" />
-            <h3 className="font-extrabold text-slate-800">Bridge Assets</h3>
+            <h3 className="font-extrabold text-[var(--text-primary)]">Bridge Assets</h3>
           </div>
           
           <form onSubmit={handleBridge} className="space-y-6">
             
             {/* SOURCE */}
-            <div className="bg-slate-50 rounded-2xl p-4.5 border border-slate-200">
-              <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">
+            <div className="bg-slate-50 rounded-2xl p-4.5 border border-[var(--border-dim)]">
+              <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
                 <span>From Network</span>
                 <span className="text-indigo-600">Arc Testnet</span>
               </div>
               <div className="flex flex-col gap-2">
-                <div className="flex justify-between text-xs font-bold text-slate-600">
+                <div className="flex justify-between text-xs font-bold text-[var(--text-secondary)]">
                   <span>Asset</span>
                   <span>Native USDC</span>
                 </div>
@@ -142,7 +142,7 @@ export default function ArcBridge() {
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full text-2xl font-black font-mono bg-transparent outline-none text-slate-800"
+                    className="w-full text-2xl font-black font-mono bg-transparent outline-none text-[var(--text-primary)]"
                   />
                   <button 
                     type="button" 
@@ -152,33 +152,33 @@ export default function ArcBridge() {
                     MAX
                   </button>
                 </div>
-                <div className="text-[10px] font-bold text-slate-400">
+                <div className="text-[10px] font-bold text-[var(--text-secondary)]">
                   Available: ${usdcBalance.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                 </div>
               </div>
             </div>
 
             <div className="flex justify-center -my-3">
-              <div className="bg-white p-2 border border-slate-200 rounded-full shadow-sm z-10 text-indigo-600">
+              <div className="bg-[var(--bg-card)] p-2 border border-[var(--border-dim)] rounded-full shadow-sm z-10 text-indigo-600">
                 <ArrowRight size={16} className="rotate-90 md:rotate-0" />
               </div>
             </div>
 
             {/* DESTINATION */}
             <div className="bg-indigo-50/50 rounded-2xl p-4.5 border border-indigo-100">
-              <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">
+              <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
                 <span>To Network</span>
               </div>
               <select 
                 value={destinationChain}
                 onChange={(e) => setDestinationChain(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-black text-slate-700 shadow-sm outline-none cursor-pointer"
+                className="w-full card rounded-xl px-4 py-3 text-sm font-black text-[var(--text-primary)] shadow-sm outline-none cursor-pointer"
               >
                 {DESTINATION_CHAINS.map(chain => (
                   <option key={chain.id} value={chain.id}>{chain.icon} {chain.name}</option>
                 ))}
               </select>
-              <div className="mt-4 flex justify-between text-xs font-bold text-slate-600">
+              <div className="mt-4 flex justify-between text-xs font-bold text-[var(--text-secondary)]">
                 <span>You will receive:</span>
                 <span className="font-mono text-indigo-600">{amount ? amount : '0.00'} USDC</span>
               </div>
@@ -219,26 +219,26 @@ export default function ArcBridge() {
         </div>
 
         {/* Info Panel */}
-        <div className="bg-slate-900 border border-slate-800 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6 text-white">
+        <div className="bg-slate-900 border border-[var(--border-dim)] rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6 text-white">
           <div className="flex items-center gap-2 mb-2">
             <ShieldCheck size={20} className="text-emerald-400" />
             <h3 className="font-extrabold text-white text-lg">Cross-Chain Transfer Protocol</h3>
           </div>
-          <p className="text-sm text-slate-400 font-medium leading-relaxed">
+          <p className="text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
             The Arc Network uses Circle's official CCTP infrastructure. This means your USDC is burned on the source chain and minted natively on the destination chain.
           </p>
           <div className="space-y-4">
-            <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
+            <div className="bg-slate-800/50 rounded-2xl p-4 border border-[var(--border-dim)]">
               <h4 className="text-xs font-bold text-slate-200 mb-1">0% Slippage</h4>
-              <p className="text-[11px] text-slate-400">Native CCTP transfers have absolute 1:1 parity for USDC. No liquidity pools involved.</p>
+              <p className="text-[11px] text-[var(--text-secondary)]">Native CCTP transfers have absolute 1:1 parity for USDC. No liquidity pools involved.</p>
             </div>
-            <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
+            <div className="bg-slate-800/50 rounded-2xl p-4 border border-[var(--border-dim)]">
               <h4 className="text-xs font-bold text-slate-200 mb-1">No Wrapped Assets</h4>
-              <p className="text-[11px] text-slate-400">Receive pure, official USDC on the destination chain without dealing with bridged or wrapped derivatives.</p>
+              <p className="text-[11px] text-[var(--text-secondary)]">Receive pure, official USDC on the destination chain without dealing with bridged or wrapped derivatives.</p>
             </div>
-            <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
+            <div className="bg-slate-800/50 rounded-2xl p-4 border border-[var(--border-dim)]">
               <h4 className="text-xs font-bold text-slate-200 mb-1">Security</h4>
-              <p className="text-[11px] text-slate-400">Secured directly by Circle's attestation services and the Arc blockchain validators.</p>
+              <p className="text-[11px] text-[var(--text-secondary)]">Secured directly by Circle's attestation services and the Arc blockchain validators.</p>
             </div>
           </div>
         </div>

@@ -88,16 +88,16 @@ export function DiscreteTasks({ onPointsEarned }: { onPointsEarned: (points: num
   };
 
   return (
-    <div className="bg-[#0a0a16] border border-slate-800 rounded-3xl p-6 md:p-8 w-full max-w-4xl mx-auto">
+    <div className="bg-[#0a0a16] border border-[var(--border-dim)] rounded-3xl p-6 md:p-8 w-full max-w-4xl mx-auto">
       <h3 className="text-xl font-bold text-white mb-6">Discrete Earn Points Engine</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Task 1: Founder */}
-        <div className="bg-[#0f1021] border border-slate-800/80 rounded-2xl p-6 flex flex-col items-center text-center">
+        <div className="bg-[#0f1021] border border-[var(--border-dim)] rounded-2xl p-6 flex flex-col items-center text-center">
           <TrendingUp className="text-cyan-400 mb-3" size={32} />
           <h4 className="text-sm font-bold text-white mb-2">Founder Volume Milestone</h4>
-          <p className="text-xs text-slate-400 mb-4 flex-1">Launch an asset on Arc Chain and hit 1 Million TXs to unlock 1,000 points.</p>
+          <p className="text-xs text-[var(--text-secondary)] mb-4 flex-1">Launch an asset on Arc Chain and hit 1 Million TXs to unlock 1,000 points.</p>
           <button 
             onClick={handleFounderTask} 
             disabled={strikeState.founderRewarded || loadingTask === 'founder'}
@@ -108,10 +108,10 @@ export function DiscreteTasks({ onPointsEarned }: { onPointsEarned: (points: num
         </div>
 
         {/* Task 2: Trader */}
-        <div className="bg-[#0f1021] border border-slate-800/80 rounded-2xl p-6 flex flex-col items-center text-center">
+        <div className="bg-[#0f1021] border border-[var(--border-dim)] rounded-2xl p-6 flex flex-col items-center text-center">
           <RefreshCw className="text-purple-400 mb-3" size={32} />
           <h4 className="text-sm font-bold text-white mb-2">Liquidity Trader Challenge</h4>
-          <p className="text-xs text-slate-400 mb-4 flex-1">Create trading volume on external Arc Chain launched tokens to earn 1,000 points.</p>
+          <p className="text-xs text-[var(--text-secondary)] mb-4 flex-1">Create trading volume on external Arc Chain launched tokens to earn 1,000 points.</p>
           <button 
             onClick={handleTraderTask}
             disabled={strikeState.traderRewarded || loadingTask === 'trader'}
@@ -122,10 +122,10 @@ export function DiscreteTasks({ onPointsEarned }: { onPointsEarned: (points: num
         </div>
 
         {/* Task 3: Strike */}
-        <div className="bg-[#0f1021] border border-slate-800/80 rounded-2xl p-6 flex flex-col items-center text-center">
+        <div className="bg-[#0f1021] border border-[var(--border-dim)] rounded-2xl p-6 flex flex-col items-center text-center">
           <CalendarCheck className="text-yellow-400 mb-3" size={32} />
           <h4 className="text-sm font-bold text-white mb-2">7-Day Consistency Strike</h4>
-          <p className="text-xs text-slate-400 mb-4 flex-1">Check-in daily. Missing a day resets the strike. Completing 7 days awards 200 points.</p>
+          <p className="text-xs text-[var(--text-secondary)] mb-4 flex-1">Check-in daily. Missing a day resets the strike. Completing 7 days awards 200 points.</p>
           <div className="flex gap-1 mb-4">
             {[1,2,3,4,5,6,7].map(day => (
               <div key={day} className={`w-6 h-1 rounded-full ${day <= strikeState.streak ? 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]' : 'bg-slate-700'}`}></div>

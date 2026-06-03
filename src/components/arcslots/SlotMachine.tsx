@@ -195,13 +195,13 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
           
           {/* Minus / Input / Plus */}
           <div className="flex items-center justify-center gap-4">
-            <button onClick={handleDecrement} disabled={isSpinning || disabled} className="w-12 h-12 rounded-full border border-slate-700 bg-[#0f1021] flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-500 transition-colors disabled:opacity-50">
+            <button onClick={handleDecrement} disabled={isSpinning || disabled} className="w-12 h-12 rounded-full border border-[var(--border-dim)] bg-[#0f1021] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-dim)] transition-colors disabled:opacity-50">
               <Minus size={20} />
             </button>
-            <div className="w-32 h-12 rounded-xl border border-slate-700 bg-[#0f1021] flex items-center justify-center font-bold text-xl text-white">
+            <div className="w-32 h-12 rounded-xl border border-[var(--border-dim)] bg-[#0f1021] flex items-center justify-center font-bold text-xl text-white">
               {numSpins}
             </div>
-            <button onClick={handleIncrement} disabled={isSpinning || disabled} className="w-12 h-12 rounded-full border border-slate-700 bg-[#0f1021] flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-500 transition-colors disabled:opacity-50">
+            <button onClick={handleIncrement} disabled={isSpinning || disabled} className="w-12 h-12 rounded-full border border-[var(--border-dim)] bg-[#0f1021] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-dim)] transition-colors disabled:opacity-50">
               <Plus size={20} />
             </button>
           </div>
@@ -246,7 +246,7 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
           )}
 
           {/* Footer Text */}
-          <p className="text-[10px] text-center uppercase tracking-widest text-slate-500 font-bold mt-4">
+          <p className="text-[10px] text-center uppercase tracking-widest text-[var(--text-secondary)] font-bold mt-4">
             50% CASHBACK ON EVERY LOSING SPIN • GUARANTEED JACKPOT EVERY 5-6 SPINS
           </p>
 

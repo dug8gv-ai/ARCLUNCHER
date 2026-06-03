@@ -67,13 +67,13 @@ export function SlotDonate() {
   return (
     <div className="relative mt-12 mb-16 group">
       <div className="absolute inset-0 bg-cyan-500/5 rounded-3xl blur-xl transition-all group-hover:bg-cyan-500/10"></div>
-      <div className="relative bg-[#0d0e1c]/80 border border-slate-800 rounded-3xl p-8 md:p-12 text-center max-w-3xl mx-auto backdrop-blur-sm">
+      <div className="relative bg-[#0d0e1c]/80 border border-[var(--border-dim)] rounded-3xl p-8 md:p-12 text-center max-w-3xl mx-auto backdrop-blur-sm">
         
-        <h3 className="text-[11px] uppercase tracking-[0.3em] text-slate-500 font-bold mb-4">
+        <h3 className="text-[11px] uppercase tracking-[0.3em] text-[var(--text-secondary)] font-bold mb-4">
           Boost The Jackpot
         </h3>
         
-        <p className="text-slate-400 text-sm md:text-base mb-8 max-w-xl mx-auto leading-relaxed">
+        <p className="text-[var(--text-secondary)] text-sm md:text-base mb-8 max-w-xl mx-auto leading-relaxed">
           Any wallet can grow the pool. 100% of your donation goes straight to the jackpot — no spin, no fee taken.
         </p>
 
@@ -83,7 +83,7 @@ export function SlotDonate() {
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-40 md:w-64 bg-[#090a12] border border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-bold text-white focus:outline-none focus:border-cyan-500 transition-colors"
+              className="w-40 md:w-64 bg-[#090a12] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-center text-2xl font-bold text-white focus:outline-none focus:border-cyan-500 transition-colors"
             />
             <span className="text-xl font-bold text-cyan-400">USDC</span>
           </div>
@@ -93,7 +93,7 @@ export function SlotDonate() {
               <button
                 key={val}
                 onClick={() => setAmount(val)}
-                className={`px-4 py-1.5 rounded-full border text-xs font-bold transition-all ${amount === val ? 'border-cyan-400 text-cyan-400 bg-cyan-400/10' : 'border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300'}`}
+                className={`px-4 py-1.5 rounded-full border text-xs font-bold transition-all ${amount === val ? 'border-cyan-400 text-cyan-400 bg-cyan-400/10' : 'border-[var(--border-dim)] text-[var(--text-secondary)] hover:border-[var(--border-dim)] hover:text-slate-300'}`}
               >
                 {val} USDC
               </button>

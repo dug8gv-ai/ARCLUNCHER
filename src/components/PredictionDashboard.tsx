@@ -146,13 +146,13 @@ export function PredictionDashboard() {
 
   const categories = [
     { value: 'crypto', label: '₿ Crypto', color: 'bg-orange-100 text-orange-700' },
-    { value: 'defi', label: '🏦 DeFi', color: 'bg-blue-100 text-blue-700' },
+    { value: 'defi', label: '🏦 DeFi', color: 'bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)]' },
     { value: 'nft', label: '🖼️ NFT', color: 'bg-purple-100 text-purple-700' },
     { value: 'sports', label: '⚽ Sports', color: 'bg-green-100 text-green-700' },
     { value: 'politics', label: '🏛️ Politics', color: 'bg-red-100 text-red-700' },
     { value: 'tech', label: '💻 Tech', color: 'bg-cyan-100 text-cyan-700' },
     { value: 'entertainment', label: '🎬 Entertainment', color: 'bg-pink-100 text-pink-700' },
-    { value: 'other', label: '🔮 Other', color: 'bg-slate-100 text-slate-700' },
+    { value: 'other', label: '🔮 Other', color: 'bg-slate-100 text-[var(--text-primary)]' },
   ];
 
   const handleImageUpload = async (file: File) => {
@@ -413,25 +413,25 @@ export function PredictionDashboard() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 card rounded-[32px] p-6 shadow-sm"
       >
         <div>
-          <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-            <PieChart className="text-blue-600" /> Prediction Markets
+          <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center gap-2">
+            <PieChart className="text-[var(--accent-cyan)]" /> Prediction Markets
           </h2>
-          <p className="text-xs text-slate-500 font-semibold mt-0.5">Bet on future events, claim rewards, and build your track record.</p>
+          <p className="text-xs text-[var(--text-secondary)] font-semibold mt-0.5">Bet on future events, claim rewards, and build your track record.</p>
         </div>
         
         <div className="flex gap-2 bg-slate-100 p-1 rounded-2xl">
           <button 
             onClick={() => setActiveTab('feed')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'feed' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'feed' ? 'card shadow-sm text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
           >
             Live Feed
           </button>
           <button 
             onClick={() => setActiveTab('history')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'history' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'history' ? 'card shadow-sm text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
           >
             My History
           </button>
@@ -445,12 +445,12 @@ export function PredictionDashboard() {
           {activeTab === 'feed' && (
             <div className="space-y-6">
               {isLoadingMarkets ? (
-                <div className="text-center py-10 text-slate-500 font-bold animate-pulse">Loading Markets from blockchain...</div>
+                <div className="text-center py-10 text-[var(--text-secondary)] font-bold animate-pulse">Loading Markets from blockchain...</div>
               ) : markets.filter(m => m.state !== 2).length === 0 ? (
-                <div className="bg-white border border-slate-200 rounded-[24px] p-8 text-center shadow-sm">
+                <div className="card rounded-[24px] p-8 text-center shadow-sm">
                   <PieChart className="mx-auto text-slate-300 mb-3" size={40} />
-                  <h3 className="text-lg font-black text-slate-800">No Markets Live</h3>
-                  <p className="text-xs text-slate-500 font-semibold mt-1">Check back later for new predictions.</p>
+                  <h3 className="text-lg font-black text-[var(--text-primary)]">No Markets Live</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-semibold mt-1">Check back later for new predictions.</p>
                 </div>
               ) : markets.filter(m => m.state !== 2).map((market: any, index: number) => {
                 const ratios = calculateRatio(market.totalYesPool, market.totalNoPool);
@@ -462,23 +462,23 @@ export function PredictionDashboard() {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.08 }}
-                    className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm transition-all hover:shadow-md"
+                    className="card rounded-[24px] p-6 shadow-sm transition-all hover:shadow-md"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 flex-shrink-0">
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 border border-[var(--border-dim)] flex-shrink-0">
                         {market.imageUrl ? <img src={market.imageUrl} className="w-full h-full object-contain p-0.5" alt="" /> : <PieChart className="w-8 h-8 m-4 text-slate-300" />}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-start justify-between">
-                          <h3 className="font-extrabold text-slate-800 text-lg leading-tight">{market.title}</h3>
-                          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg ${isExpired ? 'bg-slate-100 text-slate-500' : 'bg-emerald-100 text-emerald-700'}`}>
+                          <h3 className="font-extrabold text-[var(--text-primary)] text-lg leading-tight">{market.title}</h3>
+                          <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg ${isExpired ? 'bg-slate-100 text-[var(--text-secondary)]' : 'bg-emerald-100 text-emerald-700'}`}>
                             {market.state === 1 ? 'Resolved' : isExpired ? 'Ended' : 'Active'}
                           </span>
                         </div>
                         
-                        <div className="flex items-center gap-4 mt-3 text-xs font-semibold text-slate-500">
+                        <div className="flex items-center gap-4 mt-3 text-xs font-semibold text-[var(--text-secondary)]">
                           <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
-                            <Clock size={14} className="text-slate-400" />
+                            <Clock size={14} className="text-[var(--text-secondary)]" />
                             {isExpired ? 'Expired' : new Date(market.expirationTime).toLocaleString()}
                           </div>
                           <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
@@ -491,29 +491,29 @@ export function PredictionDashboard() {
                     {/* Progress Bar */}
                     <div className="mt-5 space-y-2">
                       <div className="flex justify-between text-xs font-black">
-                        <span className="text-blue-600">Yes {ratios.yes}%</span>
+                        <span className="text-[var(--accent-cyan)]">Yes {ratios.yes}%</span>
                         <span className="text-red-500">{ratios.no}% No</span>
                       </div>
                       <div className="w-full h-3 rounded-full flex overflow-hidden bg-slate-100">
-                        <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${ratios.yes}%` }}></div>
+                        <div className="h-full bg-[rgba(0,242,254,0.05)]0 transition-all duration-500" style={{ width: `${ratios.yes}%` }}></div>
                         <div className="h-full bg-red-500 transition-all duration-500" style={{ width: `${ratios.no}%` }}></div>
                       </div>
                     </div>
 
                     {/* Action Area */}
-                    <div className="mt-6 pt-5 border-t border-slate-100">
+                    <div className="mt-6 pt-5 border-t border-[var(--border-dim)]">
                       {market.state === 0 && !isExpired ? (
                         <div className="space-y-4">
                           <div className="flex gap-3">
                             <button 
                               onClick={() => { setSelectedMarketId(market.id); setSelectedSide(1); }}
-                              className={`flex-1 py-2.5 rounded-xl text-sm font-black border transition-all ${selectedMarketId === market.id && selectedSide === 1 ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20' : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'}`}
+                              className={`flex-1 py-2.5 rounded-xl text-sm font-black border transition-all ${selectedMarketId === market.id && selectedSide === 1 ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20' : 'bg-[var(--bg-card)] text-[var(--accent-cyan)] border-[var(--border-dim)] hover:bg-[rgba(0,242,254,0.05)]'}`}
                             >
                               👍 YES
                             </button>
                             <button 
                               onClick={() => { setSelectedMarketId(market.id); setSelectedSide(2); }}
-                              className={`flex-1 py-2.5 rounded-xl text-sm font-black border transition-all ${selectedMarketId === market.id && selectedSide === 2 ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20' : 'bg-white text-red-500 border-red-200 hover:bg-red-50'}`}
+                              className={`flex-1 py-2.5 rounded-xl text-sm font-black border transition-all ${selectedMarketId === market.id && selectedSide === 2 ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20' : 'bg-[var(--bg-card)] text-red-500 border-red-200 hover:bg-red-50'}`}
                             >
                               👎 NO
                             </button>
@@ -526,7 +526,7 @@ export function PredictionDashboard() {
                                 placeholder="Amount in USDC"
                                 value={betAmount}
                                 onChange={(e) => setBetAmount(e.target.value)}
-                                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-blue-500"
+                                className="flex-1 bg-slate-50 border border-[var(--border-dim)] rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-blue-500"
                               />
                               <button 
                                 onClick={() => handlePlaceBet(market.id)}
@@ -542,7 +542,7 @@ export function PredictionDashboard() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-sm font-bold">
                               Winning Side: 
-                              {market.winningSide === 1 ? <span className="text-blue-600">YES</span> : market.winningSide === 2 ? <span className="text-red-500">NO</span> : <span className="text-slate-500">Pending Admin Resolution</span>}
+                              {market.winningSide === 1 ? <span className="text-[var(--accent-cyan)]">YES</span> : market.winningSide === 2 ? <span className="text-red-500">NO</span> : <span className="text-[var(--text-secondary)]">Pending Admin Resolution</span>}
                             </div>
                             {market.state === 1 && (
                               <button 
@@ -574,31 +574,31 @@ export function PredictionDashboard() {
           )}
 
           {activeTab === 'history' && (
-            <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm min-h-[400px]">
+            <div className="card rounded-[24px] p-6 shadow-sm min-h-[400px]">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-[var(--text-secondary)]">
                   <History size={20} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-800">My History</h3>
-                  <p className="text-xs text-slate-500 font-semibold">Your recent interactions on Prediction Markets.</p>
+                  <h3 className="text-lg font-black text-[var(--text-primary)]">My History</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-semibold">Your recent interactions on Prediction Markets.</p>
                 </div>
               </div>
 
               {isLoadingHistory ? (
                 <div className="text-center py-10">
                   <RefreshCw className="mx-auto text-slate-300 animate-spin mb-2" size={24} />
-                  <p className="text-sm text-slate-500">Loading history...</p>
+                  <p className="text-sm text-[var(--text-secondary)]">Loading history...</p>
                 </div>
               ) : historyEvents.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-slate-400 font-bold">No history found.</p>
-                  <p className="text-sm text-slate-400 mt-1">Place a bet or create a market to see activity here.</p>
+                  <p className="text-[var(--text-secondary)] font-bold">No history found.</p>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">Place a bet or create a market to see activity here.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {historyEvents.map((evt) => (
-                    <div key={evt.id} className="flex items-start gap-4 p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+                    <div key={evt.id} className="flex items-start gap-4 p-4 border border-[var(--border-dim)] rounded-xl hover:bg-slate-50 transition-colors">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                         evt.action_type === 'CREATE_MARKET' ? 'bg-indigo-100 text-indigo-600' : 
                         evt.action_type === 'PLACE_BET' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'
@@ -608,28 +608,28 @@ export function PredictionDashboard() {
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-1">
-                          <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-200 text-[var(--text-primary)]">
                             {evt.action_type === 'CREATE_MARKET' ? 'Created Market' : 
                              evt.action_type === 'PLACE_BET' ? 'Placed Bet' : 'Claimed Reward'}
                           </span>
-                          <span className="text-[10px] font-semibold text-slate-400">
+                          <span className="text-[10px] font-semibold text-[var(--text-secondary)]">
                             {new Date(evt.created_at).toLocaleString()}
                           </span>
                         </div>
-                        <p className="text-sm font-bold text-slate-800 leading-snug">
+                        <p className="text-sm font-bold text-[var(--text-primary)] leading-snug">
                           {evt.details?.title || `Market #${evt.market_id}`}
                         </p>
                         {evt.action_type === 'PLACE_BET' && (
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs font-bold text-slate-600">Bet Amount:</span>
-                            <span className="text-xs font-black text-slate-900">${evt.details?.amount}</span>
-                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-sm ${evt.details?.side === 'YES' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                            <span className="text-xs font-bold text-[var(--text-secondary)]">Bet Amount:</span>
+                            <span className="text-xs font-black text-[var(--text-primary)]">${evt.details?.amount}</span>
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-sm ${evt.details?.side === 'YES' ? 'bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)]' : 'bg-red-100 text-red-700'}`}>
                               {evt.details?.side}
                             </span>
                           </div>
                         )}
                         {evt.action_type === 'CREATE_MARKET' && evt.details?.category && (
-                          <div className="mt-2 text-xs font-semibold text-slate-500">
+                          <div className="mt-2 text-xs font-semibold text-[var(--text-secondary)]">
                             Category: {evt.details?.category}
                           </div>
                         )}
@@ -649,21 +649,21 @@ export function PredictionDashboard() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="lg:col-span-1"
           >
-          <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm sticky top-8">
+          <div className="card rounded-[24px] p-6 shadow-sm sticky top-8">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                 <Zap className="text-white" size={16} />
               </div>
               <div>
-                <h3 className="font-extrabold text-slate-800 text-sm">Create New Market</h3>
-                <p className="text-[10px] text-slate-400 font-semibold">Open to everyone</p>
+                <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Create New Market</h3>
+                <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Open to everyone</p>
               </div>
             </div>
 
             <div className="space-y-4">
               {/* Market Question */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
                   <AlignLeft size={10} /> Market Question <span className="text-red-400">*</span>
                 </label>
                 <input 
@@ -671,13 +671,13 @@ export function PredictionDashboard() {
                   onChange={(e) => setNewTitle(e.target.value)}
                   type="text" 
                   placeholder="e.g. Will ETH reach $4000?" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
                   <AlignLeft size={10} /> Description <span className="text-slate-300 font-semibold">(optional)</span>
                 </label>
                 <textarea 
@@ -685,13 +685,13 @@ export function PredictionDashboard() {
                   onChange={(e) => setNewDescription(e.target.value)}
                   placeholder="Add more context for participants..." 
                   rows={2}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all resize-none"
+                  className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all resize-none"
                 />
               </div>
 
               {/* Category */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
                   <Tag size={10} /> Category
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -702,7 +702,7 @@ export function PredictionDashboard() {
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
                         newCategory === cat.value 
                           ? cat.color + ' ring-2 ring-offset-1 ring-blue-400 scale-105' 
-                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                          : 'bg-slate-50 text-[var(--text-secondary)] hover:bg-slate-100'
                       }`}
                     >
                       {cat.label}
@@ -713,7 +713,7 @@ export function PredictionDashboard() {
 
               {/* Image Upload */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
                   <ImagePlus size={10} /> Cover Image <span className="text-slate-300 font-semibold">(optional)</span>
                 </label>
                 
@@ -726,7 +726,7 @@ export function PredictionDashboard() {
                       exit={{ opacity: 0, scale: 0.95 }}
                       className="relative group"
                     >
-                      <div className="w-full h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                      <div className="w-full h-28 rounded-xl overflow-hidden border border-[var(--border-dim)] bg-slate-50">
                         <img 
                           src={uploadPreview || newImageUrl} 
                           alt="Preview" 
@@ -740,7 +740,7 @@ export function PredictionDashboard() {
                         <X size={12} />
                       </button>
                       {isUploading && (
-                        <div className="absolute inset-0 bg-white/80 rounded-xl flex items-center justify-center">
+                        <div className="absolute inset-0 bg-[var(--bg-card)]/80 rounded-xl flex items-center justify-center">
                           <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                         </div>
                       )}
@@ -757,12 +757,12 @@ export function PredictionDashboard() {
                       onClick={() => fileInputRef.current?.click()}
                       className={`w-full h-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all ${
                         isDragging 
-                          ? 'border-blue-400 bg-blue-50 scale-[1.02]' 
-                          : 'border-slate-200 bg-slate-50/50 hover:border-blue-300 hover:bg-blue-50/30'
+                          ? 'border-blue-400 bg-[rgba(0,242,254,0.05)] scale-[1.02]' 
+                          : 'border-[var(--border-dim)] bg-slate-50/50 hover:border-blue-300 hover:bg-[rgba(0,242,254,0.05)]'
                       }`}
                     >
-                      <Upload size={18} className={isDragging ? 'text-blue-500' : 'text-slate-300'} />
-                      <p className="text-[10px] font-bold text-slate-400">
+                      <Upload size={18} className={isDragging ? 'text-[var(--accent-cyan)]' : 'text-slate-300'} />
+                      <p className="text-[10px] font-bold text-[var(--text-secondary)]">
                         {isDragging ? 'Drop image here' : 'Drag & drop or click to upload'}
                       </p>
                       <p className="text-[9px] text-slate-300 font-semibold">PNG, JPG, GIF up to 5MB</p>
@@ -792,20 +792,20 @@ export function PredictionDashboard() {
                   onChange={(e) => { setNewImageUrl(e.target.value); setUploadPreview(null); }}
                   type="text" 
                   placeholder="https://example.com/image.png" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-3 py-2 text-[11px] font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
                 />
               </div>
 
               {/* Expiration Date */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
                   <Clock size={10} /> Expiration Date <span className="text-red-400">*</span>
                 </label>
                 <input 
                   value={newExpiration}
                   onChange={(e) => setNewExpiration(e.target.value)}
                   type="datetime-local" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
+                  className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
                 />
                 {/* Quick duration buttons */}
                 <div className="flex gap-1.5">
@@ -813,7 +813,7 @@ export function PredictionDashboard() {
                     <button
                       key={opt.label}
                       onClick={() => setQuickExpiration(opt.hours)}
-                      className="flex-1 py-1.5 text-[9px] font-black bg-slate-50 hover:bg-blue-50 hover:text-blue-600 text-slate-400 rounded-lg border border-slate-100 hover:border-blue-200 transition-all"
+                      className="flex-1 py-1.5 text-[9px] font-black bg-slate-50 hover:bg-[rgba(0,242,254,0.05)] hover:text-[var(--accent-cyan)] text-[var(--text-secondary)] rounded-lg border border-[var(--border-dim)] hover:border-[var(--border-dim)] transition-all"
                     >
                       {opt.label}
                     </button>
@@ -834,7 +834,7 @@ export function PredictionDashboard() {
               </motion.button>
 
               {/* Info */}
-              <div className="bg-slate-50 text-slate-400 text-[10px] font-semibold p-2.5 rounded-xl text-center">
+              <div className="bg-slate-50 text-[var(--text-secondary)] text-[10px] font-semibold p-2.5 rounded-xl text-center">
                 ⚡ Markets are deployed on-chain. A wallet signature is required.
               </div>
             </div>

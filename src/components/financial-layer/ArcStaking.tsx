@@ -109,14 +109,14 @@ export default function ArcStaking() {
     <div className="space-y-8 animate-in fade-in duration-200">
       
       {/* Header */}
-      <div className="flex items-center justify-between bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+      <div className="flex items-center justify-between card rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center border border-teal-100 text-teal-600 shadow-sm">
             <Pickaxe size={22} />
           </div>
           <div>
             <span className="text-[10px] uppercase font-extrabold tracking-widest text-teal-600 block">Arc Network</span>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Yield & Staking Dashboard</h2>
+            <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">Yield & Staking Dashboard</h2>
           </div>
         </div>
       </div>
@@ -125,17 +125,17 @@ export default function ArcStaking() {
         
         {/* Staking Form */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 shadow-sm space-y-6">
+          <div className="card rounded-[32px] p-6 shadow-sm space-y-6">
             <div className="flex items-center gap-2 mb-4">
               <Lock size={16} className="text-teal-600" />
-              <h3 className="font-extrabold text-slate-800">Stake Assets</h3>
+              <h3 className="font-extrabold text-[var(--text-primary)]">Stake Assets</h3>
             </div>
 
             <form onSubmit={handleStake} className="space-y-5">
               
               {/* Asset Selection */}
               <div className="space-y-2">
-                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block">Select Asset</label>
+                <label className="text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-widest block">Select Asset</label>
                 <div className="grid grid-cols-3 gap-2">
                   {ASSETS.map(asset => (
                     <button
@@ -145,7 +145,7 @@ export default function ArcStaking() {
                       className={`p-3 rounded-xl border text-xs font-black transition-all ${
                         selectedAsset.id === asset.id 
                           ? 'bg-teal-50 border-teal-200 text-teal-700 shadow-sm' 
-                          : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                          : 'bg-[var(--bg-card)] border-[var(--border-dim)] text-[var(--text-secondary)] hover:bg-slate-50'
                       }`}
                     >
                       {asset.symbol}
@@ -155,8 +155,8 @@ export default function ArcStaking() {
               </div>
 
               {/* Amount Input */}
-              <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-2">
-                <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+              <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
+                <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
                   <span>Amount to Stake</span>
                   <span className="cursor-pointer text-teal-600" onClick={() => setAmount(balances[selectedAsset.id as keyof typeof balances].toString())}>
                     Max: {balances[selectedAsset.id as keyof typeof balances].toLocaleString()}
@@ -171,15 +171,15 @@ export default function ArcStaking() {
                     required
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full bg-transparent text-2xl font-black font-mono text-slate-800 outline-none"
+                    className="w-full bg-transparent text-2xl font-black font-mono text-[var(--text-primary)] outline-none"
                   />
-                  <span className="text-sm font-bold text-slate-400">{selectedAsset.symbol}</span>
+                  <span className="text-sm font-bold text-[var(--text-secondary)]">{selectedAsset.symbol}</span>
                 </div>
               </div>
 
               {/* Duration Options */}
               <div className="space-y-2">
-                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block">Staking Duration</label>
+                <label className="text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-widest block">Staking Duration</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {STAKE_OPTIONS.map(opt => (
                     <div 
@@ -188,20 +188,20 @@ export default function ArcStaking() {
                       className={`cursor-pointer p-4 rounded-2xl border transition-all ${
                         selectedOption.id === opt.id
                           ? 'bg-teal-600 border-teal-700 text-white shadow-md'
-                          : 'bg-white border-slate-200 hover:border-teal-300'
+                          : 'bg-[var(--bg-card)] border-[var(--border-dim)] hover:border-teal-300'
                       }`}
                     >
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`text-xs font-bold ${selectedOption.id === opt.id ? 'text-teal-100' : 'text-slate-500'}`}>
+                        <span className={`text-xs font-bold ${selectedOption.id === opt.id ? 'text-teal-100' : 'text-[var(--text-secondary)]'}`}>
                           {opt.name}
                         </span>
-                        {opt.type === 'fixed' ? <Lock size={12} className={selectedOption.id === opt.id ? 'text-teal-200' : 'text-slate-400'} /> : <Unlock size={12} className={selectedOption.id === opt.id ? 'text-teal-200' : 'text-slate-400'} />}
+                        {opt.type === 'fixed' ? <Lock size={12} className={selectedOption.id === opt.id ? 'text-teal-200' : 'text-[var(--text-secondary)]'} /> : <Unlock size={12} className={selectedOption.id === opt.id ? 'text-teal-200' : 'text-[var(--text-secondary)]'} />}
                       </div>
                       <div className="flex items-end gap-1">
-                        <span className={`text-xl font-black ${selectedOption.id === opt.id ? 'text-white' : 'text-slate-800'}`}>
+                        <span className={`text-xl font-black ${selectedOption.id === opt.id ? 'text-white' : 'text-[var(--text-primary)]'}`}>
                           {opt.apy}%
                         </span>
-                        <span className={`text-[10px] font-bold mb-1 ${selectedOption.id === opt.id ? 'text-teal-200' : 'text-slate-400'}`}>APY</span>
+                        <span className={`text-[10px] font-bold mb-1 ${selectedOption.id === opt.id ? 'text-teal-200' : 'text-[var(--text-secondary)]'}`}>APY</span>
                       </div>
                     </div>
                   ))}
@@ -244,26 +244,26 @@ export default function ArcStaking() {
 
         {/* Active Stakes Dashboard */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6 min-h-[400px]">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="bg-slate-900 border border-[var(--border-dim)] rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6 min-h-[400px]">
+            <div className="flex items-center justify-between border-b border-[var(--border-dim)] pb-4">
               <div className="flex items-center gap-2 text-white">
                 <Coins size={18} className="text-teal-400" />
                 <h3 className="font-extrabold text-lg">Active Positions</h3>
               </div>
-              <span className="text-xs font-bold text-slate-400 bg-slate-800 px-3 py-1 rounded-full">
+              <span className="text-xs font-bold text-[var(--text-secondary)] bg-slate-800 px-3 py-1 rounded-full">
                 {activeStakes.length} Active
               </span>
             </div>
 
             {activeStakes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-[200px] text-slate-500 space-y-3">
-                <ShieldCheck size={32} className="text-slate-700" />
+              <div className="flex flex-col items-center justify-center h-[200px] text-[var(--text-secondary)] space-y-3">
+                <ShieldCheck size={32} className="text-[var(--text-primary)]" />
                 <p className="text-sm font-semibold">No active staking positions.</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {activeStakes.map(stake => (
-                  <div key={stake.id} className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div key={stake.id} className="bg-slate-800/60 border border-[var(--border-dim)] rounded-2xl p-4.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-black text-white">{stake.amount} {stake.asset}</span>
@@ -271,7 +271,7 @@ export default function ArcStaking() {
                           {stake.apy}% APY
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 text-[10px] font-semibold text-slate-400">
+                      <div className="flex items-center gap-3 text-[10px] font-semibold text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1"><Clock size={10} /> {stake.option}</span>
                         <span>Staked: {new Date(stake.startDate).toLocaleDateString()}</span>
                       </div>

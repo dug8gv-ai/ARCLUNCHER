@@ -111,7 +111,7 @@ export function ContractTracker() {
 
   if (apps.length === 0) {
     return (
-      <div className="p-6 bg-[#0d0e1c] rounded-2xl border border-slate-800 text-slate-400 text-center">
+      <div className="p-6 bg-[#0d0e1c] rounded-2xl border border-[var(--border-dim)] text-[var(--text-secondary)] text-center">
         No verified apps with configured contracts found on your account.
       </div>
     );
@@ -122,28 +122,28 @@ export function ContractTracker() {
       <h2 className="text-xl font-bold text-yellow-400">Live Arc Chain Smart Contract Tracker</h2>
       <div className="grid grid-cols-1 gap-6">
         {apps.map(app => (
-          <div key={app.id} className="bg-[#090a12] p-6 rounded-2xl border border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div key={app.id} className="bg-[#090a12] p-6 rounded-2xl border border-[var(--border-dim)] flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex-1">
               <h3 className="text-lg font-bold text-white mb-1">{app.app_name}</h3>
-              <p className="text-xs text-slate-500 font-mono bg-black p-1.5 rounded inline-block">
+              <p className="text-xs text-[var(--text-secondary)] font-mono bg-black p-1.5 rounded inline-block">
                 {app.contract_address}
               </p>
             </div>
             
             <div className="flex gap-4">
-              <div className="text-center p-3 bg-slate-800/30 rounded-xl border border-slate-700/50 min-w-[100px]">
+              <div className="text-center p-3 bg-slate-800/30 rounded-xl border border-[var(--border-dim)] min-w-[100px]">
                 <Activity size={16} className="mx-auto text-cyan-400 mb-2" />
-                <div className="text-xs text-slate-500 uppercase font-bold mb-1">Recent Txs</div>
+                <div className="text-xs text-[var(--text-secondary)] uppercase font-bold mb-1">Recent Txs</div>
                 <div className="text-xl font-bold text-white">{stats[app.id]?.txs || 0}</div>
               </div>
-              <div className="text-center p-3 bg-slate-800/30 rounded-xl border border-slate-700/50 min-w-[100px]">
+              <div className="text-center p-3 bg-slate-800/30 rounded-xl border border-[var(--border-dim)] min-w-[100px]">
                 <Users size={16} className="mx-auto text-yellow-400 mb-2" />
-                <div className="text-xs text-slate-500 uppercase font-bold mb-1">Active Wallets</div>
+                <div className="text-xs text-[var(--text-secondary)] uppercase font-bold mb-1">Active Wallets</div>
                 <div className="text-xl font-bold text-white">{stats[app.id]?.uniqueWallets || 0}</div>
               </div>
-              <div className="text-center p-3 bg-slate-800/30 rounded-xl border border-slate-700/50 min-w-[100px]">
+              <div className="text-center p-3 bg-slate-800/30 rounded-xl border border-[var(--border-dim)] min-w-[100px]">
                 <Zap size={16} className="mx-auto text-green-400 mb-2" />
-                <div className="text-xs text-slate-500 uppercase font-bold mb-1">Volume</div>
+                <div className="text-xs text-[var(--text-secondary)] uppercase font-bold mb-1">Volume</div>
                 <div className="text-xl font-bold text-white">{stats[app.id]?.volume || '0'} ARC</div>
               </div>
             </div>

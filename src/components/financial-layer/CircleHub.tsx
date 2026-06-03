@@ -193,24 +193,24 @@ export default function CircleHub() {
     <div className="space-y-8 animate-in fade-in duration-200">
       
       {/* Tab Selector Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-slate-100 rounded-3xl p-5 shadow-sm gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between card rounded-3xl p-5 shadow-sm gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600 shadow-sm shadow-blue-500/5">
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(0,242,254,0.05)] flex items-center justify-center border border-[var(--border-dim)] text-[var(--accent-cyan)] shadow-sm shadow-blue-500/5">
             <CreditCard size={22} />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-extrabold tracking-widest text-blue-600 block">Circle Developer Suite</span>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Circle Web3 & Fiat Hub</h2>
+            <span className="text-[10px] uppercase font-extrabold tracking-widest text-[var(--accent-cyan)] block">Circle Developer Suite</span>
+            <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">Circle Web3 & Fiat Hub</h2>
           </div>
         </div>
 
-        <div className="bg-slate-100 p-1.5 rounded-2xl flex border border-slate-200/50 self-start sm:self-auto">
+        <div className="bg-slate-100 p-1.5 rounded-2xl flex border border-[var(--border-dim)] self-start sm:self-auto">
           <button
             onClick={() => setActiveSubTab('smart-wallets')}
             className={`px-4.5 py-2.5 rounded-xl text-xs font-black tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
               activeSubTab === 'smart-wallets' 
-                ? 'bg-white text-blue-600 shadow-sm border border-slate-200/20' 
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' 
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             <Wallet size={14} />
@@ -220,8 +220,8 @@ export default function CircleHub() {
             onClick={() => setActiveSubTab('fiat-gateway')}
             className={`px-4.5 py-2.5 rounded-xl text-xs font-black tracking-wide transition-all cursor-pointer flex items-center gap-2 ${
               activeSubTab === 'fiat-gateway' 
-                ? 'bg-white text-blue-600 shadow-sm border border-slate-200/20' 
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' 
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             <CreditCard size={14} />
@@ -236,27 +236,27 @@ export default function CircleHub() {
         {activeSubTab === 'smart-wallets' && (
           <>
             <div className="lg:col-span-6 space-y-6">
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
-                <div className="border-b border-slate-100 pb-5">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Provision Smart Wallet</h3>
-                  <p className="text-[10px] text-slate-500 font-semibold">Generate highly secure programmable Web3 wallets powered by Circle infrastructure.</p>
+              <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="border-b border-[var(--border-dim)] pb-5">
+                  <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Provision Smart Wallet</h3>
+                  <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Generate highly secure programmable Web3 wallets powered by Circle infrastructure.</p>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 border border-slate-100 p-3.5 rounded-xl">
-                  <Zap size={14} className="text-blue-500 shrink-0" />
+                <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-secondary)] bg-slate-50 border border-[var(--border-dim)] p-3.5 rounded-xl">
+                  <Zap size={14} className="text-[var(--accent-cyan)] shrink-0" />
                   <span>Creates authentic developer-controlled SCA wallets under automated sandbox rules. Get +5 points!</span>
                 </div>
 
                 <form onSubmit={handleCreateSmartWallet} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Associate Account ID</label>
+                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Associate Account ID</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. user_or_username"
                       value={walletUsername}
                       onChange={(e) => setWalletUsername(e.target.value)}
-                      className="w-full px-4.5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4.5 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                     />
                   </div>
 
@@ -288,12 +288,12 @@ export default function CircleHub() {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
-                    className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6"
+                    className="card rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-5">
+                    <div className="flex items-center justify-between border-b border-[var(--border-dim)] pb-5">
                       <div>
-                        <h4 className="font-extrabold text-slate-800 text-sm">Deployment Successful</h4>
-                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5">SCA Cryptographic Smart Vault</p>
+                        <h4 className="font-extrabold text-[var(--text-primary)] text-sm">Deployment Successful</h4>
+                        <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-0.5">SCA Cryptographic Smart Vault</p>
                       </div>
                       <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
                         {createdWallet.state}
@@ -302,18 +302,18 @@ export default function CircleHub() {
 
                     <div className="space-y-4">
                       {/* Address Card */}
-                      <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
-                        <div className="flex justify-between items-center text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">
+                      <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-2">
+                        <div className="flex justify-between items-center text-[9px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
                           <span>Wallet Address</span>
                           <button
                             onClick={() => copyToClipboard(createdWallet.address, 'address')}
-                            className="text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer font-bold"
+                            className="text-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] flex items-center gap-1 cursor-pointer font-bold"
                           >
                             {copiedAddress ? <Check size={11} className="text-green-500" /> : <Copy size={11} />}
                             {copiedAddress ? 'Copied' : 'Copy'}
                           </button>
                         </div>
-                        <span className="text-xs font-mono font-black text-slate-700 break-all select-all block">
+                        <span className="text-xs font-mono font-black text-[var(--text-primary)] break-all select-all block">
                           {createdWallet.address}
                         </span>
                       </div>
@@ -340,32 +340,32 @@ export default function CircleHub() {
                               </button>
                             </div>
                           </div>
-                          <span className="text-xs font-mono font-black text-slate-700 break-all select-all block">
+                          <span className="text-xs font-mono font-black text-[var(--text-primary)] break-all select-all block">
                             {showPrivateKey ? createdWallet.privateKey : '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••'}
                           </span>
                         </div>
                       )}
 
                       {/* Meta parameters */}
-                      <div className="grid grid-cols-2 gap-4 text-[10px] text-slate-500 font-bold border-t border-slate-100 pt-4.5">
+                      <div className="grid grid-cols-2 gap-4 text-[10px] text-[var(--text-secondary)] font-bold border-t border-[var(--border-dim)] pt-4.5">
                         <div className="space-y-0.5">
-                          <span className="text-slate-400 font-medium">Provider:</span>
-                          <p className="text-slate-800 font-extrabold">{createdWallet.provider}</p>
+                          <span className="text-[var(--text-secondary)] font-medium">Provider:</span>
+                          <p className="text-[var(--text-primary)] font-extrabold">{createdWallet.provider}</p>
                         </div>
                         <div className="space-y-0.5">
-                          <span className="text-slate-400 font-medium">Target Blockchain:</span>
-                          <p className="text-slate-800 font-extrabold">{createdWallet.blockchain}</p>
+                          <span className="text-[var(--text-secondary)] font-medium">Target Blockchain:</span>
+                          <p className="text-[var(--text-primary)] font-extrabold">{createdWallet.blockchain}</p>
                         </div>
                       </div>
 
                     </div>
                   </motion.div>
                 ) : (
-                  <div className="border border-dashed border-slate-300 rounded-[32px] p-12 text-center text-slate-400 space-y-3">
+                  <div className="border border-dashed border-[var(--border-dim)] rounded-[32px] p-12 text-center text-[var(--text-secondary)] space-y-3">
                     <Wallet size={36} className="mx-auto text-slate-300 animate-pulse" />
                     <div>
                       <h4 className="font-extrabold text-slate-650 text-xs">No Active Smart Account</h4>
-                      <p className="text-[10px] text-slate-500 font-semibold mt-1">Associate an account ID to deploy a cryptographic wallet set.</p>
+                      <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-1">Associate an account ID to deploy a cryptographic wallet set.</p>
                     </div>
                   </div>
                 )}
@@ -378,27 +378,27 @@ export default function CircleHub() {
         {activeSubTab === 'fiat-gateway' && (
           <>
             <div className="lg:col-span-7 space-y-6">
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
-                <div className="border-b border-slate-100 pb-5">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Credit Card Payments Gateway</h3>
-                  <p className="text-[10px] text-slate-500 font-semibold">Buy USDC stablecoins securely using Visa/Mastercard sandbox payment routes.</p>
+              <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="border-b border-[var(--border-dim)] pb-5">
+                  <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Credit Card Payments Gateway</h3>
+                  <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Buy USDC stablecoins securely using Visa/Mastercard sandbox payment routes.</p>
                 </div>
 
                 <form onSubmit={handleCardCheckout} className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest block">Cardholder Name</label>
+                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Cardholder Name</label>
                       <input
                         type="text"
                         required
                         placeholder="John Doe"
                         value={cardHolder}
                         onChange={(e) => setCardHolder(e.target.value)}
-                        className="w-full px-4.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-white"
+                        className="w-full px-4.5 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest block">Card Number</label>
+                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Card Number</label>
                       <input
                         type="text"
                         required
@@ -406,14 +406,14 @@ export default function CircleHub() {
                         placeholder="4111 2222 3333 4444"
                         value={cardNumber}
                         onChange={(e) => setCardNumber(e.target.value)}
-                        className="w-full px-4.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-white"
+                        className="w-full px-4.5 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest block">Exp Month</label>
+                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Exp Month</label>
                       <input
                         type="text"
                         required
@@ -421,11 +421,11 @@ export default function CircleHub() {
                         placeholder="12"
                         value={cardExpiryMonth}
                         onChange={(e) => setCardExpiryMonth(e.target.value)} // Exp month hook
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
+                        className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest block">Exp Year</label>
+                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Exp Year</label>
                       <input
                         type="text"
                         required
@@ -433,11 +433,11 @@ export default function CircleHub() {
                         placeholder="2028"
                         value={cardExpiryYear}
                         onChange={(e) => setCardExpiryYear(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
+                        className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest block">CVV</label>
+                      <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">CVV</label>
                       <input
                         type="password"
                         required
@@ -445,13 +445,13 @@ export default function CircleHub() {
                         placeholder="•••"
                         value={cardCvv}
                         onChange={(e) => setCardCvv(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
+                        className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
-                    <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Purchase Amount (USD)</span>
+                  <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-2">
+                    <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Purchase Amount (USD)</span>
                     <input
                       type="number"
                       placeholder="0.00"
@@ -459,7 +459,7 @@ export default function CircleHub() {
                       required
                       value={purchaseAmount}
                       onChange={(e) => setPurchaseAmount(e.target.value)}
-                      className="w-full bg-transparent text-2xl font-black font-mono text-slate-800 outline-none placeholder:text-slate-350"
+                      className="w-full bg-transparent text-2xl font-black font-mono text-[var(--text-primary)] outline-none placeholder:text-slate-350"
                     />
                   </div>
 
@@ -492,7 +492,7 @@ export default function CircleHub() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="bg-emerald-50/50 border border-emerald-100 rounded-[32px] p-6 text-center space-y-5"
                   >
-                    <div className="w-12 h-12 rounded-full bg-white border border-emerald-250 text-emerald-600 flex items-center justify-center mx-auto shadow-sm shadow-emerald-500/5">
+                    <div className="w-12 h-12 rounded-full bg-[var(--bg-card)] border border-emerald-250 text-emerald-600 flex items-center justify-center mx-auto shadow-sm shadow-emerald-500/5">
                       <CheckCircle size={22} className="animate-bounce" />
                     </div>
                     <div>
@@ -500,22 +500,22 @@ export default function CircleHub() {
                       <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">{paymentReceipt.message}</p>
                     </div>
 
-                    <div className="bg-white border border-emerald-200/50 rounded-2xl p-4.5 space-y-3.5 text-left text-[10px] font-bold text-slate-650">
+                    <div className="bg-[var(--bg-card)] border border-emerald-200/50 rounded-2xl p-4.5 space-y-3.5 text-left text-[10px] font-bold text-slate-650">
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Payment ID:</span>
-                        <span className="font-mono text-slate-800">{paymentReceipt.paymentId.slice(0, 14)}...</span>
+                        <span className="text-[var(--text-secondary)]">Payment ID:</span>
+                        <span className="font-mono text-[var(--text-primary)]">{paymentReceipt.paymentId.slice(0, 14)}...</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Amount Purchased:</span>
-                        <span className="text-slate-800">${paymentReceipt.amount} USDC</span>
+                        <span className="text-[var(--text-secondary)]">Amount Purchased:</span>
+                        <span className="text-[var(--text-primary)]">${paymentReceipt.amount} USDC</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Auth Status:</span>
+                        <span className="text-[var(--text-secondary)]">Auth Status:</span>
                         <span className="text-emerald-600 uppercase font-black">{paymentReceipt.status}</span>
                       </div>
-                      <div className="flex justify-between items-center border-t border-slate-100 pt-3">
-                        <span className="text-slate-400">Gateway Provider:</span>
-                        <span className="text-slate-800 font-extrabold">{paymentReceipt.provider}</span>
+                      <div className="flex justify-between items-center border-t border-[var(--border-dim)] pt-3">
+                        <span className="text-[var(--text-secondary)]">Gateway Provider:</span>
+                        <span className="text-[var(--text-primary)] font-extrabold">{paymentReceipt.provider}</span>
                       </div>
                     </div>
 
@@ -530,17 +530,17 @@ export default function CircleHub() {
                         setCardExpiryYear('');
                         setCardCvv('');
                       }}
-                      className="bg-white border border-emerald-250 hover:bg-emerald-100 text-emerald-700 font-extrabold text-[10px] uppercase tracking-wide px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm w-full"
+                      className="bg-[var(--bg-card)] border border-emerald-250 hover:bg-emerald-100 text-emerald-700 font-extrabold text-[10px] uppercase tracking-wide px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm w-full"
                     >
                       New Purchase
                     </button>
                   </motion.div>
                 ) : (
-                  <div className="border border-dashed border-slate-300 rounded-[32px] p-12 text-center text-slate-400 space-y-3">
+                  <div className="border border-dashed border-[var(--border-dim)] rounded-[32px] p-12 text-center text-[var(--text-secondary)] space-y-3">
                     <CreditCard size={36} className="mx-auto text-slate-300 animate-pulse" />
                     <div>
                       <h4 className="font-extrabold text-slate-650 text-xs">Awaiting Card Checkout</h4>
-                      <p className="text-[10px] text-slate-500 font-semibold mt-1">Submit the Visa/Mastercard form to process dynamic USDC stablecoin routing.</p>
+                      <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-1">Submit the Visa/Mastercard form to process dynamic USDC stablecoin routing.</p>
                     </div>
                   </div>
                 )}

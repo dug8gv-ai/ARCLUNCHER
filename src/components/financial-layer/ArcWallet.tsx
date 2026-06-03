@@ -12,8 +12,8 @@ import { createBrowserAdapter, appKitSwap } from '@/lib/appKit';
 type AssetType = 'USDC' | 'EURC' | 'cirBTC';
 
 const ASSET_CONFIG = {
-  USDC: { address: USDC_ADDRESS, decimals: 6, icon: <DollarSign size={13} className="text-blue-600" />, rateToUSDC: 1 },
-  EURC: { address: EURC_ADDRESS, decimals: 6, icon: <Euro size={13} className="text-slate-600" />, rateToUSDC: 1.09 },
+  USDC: { address: USDC_ADDRESS, decimals: 6, icon: <DollarSign size={13} className="text-[var(--accent-cyan)]" />, rateToUSDC: 1 },
+  EURC: { address: EURC_ADDRESS, decimals: 6, icon: <Euro size={13} className="text-[var(--text-secondary)]" />, rateToUSDC: 1.09 },
   cirBTC: { address: CIRBTC_ADDRESS, decimals: 8, icon: <Bitcoin size={13} className="text-orange-500" />, rateToUSDC: 65000 },
 };
 
@@ -223,20 +223,20 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
     <div className="space-y-8 animate-in fade-in duration-200">
       
       {/* Brand Rebrand Title */}
-      <div className="flex items-center justify-between bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+      <div className="flex items-center justify-between card rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600 shadow-sm shadow-blue-500/5 animate-pulse">
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(0,242,254,0.05)] flex items-center justify-center border border-[var(--border-dim)] text-[var(--accent-cyan)] shadow-sm shadow-blue-500/5 animate-pulse">
             <Wallet size={22} />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-extrabold tracking-widest text-blue-600 block">EVM Multi-Currency</span>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">ARC Global Multi-Asset Wallet</h2>
+            <span className="text-[10px] uppercase font-extrabold tracking-widest text-[var(--accent-cyan)] block">EVM Multi-Currency</span>
+            <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">ARC Global Multi-Asset Wallet</h2>
           </div>
         </div>
         <button 
           onClick={() => { fetchBalances(); window.dispatchEvent(new Event('arc-balance-update')); }} 
           disabled={isLoadingBalances}
-          className="p-3.5 hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all text-slate-500 hover:text-slate-800 disabled:opacity-50"
+          className="p-3.5 hover:bg-slate-50 border border-[var(--border-dim)] rounded-2xl transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50"
           title="Refresh Balances"
         >
           <RefreshCw size={14} className={isLoadingBalances ? 'animate-spin' : ''} />
@@ -252,7 +252,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             <DollarSign size={180} strokeWidth={1} />
           </div>
           <div className="flex justify-between items-center mb-6 z-10 relative">
-            <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full border border-white/10">USDC</span>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-[var(--bg-card)]/20 px-3 py-1 rounded-full border border-white/10">USDC</span>
             <div className="flex items-center gap-2">
               <DollarSign size={20} className="text-blue-100" />
             </div>
@@ -266,14 +266,14 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
         </div>
 
         {/* EURC CARD */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 border border-slate-950 rounded-[32px] p-6 text-white shadow-xl shadow-slate-950/10 relative overflow-hidden group">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 border border-[var(--border-dim)] rounded-[32px] p-6 text-white shadow-xl shadow-slate-950/10 relative overflow-hidden group">
           <div className="absolute right-[-10px] bottom-[-20px] text-white/5 group-hover:scale-110 transition-transform duration-350 select-none">
             <Euro size={180} strokeWidth={1} />
           </div>
           <div className="flex justify-between items-center mb-6 z-10 relative">
-            <span className="text-[10px] font-black uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/5">EURC</span>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-[var(--bg-card)]/10 px-3 py-1 rounded-full border border-white/5">EURC</span>
             <div className="flex items-center gap-2">
-              <Euro size={20} className="text-slate-400" />
+              <Euro size={20} className="text-[var(--text-secondary)]" />
             </div>
           </div>
           <div className="space-y-1">
@@ -290,7 +290,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             <Bitcoin size={180} strokeWidth={1} />
           </div>
           <div className="flex justify-between items-center mb-6 z-10 relative">
-            <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full border border-white/20 text-orange-900">cirBTC</span>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-[var(--bg-card)]/20 px-3 py-1 rounded-full border border-white/20 text-orange-900">cirBTC</span>
             <div className="flex items-center gap-2">
               <Bitcoin size={20} className="text-orange-100" />
             </div>
@@ -307,23 +307,23 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
       </div>
 
       {/* SWAP ENGINE WIDGET */}
-      <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6 max-w-xl mx-auto">
-        <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600">
+      <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6 max-w-xl mx-auto">
+        <div className="flex items-center gap-3 border-b border-[var(--border-dim)] pb-5">
+          <div className="w-10 h-10 rounded-xl bg-[rgba(0,242,254,0.05)] flex items-center justify-center border border-[var(--border-dim)] text-[var(--accent-cyan)]">
             <ArrowLeftRight size={18} />
           </div>
           <div>
-            <h4 className="font-extrabold text-slate-800 text-sm">Arc App Kit Swap</h4>
-            <p className="text-[10px] text-slate-500 font-semibold">Native routing with official Circle architecture.</p>
+            <h4 className="font-extrabold text-[var(--text-primary)] text-sm">Arc App Kit Swap</h4>
+            <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Native routing with official Circle architecture.</p>
           </div>
         </div>
 
         <form onSubmit={handleSwap} className="space-y-5">
           {/* FROM ASSET BOX */}
-          <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
-            <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+          <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-2">
+            <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
               <span>From Asset</span>
-              <span className="cursor-pointer text-blue-600" onClick={() => setFromAmount(balances[fromAsset].toString())}>
+              <span className="cursor-pointer text-[var(--accent-cyan)]" onClick={() => setFromAmount(balances[fromAsset].toString())}>
                 Max: {balances[fromAsset].toLocaleString(undefined, { maximumFractionDigits: ASSET_CONFIG[fromAsset].decimals === 8 ? 8 : 4 })}
               </span>
             </div>
@@ -335,12 +335,12 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
                 required
                 value={fromAmount}
                 onChange={(e) => setFromAmount(e.target.value)}
-                className="w-full bg-transparent text-2xl font-black font-mono text-slate-800 outline-none"
+                className="w-full bg-transparent text-2xl font-black font-mono text-[var(--text-primary)] outline-none"
               />
               <select 
                 value={fromAsset}
                 onChange={(e) => setFromAsset(e.target.value as AssetType)}
-                className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-700 shadow-sm outline-none cursor-pointer"
+                className="card rounded-xl px-3 py-2 text-xs font-black text-[var(--text-primary)] shadow-sm outline-none cursor-pointer"
               >
                 <option value="USDC">USDC</option>
                 <option value="EURC">EURC</option>
@@ -355,15 +355,15 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             <button
               type="button"
               onClick={handleSwapToggle}
-              className="p-3 bg-white hover:bg-slate-50 border border-slate-200 text-blue-600 hover:text-blue-700 rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105 cursor-pointer active:scale-95"
+              className="p-3 bg-[var(--bg-card)] hover:bg-slate-50 border border-[var(--border-dim)] text-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105 cursor-pointer active:scale-95"
             >
               <ArrowDown size={16} />
             </button>
           </div>
 
           {/* TO ASSET BOX */}
-          <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-2">
-            <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+          <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-2">
+            <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
               <span>To Asset (Estimated)</span>
             </div>
             <div className="flex justify-between items-center gap-4">
@@ -372,12 +372,12 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
                 placeholder="0.00"
                 readOnly
                 value={toAmount}
-                className="w-full bg-transparent text-2xl font-black font-mono text-slate-400 outline-none"
+                className="w-full bg-transparent text-2xl font-black font-mono text-[var(--text-secondary)] outline-none"
               />
               <select 
                 value={toAsset}
                 onChange={(e) => setToAsset(e.target.value as AssetType)}
-                className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-700 shadow-sm outline-none cursor-pointer"
+                className="card rounded-xl px-3 py-2 text-xs font-black text-[var(--text-primary)] shadow-sm outline-none cursor-pointer"
               >
                 <option value="USDC">USDC</option>
                 <option value="EURC">EURC</option>
@@ -387,9 +387,9 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
           </div>
 
           {/* RATE DETAILS */}
-          <div className="flex justify-between items-center bg-blue-50/40 border border-blue-100 p-3 rounded-xl text-[10px] font-extrabold text-slate-600">
-            <span className="flex items-center gap-1"><TrendingUp size={12} className="text-blue-500" /> {rateLabel}</span>
-            <span className="font-mono text-blue-600">1 {fromAsset} ≈ {fxRate.toLocaleString(undefined, {maximumFractionDigits: 8})} {toAsset}</span>
+          <div className="flex justify-between items-center bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] p-3 rounded-xl text-[10px] font-extrabold text-[var(--text-secondary)]">
+            <span className="flex items-center gap-1"><TrendingUp size={12} className="text-[var(--accent-cyan)]" /> {rateLabel}</span>
+            <span className="font-mono text-[var(--accent-cyan)]">1 {fromAsset} ≈ {fxRate.toLocaleString(undefined, {maximumFractionDigits: 8})} {toAsset}</span>
           </div>
 
           {isCirbtcPair && (

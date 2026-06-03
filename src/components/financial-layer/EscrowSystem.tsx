@@ -242,14 +242,14 @@ export default function EscrowSystem() {
     <div className="space-y-6">
       
       {/* Tab Switcher */}
-      <div className="flex gap-2 p-1.5 bg-slate-100 border border-slate-200/50 rounded-2xl">
+      <div className="flex gap-2 p-1.5 bg-slate-100 border border-[var(--border-dim)] rounded-2xl">
         <button
           onClick={() => {
             setActiveTab('client');
             setSelectedAgreement(null);
           }}
           className={`flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-            activeTab === 'client' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'client' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
           💼 Client Escrows
@@ -260,7 +260,7 @@ export default function EscrowSystem() {
             setSelectedAgreement(null);
           }}
           className={`flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-            activeTab === 'freelancer' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'freelancer' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
           🛠️ Freelancer Agreements
@@ -271,7 +271,7 @@ export default function EscrowSystem() {
             setSelectedAgreement(null);
           }}
           className={`flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer ${
-            activeTab === 'create' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/40' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'create' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
         >
           ➕ Secure Escrow Setup
@@ -282,35 +282,35 @@ export default function EscrowSystem() {
         
         {/* CREATE ESCROW FORM TAB */}
         {activeTab === 'create' && (
-          <div className="lg:col-span-12 bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-5">
-              <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2"><ShieldCheck className="text-blue-600" size={18} /> Setup Secured Multi-Milestone Escrow Contract</h3>
-              <p className="text-[10px] text-slate-500 font-semibold">Funds are locked securely in an incremental milestone release protocol using USDC or EURC.</p>
+          <div className="lg:col-span-12 card rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="border-b border-[var(--border-dim)] pb-5">
+              <h3 className="font-extrabold text-[var(--text-primary)] text-sm flex items-center gap-2"><ShieldCheck className="text-[var(--accent-cyan)]" size={18} /> Setup Secured Multi-Milestone Escrow Contract</h3>
+              <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Funds are locked securely in an incremental milestone release protocol using USDC or EURC.</p>
             </div>
 
             <form onSubmit={handleCreateAgreement} className="space-y-6">
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Project Agreement Title</label>
+                  <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Project Agreement Title</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Design & Build ARC Dashboard"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
                   />
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Stablecoin Asset</label>
+                  <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">Stablecoin Asset</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setFormAsset('USDC')}
                       className={`py-3 rounded-xl border text-xs font-bold transition-all ${
-                        formAsset === 'USDC' ? 'border-blue-500 bg-blue-50/50 text-blue-600' : 'border-slate-200 bg-slate-50'
+                        formAsset === 'USDC' ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)]' : 'border-[var(--border-dim)] bg-slate-50'
                       }`}
                     >
                       USDC (6 Decimals)
@@ -319,7 +319,7 @@ export default function EscrowSystem() {
                       type="button"
                       onClick={() => setFormAsset('EURC')}
                       className={`py-3 rounded-xl border text-xs font-bold transition-all ${
-                        formAsset === 'EURC' ? 'border-blue-500 bg-blue-50/50 text-blue-600' : 'border-slate-200 bg-slate-50'
+                        formAsset === 'EURC' ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)]' : 'border-[var(--border-dim)] bg-slate-50'
                       }`}
                     >
                       EURC (18 Decimals)
@@ -330,13 +330,13 @@ export default function EscrowSystem() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">My Role in Project</label>
+                  <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">My Role in Project</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setFormRole('client')}
                       className={`py-3 rounded-xl border text-xs font-bold transition-all ${
-                        formRole === 'client' ? 'border-blue-500 bg-blue-50/50 text-blue-600' : 'border-slate-200 bg-slate-50'
+                        formRole === 'client' ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)]' : 'border-[var(--border-dim)] bg-slate-50'
                       }`}
                     >
                       Client (Funder)
@@ -345,7 +345,7 @@ export default function EscrowSystem() {
                       type="button"
                       onClick={() => setFormRole('freelancer')}
                       className={`py-3 rounded-xl border text-xs font-bold transition-all ${
-                        formRole === 'freelancer' ? 'border-blue-500 bg-blue-50/50 text-blue-600' : 'border-slate-200 bg-slate-50'
+                        formRole === 'freelancer' ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)]' : 'border-[var(--border-dim)] bg-slate-50'
                       }`}
                     >
                       Freelancer (Receiver)
@@ -354,7 +354,7 @@ export default function EscrowSystem() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">
+                  <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block">
                     {formRole === 'client' ? 'Freelancer Address' : 'Client Address'}
                   </label>
                   <input
@@ -363,19 +363,19 @@ export default function EscrowSystem() {
                     placeholder="0x..."
                     value={otherParty}
                     onChange={(e) => setOtherParty(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
               {/* Milestones dynamic list builder */}
               <div className="space-y-3">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block flex items-center gap-1"><FileText size={14} className="text-blue-500" /> Incremental Milestones Definition</label>
+                <div className="flex justify-between items-center border-b border-[var(--border-dim)] pb-3">
+                  <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest block flex items-center gap-1"><FileText size={14} className="text-[var(--accent-cyan)]" /> Incremental Milestones Definition</label>
                   <button
                     type="button"
                     onClick={handleAddFormMilestone}
-                    className="text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-100 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                    className="text-[10px] font-black text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] hover:bg-[rgba(0,242,254,0.1)] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <Plus size={12} /> Add Milestone
                   </button>
@@ -383,8 +383,8 @@ export default function EscrowSystem() {
 
                 <div className="space-y-3.5 max-h-[220px] overflow-y-auto pr-1">
                   {milestones.map((m, idx) => (
-                    <div key={idx} className="flex gap-4 items-center bg-slate-50 border border-slate-200/50 rounded-2xl p-4.5">
-                      <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-extrabold text-[10px] flex items-center justify-center shrink-0">
+                    <div key={idx} className="flex gap-4 items-center bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5">
+                      <span className="w-6 h-6 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] font-extrabold text-[10px] flex items-center justify-center shrink-0">
                         {idx + 1}
                       </span>
                       <input
@@ -393,7 +393,7 @@ export default function EscrowSystem() {
                         value={m.title}
                         required
                         onChange={(e) => handleUpdateFormMilestone(idx, 'title', e.target.value)}
-                        className="flex-1 bg-transparent border-b border-slate-200 focus:border-blue-500 focus:outline-none text-xs font-semibold py-1"
+                        className="flex-1 bg-transparent border-b border-[var(--border-dim)] focus:border-blue-500 focus:outline-none text-xs font-semibold py-1"
                       />
                       <div className="relative w-32 shrink-0">
                         <input
@@ -402,9 +402,9 @@ export default function EscrowSystem() {
                           value={m.amount}
                           required
                           onChange={(e) => handleUpdateFormMilestone(idx, 'amount', e.target.value)}
-                          className="w-full bg-transparent border-b border-slate-200 focus:border-blue-500 focus:outline-none text-xs font-mono font-bold py-1 pr-8 text-right"
+                          className="w-full bg-transparent border-b border-[var(--border-dim)] focus:border-blue-500 focus:outline-none text-xs font-mono font-bold py-1 pr-8 text-right"
                         />
-                        <span className="absolute right-1 top-1 text-[9px] font-bold text-slate-400">{formAsset}</span>
+                        <span className="absolute right-1 top-1 text-[9px] font-bold text-[var(--text-secondary)]">{formAsset}</span>
                       </div>
                       <button
                         type="button"
@@ -419,8 +419,8 @@ export default function EscrowSystem() {
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-[10.5px] font-bold text-slate-500 leading-normal flex items-start gap-3">
-                <AlertCircle className="text-blue-500 shrink-0 mt-0.5" size={16} />
+              <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 text-[10.5px] font-bold text-[var(--text-secondary)] leading-normal flex items-start gap-3">
+                <AlertCircle className="text-[var(--accent-cyan)] shrink-0 mt-0.5" size={16} />
                 <span>
                   {formRole === 'client' 
                     ? `Creating this agreement as a CLIENT will fund the entire contract of ${milestones.reduce((s, m) => s + Number(m.amount || 0), 0)} ${formAsset} immediately from your active wallet balance. Funds will remain locked until milestones are approved.`
@@ -444,13 +444,13 @@ export default function EscrowSystem() {
           <>
             {/* Left list container */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-sm space-y-4 max-h-[500px] overflow-y-auto">
-                <div className="border-b border-slate-100 pb-3">
-                  <h4 className="font-extrabold text-slate-800 text-xs uppercase tracking-wider">Active Secure Escrows</h4>
+              <div className="card rounded-3xl p-5 shadow-sm space-y-4 max-h-[500px] overflow-y-auto">
+                <div className="border-b border-[var(--border-dim)] pb-3">
+                  <h4 className="font-extrabold text-[var(--text-primary)] text-xs uppercase tracking-wider">Active Secure Escrows</h4>
                 </div>
 
                 {displayAgreements.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400 space-y-2">
+                  <div className="text-center py-12 text-[var(--text-secondary)] space-y-2">
                     <ShieldCheck size={28} className="mx-auto text-slate-200" />
                     <p className="text-xs font-bold">No active agreements found.</p>
                     <p className="text-[10px]">Create an agreement above to secure your contract payrolls!</p>
@@ -466,21 +466,21 @@ export default function EscrowSystem() {
                         onClick={() => setSelectedAgreement(a)}
                         className={`w-full text-left p-4.5 rounded-2xl border transition-all cursor-pointer flex justify-between items-center gap-4 ${
                           selectedAgreement?.id === a.id 
-                            ? 'border-blue-500 bg-blue-50/20 shadow-sm' 
-                            : 'border-slate-100 bg-slate-50 hover:bg-slate-100/50'
+                            ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] shadow-sm' 
+                            : 'border-[var(--border-dim)] bg-slate-50 hover:bg-slate-100/50'
                         }`}
                       >
                         <div className="space-y-1 min-w-0">
-                          <span className="text-[9px] text-blue-600 font-extrabold uppercase tracking-wider block">ID: {a.id}</span>
+                          <span className="text-[9px] text-[var(--accent-cyan)] font-extrabold uppercase tracking-wider block">ID: {a.id}</span>
                           <h4 className="text-xs font-black text-slate-850 truncate">{a.title}</h4>
-                          <span className="text-[10px] text-slate-500 font-semibold block mt-1">
-                            Budget: <strong className="text-slate-800 font-extrabold">{totalCost} {a.asset}</strong>
+                          <span className="text-[10px] text-[var(--text-secondary)] font-semibold block mt-1">
+                            Budget: <strong className="text-[var(--text-primary)] font-extrabold">{totalCost} {a.asset}</strong>
                           </span>
-                          <span className="text-[9.5px] text-slate-400 font-bold block">
+                          <span className="text-[9.5px] text-[var(--text-secondary)] font-bold block">
                             Milestones: {releasedCount} of {a.milestones.length} paid
                           </span>
                         </div>
-                        <ChevronRight size={15} className="text-slate-400 shrink-0" />
+                        <ChevronRight size={15} className="text-[var(--text-secondary)] shrink-0" />
                       </button>
                     );
                   })
@@ -497,21 +497,21 @@ export default function EscrowSystem() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-7 shadow-sm space-y-6"
+                    className="card rounded-3xl p-6 sm:p-7 shadow-sm space-y-6"
                   >
                     {/* Header */}
-                    <div className="flex justify-between items-start gap-4 border-b border-slate-100 pb-5">
+                    <div className="flex justify-between items-start gap-4 border-b border-[var(--border-dim)] pb-5">
                       <div>
-                        <span className="text-[10px] text-blue-600 font-black uppercase tracking-widest block">Agreement secured 🔒</span>
-                        <h3 className="font-black text-slate-900 text-base mt-1">{selectedAgreement.title}</h3>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5 text-[10px] text-slate-400 font-bold">
-                          <span>Client: <strong className="text-slate-600 font-black font-mono">{selectedAgreement.client.slice(0, 8)}...{selectedAgreement.client.slice(-6)}</strong></span>
-                          <span>Freelancer: <strong className="text-slate-600 font-black font-mono">{selectedAgreement.freelancer.slice(0, 8)}...{selectedAgreement.freelancer.slice(-6)}</strong></span>
+                        <span className="text-[10px] text-[var(--accent-cyan)] font-black uppercase tracking-widest block">Agreement secured 🔒</span>
+                        <h3 className="font-black text-[var(--text-primary)] text-base mt-1">{selectedAgreement.title}</h3>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5 text-[10px] text-[var(--text-secondary)] font-bold">
+                          <span>Client: <strong className="text-[var(--text-secondary)] font-black font-mono">{selectedAgreement.client.slice(0, 8)}...{selectedAgreement.client.slice(-6)}</strong></span>
+                          <span>Freelancer: <strong className="text-[var(--text-secondary)] font-black font-mono">{selectedAgreement.freelancer.slice(0, 8)}...{selectedAgreement.freelancer.slice(-6)}</strong></span>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Total Vault Value</span>
-                        <span className="text-xl font-black text-slate-800 tracking-tight block mt-0.5">
+                        <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Total Vault Value</span>
+                        <span className="text-xl font-black text-[var(--text-primary)] tracking-tight block mt-0.5">
                           {selectedAgreement.milestones.reduce((s, m) => s + m.amount, 0)} {selectedAgreement.asset}
                         </span>
                       </div>
@@ -527,10 +527,10 @@ export default function EscrowSystem() {
                           key={m.id}
                           className={`flex items-start gap-4 p-4 rounded-2xl border transition-all ${
                             m.status === 'Released'
-                              ? 'border-slate-100 bg-slate-50/50 opacity-75'
+                              ? 'border-[var(--border-dim)] bg-slate-50/50 opacity-75'
                               : m.status === 'Under Review'
                               ? 'border-amber-300 bg-amber-50/20'
-                              : 'border-blue-200 bg-blue-50/10'
+                              : 'border-[var(--border-dim)] bg-[rgba(0,242,254,0.05)]'
                           }`}
                         >
                           {/* Step number marker */}
@@ -544,7 +544,7 @@ export default function EscrowSystem() {
                                 <Clock size={18} />
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shadow-sm">
+                              <div className="w-10 h-10 rounded-full bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] text-[var(--accent-cyan)] flex items-center justify-center font-bold text-xs shadow-sm">
                                 {idx + 1}
                               </div>
                             )}
@@ -554,7 +554,7 @@ export default function EscrowSystem() {
                           <div className="flex-1 min-w-0 space-y-2">
                             <div className="flex justify-between items-start gap-4">
                               <div>
-                                <h4 className={`text-xs font-black ${m.status === 'Released' ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
+                                <h4 className={`text-xs font-black ${m.status === 'Released' ? 'text-[var(--text-secondary)] line-through' : 'text-[var(--text-primary)]'}`}>
                                   {m.title}
                                 </h4>
                                 <span className={`text-[8.5px] font-black uppercase tracking-wider inline-block mt-1 px-2 py-0.5 rounded-full ${
@@ -562,7 +562,7 @@ export default function EscrowSystem() {
                                     ? 'bg-emerald-100 text-emerald-700' 
                                     : m.status === 'Under Review'
                                     ? 'bg-amber-100 text-amber-700'
-                                    : 'bg-blue-100 text-blue-700'
+                                    : 'bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)]'
                                 }`}>
                                   {m.status === 'Released' ? 'Funds Released' : m.status === 'Under Review' ? 'Under Review' : 'Locked Staged'}
                                 </span>
@@ -592,7 +592,7 @@ export default function EscrowSystem() {
                                   </button>
                                 )}
                                 {activeTab === 'client' && m.status === 'Locked' && (
-                                  <span className="text-[10px] text-slate-400 font-semibold block">Waiting for freelancer to submit deliverables.</span>
+                                  <span className="text-[10px] text-[var(--text-secondary)] font-semibold block">Waiting for freelancer to submit deliverables.</span>
                                 )}
                                 {activeTab === 'freelancer' && m.status === 'Under Review' && (
                                   <span className="text-[10px] text-amber-600 font-semibold block flex items-center gap-1 animate-pulse"><Clock size={12} /> Milestone submitted. Client review pending.</span>
@@ -606,10 +606,10 @@ export default function EscrowSystem() {
 
                   </motion.div>
                 ) : (
-                  <div className="bg-slate-50 border border-dashed border-slate-200 rounded-3xl p-12 text-center text-slate-400 space-y-3">
+                  <div className="bg-slate-50 border border-dashed border-[var(--border-dim)] rounded-3xl p-12 text-center text-[var(--text-secondary)] space-y-3">
                     <ShieldCheck size={36} className="mx-auto text-slate-200" />
                     <div>
-                      <h4 className="font-extrabold text-xs text-slate-500 uppercase tracking-wide">Agreement Details Panel</h4>
+                      <h4 className="font-extrabold text-xs text-[var(--text-secondary)] uppercase tracking-wide">Agreement Details Panel</h4>
                       <p className="text-[10px] max-w-xs mx-auto leading-relaxed mt-1">Select an active agreement on the left index list to monitor milestones progression, submit work, or release locked funds.</p>
                     </div>
                   </div>

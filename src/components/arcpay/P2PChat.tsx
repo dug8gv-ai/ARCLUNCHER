@@ -133,18 +133,18 @@ export function P2PChat({ targetWallet }: { targetWallet: string }) {
 
   if (!address) {
     return (
-      <div className="p-4 text-slate-500 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs font-semibold">
+      <div className="p-4 text-[var(--text-secondary)] bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-center text-xs font-semibold">
         Connect wallet to chat
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[360px] bg-slate-50 border border-slate-200/80 rounded-2xl overflow-hidden">
+    <div className="flex flex-col h-[360px] bg-slate-50 border border-[var(--border-dim)] rounded-2xl overflow-hidden">
       {/* Chat header */}
-      <div className="p-3 border-b border-slate-200 bg-white">
-        <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">Live Secure Chat</h4>
-        <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+      <div className="p-3 border-b border-[var(--border-dim)] bg-[var(--bg-card)]">
+        <h4 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-wider">Live Secure Chat</h4>
+        <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">
           {theirAddr.slice(0, 6)}...{theirAddr.slice(-4)}
         </p>
       </div>
@@ -156,7 +156,7 @@ export function P2PChat({ targetWallet }: { targetWallet: string }) {
             <Loader2 className="animate-spin text-blue-400" />
           </div>
         ) : messages.length === 0 ? (
-          <p className="text-xs text-slate-400 text-center my-auto pt-12">Start the conversation</p>
+          <p className="text-xs text-[var(--text-secondary)] text-center my-auto pt-12">Start the conversation</p>
         ) : (
           messages.map((msg) => {
             const isMe = msg.sender_wallet.toLowerCase() === myAddr;
@@ -166,11 +166,11 @@ export function P2PChat({ targetWallet }: { targetWallet: string }) {
                   className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm font-medium ${
                     isMe
                       ? 'bg-blue-600 text-white rounded-br-sm'
-                      : 'bg-white text-slate-700 border border-slate-200 rounded-bl-sm shadow-sm'
+                      : 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-dim)] rounded-bl-sm shadow-sm'
                   }`}
                 >
                   {msg.message}
-                  <p className={`text-[9px] mt-1 ${isMe ? 'text-blue-200' : 'text-slate-400'}`}>
+                  <p className={`text-[9px] mt-1 ${isMe ? 'text-blue-200' : 'text-[var(--text-secondary)]'}`}>
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
@@ -181,18 +181,18 @@ export function P2PChat({ targetWallet }: { targetWallet: string }) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="p-3 border-t border-slate-200 bg-white flex gap-2">
+      <form onSubmit={handleSend} className="p-3 border-t border-[var(--border-dim)] bg-[var(--bg-card)] flex gap-2">
         <input
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Message..."
-          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 font-medium focus:border-blue-400 focus:ring-1 focus:ring-blue-100 outline-none transition-all"
+          className="flex-1 bg-slate-50 border border-[var(--border-dim)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] font-medium focus:border-blue-400 focus:ring-1 focus:ring-blue-100 outline-none transition-all"
         />
         <button
           type="submit"
           disabled={!newMessage.trim()}
-          className="bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl disabled:opacity-50 transition-colors"
+          className="bg-blue-600 hover:bg-[rgba(0,242,254,0.05)]0 text-white p-2.5 rounded-xl disabled:opacity-50 transition-colors"
         >
           <Send size={16} />
         </button>

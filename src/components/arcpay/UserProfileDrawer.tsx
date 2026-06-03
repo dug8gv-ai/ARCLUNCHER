@@ -107,20 +107,20 @@ export function UserProfileDrawer() {
       <form onSubmit={handleSearch} className="flex gap-2">
         <div className="flex-1 relative">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-            <Search className="text-slate-400" size={18} />
+            <Search className="text-[var(--text-secondary)]" size={18} />
           </div>
           <input
             type="text"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder="Search @username or 0x... wallet address"
-            className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-slate-800 text-sm font-semibold focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400"
+            className="w-full card rounded-2xl py-3.5 pl-12 pr-4 text-[var(--text-primary)] text-sm font-semibold focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-[var(--text-secondary)]"
           />
         </div>
         <button
           type="submit"
           disabled={isSearching || !searchInput.trim()}
-          className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 rounded-2xl transition-all disabled:opacity-50 flex items-center gap-2"
+          className="bg-blue-600 hover:bg-[rgba(0,242,254,0.05)]0 text-white font-bold px-8 rounded-2xl transition-all disabled:opacity-50 flex items-center gap-2"
         >
           {isSearching ? <Loader2 className="animate-spin" size={18} /> : 'Find'}
         </button>
@@ -128,12 +128,12 @@ export function UserProfileDrawer() {
 
       {/* Resolved Profile Card */}
       {activeProfile && (
-        <div className="bg-white border border-slate-200/80 rounded-[28px] p-6 md:p-8 shadow-sm animate-in slide-in-from-bottom-4 fade-in duration-300">
+        <div className="card rounded-[28px] p-6 md:p-8 shadow-sm animate-in slide-in-from-bottom-4 fade-in duration-300">
 
           {/* Profile Header */}
           <div className="flex justify-between items-start mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-blue-100 shadow-md flex-shrink-0">
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border-dim)] shadow-md flex-shrink-0">
                 <img
                   src={activeProfile.avatar}
                   alt={activeProfile.name}
@@ -144,8 +144,8 @@ export function UserProfileDrawer() {
                 />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">{activeProfile.name}</h3>
-                <p className="text-slate-400 font-mono text-xs mt-0.5">
+                <h3 className="text-lg font-black text-[var(--text-primary)]">{activeProfile.name}</h3>
+                <p className="text-[var(--text-secondary)] font-mono text-xs mt-0.5">
                   {activeProfile.wallet.slice(0, 6)}...{activeProfile.wallet.slice(-4)}
                 </p>
                 {/* Social links */}
@@ -155,7 +155,7 @@ export function UserProfileDrawer() {
                       href={`https://x.com/${activeProfile.twitter.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-[10px] text-blue-500 hover:text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100"
+                      className="flex items-center gap-1 text-[10px] text-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] font-bold bg-[rgba(0,242,254,0.05)] px-2 py-0.5 rounded-full border border-[var(--border-dim)]"
                     >
                       <AtSign size={10} /> {activeProfile.twitter}
                     </a>
@@ -170,7 +170,7 @@ export function UserProfileDrawer() {
             </div>
             <button
               onClick={() => setActiveProfile(null)}
-              className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
+              className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
             >
               <X size={18} />
             </button>

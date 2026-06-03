@@ -89,26 +89,26 @@ export function AppRegistration() {
   };
 
   return (
-    <div className="bg-[#0d0e1c] p-6 rounded-2xl border border-slate-800">
+    <div className="bg-[#0d0e1c] p-6 rounded-2xl border border-[var(--border-dim)]">
       <h2 className="text-xl font-bold text-cyan-400 mb-6">Register New Arc Chain App</h2>
       
       {!verificationHash ? (
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
-            <label className="block text-sm text-slate-400 mb-1">App Name</label>
-            <input required type="text" value={formData.appName} onChange={e => setFormData({...formData, appName: e.target.value})} className="w-full bg-[#090a12] border border-slate-700 rounded-lg p-2 text-white" />
+            <label className="block text-sm text-[var(--text-secondary)] mb-1">App Name</label>
+            <input required type="text" value={formData.appName} onChange={e => setFormData({...formData, appName: e.target.value})} className="w-full bg-[#090a12] border border-[var(--border-dim)] rounded-lg p-2 text-white" />
           </div>
           <div>
-            <label className="block text-sm text-slate-400 mb-1">Website URL</label>
-            <input required type="url" value={formData.appUrl} onChange={e => setFormData({...formData, appUrl: e.target.value})} className="w-full bg-[#090a12] border border-slate-700 rounded-lg p-2 text-white" placeholder="https://myapp.com" />
+            <label className="block text-sm text-[var(--text-secondary)] mb-1">Website URL</label>
+            <input required type="url" value={formData.appUrl} onChange={e => setFormData({...formData, appUrl: e.target.value})} className="w-full bg-[#090a12] border border-[var(--border-dim)] rounded-lg p-2 text-white" placeholder="https://myapp.com" />
           </div>
           <div>
-            <label className="block text-sm text-slate-400 mb-1">Description</label>
-            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-[#090a12] border border-slate-700 rounded-lg p-2 text-white" rows={3}></textarea>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1">Description</label>
+            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-[#090a12] border border-[var(--border-dim)] rounded-lg p-2 text-white" rows={3}></textarea>
           </div>
           <div>
-            <label className="block text-sm text-slate-400 mb-1">Arc Chain Contract Address (Optional)</label>
-            <input type="text" value={formData.contractAddress} onChange={e => setFormData({...formData, contractAddress: e.target.value})} className="w-full bg-[#090a12] border border-slate-700 rounded-lg p-2 text-white" placeholder="0x..." />
+            <label className="block text-sm text-[var(--text-secondary)] mb-1">Arc Chain Contract Address (Optional)</label>
+            <input type="text" value={formData.contractAddress} onChange={e => setFormData({...formData, contractAddress: e.target.value})} className="w-full bg-[#090a12] border border-[var(--border-dim)] rounded-lg p-2 text-white" placeholder="0x..." />
           </div>
           <button disabled={isRegistering} type="submit" className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-lg transition-all flex justify-center items-center">
             {isRegistering ? <Loader2 className="animate-spin w-5 h-5" /> : 'Generate Metadata Tag'}
@@ -116,7 +116,7 @@ export function AppRegistration() {
         </form>
       ) : (
         <div className="space-y-6">
-          <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+          <div className="p-4 bg-slate-800/50 rounded-xl border border-[var(--border-dim)]">
             <h3 className="text-sm text-slate-300 font-bold mb-2">Step 1: Add this meta tag to your &lt;head&gt;</h3>
             <div className="flex items-center gap-2">
               <code className="flex-1 bg-black p-2 rounded text-cyan-300 text-xs overflow-x-auto">
@@ -128,7 +128,7 @@ export function AppRegistration() {
             </div>
           </div>
 
-          <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+          <div className="p-4 bg-slate-800/50 rounded-xl border border-[var(--border-dim)]">
             <h3 className="text-sm text-slate-300 font-bold mb-2">Step 2: Verify Configuration</h3>
             <button 
               onClick={handleVerify} 

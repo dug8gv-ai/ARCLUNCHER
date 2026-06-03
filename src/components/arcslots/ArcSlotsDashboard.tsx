@@ -50,7 +50,7 @@ export function ArcSlotsDashboard() {
       
       {/* HEADER LOGO */}
       <div className="flex items-center gap-3 mb-12">
-        <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xl shadow-lg shadow-purple-500/10">
+        <div className="w-10 h-10 rounded-xl bg-slate-800 border border-[var(--border-dim)] flex items-center justify-center text-xl shadow-lg shadow-purple-500/10">
           🎰
         </div>
         <h1 className="text-xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-200" style={{ textShadow: '0 0 20px rgba(250, 204, 21, 0.3)'}}>
@@ -66,27 +66,27 @@ export function ArcSlotsDashboard() {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-200" style={{ filter: 'drop-shadow(0 0 15px rgba(250,204,21,0.4))' }}>Winner Takes </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500" style={{ filter: 'drop-shadow(0 0 15px rgba(34,211,238,0.4))' }}>The Pool</span>
           </h2>
-          <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+          <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
             Every 0.1 USDC spin grows the global jackpot on Arc Testnet. Match three crowns 👑 and the entire pool is yours.
           </p>
         </div>
 
         {/* STATS ROW */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-[#0f1021] border border-slate-800/80 rounded-2xl p-6 text-center shadow-xl">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-3">Total Spins</p>
+          <div className="bg-[#0f1021] border border-[var(--border-dim)] rounded-2xl p-6 text-center shadow-xl">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)] font-bold mb-3">Total Spins</p>
             <p className="text-3xl font-black text-cyan-400 mb-1" style={{ textShadow: '0 0 10px rgba(34,211,238,0.3)' }}>{totalSpins}</p>
-            <p className="text-[9px] uppercase tracking-wider text-slate-600 font-bold">All Time</p>
+            <p className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">All Time</p>
           </div>
-          <div className="bg-[#0f1021] border border-slate-800/80 rounded-2xl p-6 text-center shadow-xl">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-3">Total Wallets</p>
+          <div className="bg-[#0f1021] border border-[var(--border-dim)] rounded-2xl p-6 text-center shadow-xl">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)] font-bold mb-3">Total Wallets</p>
             <p className="text-3xl font-black text-yellow-400 mb-1" style={{ textShadow: '0 0 10px rgba(250,204,21,0.3)' }}>{totalWallets}</p>
-            <p className="text-[9px] uppercase tracking-wider text-slate-600 font-bold">All Time</p>
+            <p className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">All Time</p>
           </div>
-          <div className="bg-[#0f1021] border border-slate-800/80 rounded-2xl p-6 text-center shadow-xl">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-3">Global Volume</p>
+          <div className="bg-[#0f1021] border border-[var(--border-dim)] rounded-2xl p-6 text-center shadow-xl">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)] font-bold mb-3">Global Volume</p>
             <p className="text-3xl font-black text-yellow-400 mb-1" style={{ textShadow: '0 0 10px rgba(250,204,21,0.3)' }}>{globalVolume} USDC</p>
-            <p className="text-[9px] uppercase tracking-wider text-slate-600 font-bold">Spins + Donations</p>
+            <p className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">Spins + Donations</p>
           </div>
         </div>
 
@@ -101,7 +101,7 @@ export function ArcSlotsDashboard() {
               </span>
               <span className="text-2xl md:text-4xl font-bold text-yellow-500/80">USDC</span>
             </div>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-6">
+            <p className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] font-bold mt-6">
               {totalSpins} Spins • {totalJackpots} Jackpots Paid
             </p>
           </div>
@@ -116,18 +116,18 @@ export function ArcSlotsDashboard() {
         <SlotDonate />
 
         {/* INFO CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 border-t border-slate-800/50">
-          <div className="bg-[#0d0e1c] border border-slate-800 rounded-2xl p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 border-t border-[var(--border-dim)]">
+          <div className="bg-[#0d0e1c] border border-[var(--border-dim)] rounded-2xl p-6">
             <h4 className="text-xs uppercase tracking-widest text-cyan-400 font-bold mb-3">Global Pool</h4>
-            <p className="text-sm text-slate-400 leading-relaxed">90% of every spin fee accumulates in one shared jackpot.</p>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">90% of every spin fee accumulates in one shared jackpot.</p>
           </div>
-          <div className="bg-[#0d0e1c] border border-slate-800 rounded-2xl p-6">
+          <div className="bg-[#0d0e1c] border border-[var(--border-dim)] rounded-2xl p-6">
             <h4 className="text-xs uppercase tracking-widest text-cyan-400 font-bold mb-3">On-Chain Fair</h4>
-            <p className="text-sm text-slate-400 leading-relaxed">Reels resolved on Arc Testnet. Every spin is a verifiable transaction.</p>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">Reels resolved on Arc Testnet. Every spin is a verifiable transaction.</p>
           </div>
-          <div className="bg-[#0d0e1c] border border-slate-800 rounded-2xl p-6">
+          <div className="bg-[#0d0e1c] border border-[var(--border-dim)] rounded-2xl p-6">
             <h4 className="text-xs uppercase tracking-widest text-cyan-400 font-bold mb-3">Winner Takes All</h4>
-            <p className="text-sm text-slate-400 leading-relaxed">Three crowns trigger a payout of the entire pool to your wallet.</p>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">Three crowns trigger a payout of the entire pool to your wallet.</p>
           </div>
         </div>
 

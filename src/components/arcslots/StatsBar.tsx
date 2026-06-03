@@ -97,57 +97,57 @@ export function StatsBar({ className = '' }: StatsBarProps) {
           </div>
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
-            <span className="text-xs text-slate-400">{isConnected ? 'Connected' : 'Connecting...'}</span>
+            <span className="text-xs text-[var(--text-secondary)]">{isConnected ? 'Connected' : 'Connecting...'}</span>
           </div>
         </div>
 
         {stats ? (
           <div className="grid grid-cols-3 gap-4">
             {/* Volume Stat */}
-            <div className="p-4 rounded-lg bg-slate-700/50 border border-slate-600 hover:border-cyan-500/50 transition-colors">
+            <div className="p-4 rounded-lg bg-slate-700/50 border border-[var(--border-dim)] hover:border-cyan-500/50 transition-colors">
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="w-4 h-4 text-yellow-400" />
-                <p className="text-xs text-slate-400 uppercase font-semibold tracking-wider">Volume</p>
+                <p className="text-xs text-[var(--text-secondary)] uppercase font-semibold tracking-wider">Volume</p>
               </div>
               <p className="text-2xl font-bold text-white">
                 {(stats.total_volume / 1000).toFixed(1)}K
               </p>
-              <p className="text-xs text-slate-500 mt-1">USDC</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">USDC</p>
             </div>
 
             {/* Active Spins */}
-            <div className="p-4 rounded-lg bg-slate-700/50 border border-slate-600 hover:border-purple-500/50 transition-colors">
+            <div className="p-4 rounded-lg bg-slate-700/50 border border-[var(--border-dim)] hover:border-purple-500/50 transition-colors">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="w-4 h-4 text-purple-400" />
-                <p className="text-xs text-slate-400 uppercase font-semibold tracking-wider">Active</p>
+                <p className="text-xs text-[var(--text-secondary)] uppercase font-semibold tracking-wider">Active</p>
               </div>
               <p className="text-2xl font-bold text-white">
                 {stats.active_spins || 0}
               </p>
-              <p className="text-xs text-slate-500 mt-1">Concurrent Spins</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Concurrent Spins</p>
             </div>
 
             {/* Big Win Stat */}
-            <div className="p-4 rounded-lg bg-slate-700/50 border border-slate-600 hover:border-green-500/50 transition-colors">
+            <div className="p-4 rounded-lg bg-slate-700/50 border border-[var(--border-dim)] hover:border-green-500/50 transition-colors">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">🏆</span>
-                <p className="text-xs text-slate-400 uppercase font-semibold tracking-wider">Big Win</p>
+                <p className="text-xs text-[var(--text-secondary)] uppercase font-semibold tracking-wider">Big Win</p>
               </div>
               <p className="text-2xl font-bold text-green-400">
                 {(stats.last_big_win || 0).toFixed(0)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">ARC</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">ARC</p>
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-center h-20">
-            <p className="text-slate-400 text-sm">Loading live stats...</p>
+            <p className="text-[var(--text-secondary)] text-sm">Loading live stats...</p>
           </div>
         )}
 
         {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-slate-700 flex items-center justify-between">
-          <p className="text-xs text-slate-500">Last update: {getUpdateAge()}</p>
+        <div className="mt-4 pt-4 border-t border-[var(--border-dim)] flex items-center justify-between">
+          <p className="text-xs text-[var(--text-secondary)]">Last update: {getUpdateAge()}</p>
           {isConnected && (
             <p className="text-xs text-cyan-400 font-semibold">Real-time Enabled</p>
           )}

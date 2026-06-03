@@ -95,22 +95,22 @@ export default function AirdropTracker({ onTokenPreFilled }: AirdropTrackerProps
   }, [onTokenPreFilled]);
 
   return (
-    <div className="flex items-center gap-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border border-blue-200/50 rounded-2xl px-4 py-2.5 shadow-sm">
-      <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600">
+    <div className="flex items-center gap-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border border-[var(--border-dim)] rounded-2xl px-4 py-2.5 shadow-sm">
+      <div className="w-8 h-8 rounded-lg bg-[rgba(0,242,254,0.05)]0/10 flex items-center justify-center text-[var(--accent-cyan)]">
         <Award size={16} className="animate-pulse" />
       </div>
       <div>
-        <span className="text-[9px] uppercase font-extrabold tracking-widest text-slate-400 block">ARCL Airdrop Allocation</span>
+        <span className="text-[9px] uppercase font-extrabold tracking-widest text-[var(--text-secondary)] block">ARCL Airdrop Allocation</span>
         <div className="flex items-center gap-2">
           {isLoading ? (
-            <Loader2 size={12} className="animate-spin text-blue-600" />
+            <Loader2 size={12} className="animate-spin text-[var(--accent-cyan)]" />
           ) : (
-            <span className="text-xs font-black text-slate-800 tracking-tight">
-              {points.toFixed(2)} <strong className="text-blue-600 font-extrabold">ARCL</strong>
+            <span className="text-xs font-black text-[var(--text-primary)] tracking-tight">
+              {points.toFixed(2)} <strong className="text-[var(--accent-cyan)] font-extrabold">ARCL</strong>
             </span>
           )}
           <span className="text-[9px] text-slate-350">|</span>
-          <span className="text-[9px] text-slate-500 font-bold">
+          <span className="text-[9px] text-[var(--text-secondary)] font-bold">
             Volume: ${volume.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
           </span>
         </div>

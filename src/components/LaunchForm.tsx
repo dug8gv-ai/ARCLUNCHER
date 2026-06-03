@@ -319,14 +319,14 @@ export function LaunchForm() {
           </div>
         </div>
 
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 my-4 text-xs font-semibold text-slate-500 space-y-2">
-          <div className="flex justify-between text-slate-700">
+        <div className="bg-slate-50 p-4 rounded-xl border border-[var(--border-dim)] my-4 text-xs font-semibold text-[var(--text-secondary)] space-y-2">
+          <div className="flex justify-between text-[var(--text-primary)]">
             <span className="font-extrabold">Fixed Fee</span>
-            <span className="font-black text-slate-900">4.00 USDC</span>
+            <span className="font-black text-[var(--text-primary)]">4.00 USDC</span>
           </div>
           <div className="flex justify-between">
             <span className="font-medium">↳ Initial Liquidity (99% Supply)</span>
-            <span className="text-blue-600 font-extrabold">3.00 USDC</span>
+            <span className="text-[var(--accent-cyan)] font-extrabold">3.00 USDC</span>
           </div>
           <div className="flex justify-between">
             <span className="font-medium">↳ Platform Treasury</span>
