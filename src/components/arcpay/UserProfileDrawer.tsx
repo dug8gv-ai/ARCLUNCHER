@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { P2PChat } from './P2PChat';
 import { PaymentBox } from './PaymentBox';
-import { Search, X, User, Loader2, Twitter, MessageCircle } from 'lucide-react';
+import { Search, X, User, Loader2, AtSign, MessageCircle } from 'lucide-react';
 import { isAddress } from 'viem';
 import toast from 'react-hot-toast';
 
@@ -144,7 +144,7 @@ export function UserProfileDrawer() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-[10px] text-blue-500 hover:text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100"
                     >
-                      <Twitter size={10} /> {activeProfile.twitter}
+                      <AtSign size={10} /> {activeProfile.twitter}
                     </a>
                   )}
                   {activeProfile.discord && (
