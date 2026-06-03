@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { supabase } from '@/lib/supabase'; // Ensure this client exists
 import { createClient } from '@supabase/supabase-js';
@@ -21,6 +21,45 @@ export function AppRegistration() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [existingApp, setExistingApp] = useState<any>(null);
+  const [isLoadingState, setIsLoadingState] = useState(true);
+
+  useEffect(() => {
+    if (!address) {
+      setIsLoadingState(false);
+      return;
+    }
+
+    const fetchExistingApp = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('registered_apps')
+          .select('*')
+          .eq('developer_wallet', address)
+          .single();
+        
+        if (data) {
+          setExistingApp(data);
+          setFormData({
+            appName: data.app_name || '',
+            appUrl: data.app_url || '',
+            description: data.description || '',
+            category: data.category || '',
+            teamSize: data.team_size?.toString() || '1',
+            contractAddress: data.contract_address || '',
+          });
+          setVerificationHash(data.verification_hash || '');
+          setIsVerified(data.is_verified || false);
+        }
+      } catch (err) {
+        console.error("Error fetching app", err);
+      } finally {
+        setIsLoadingState(false);
+      }
+    };
+
+    fetchExistingApp();
+  }, [address]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +111,10 @@ export function AppRegistration() {
       if (data.success) {
         setIsVerified(true);
         toast.success('App Verified Successfully!');
+        // Update local state if needed
+        if (existingApp) {
+          setExistingApp({ ...existingApp, is_verified: true });
+        }
       } else {
         toast.error('Verification failed: Meta tag not found');
       }
@@ -92,7 +135,24 @@ export function AppRegistration() {
     <div className="bg-[#0d0e1c] p-6 rounded-2xl border border-[var(--border-dim)]">
       <h2 className="text-xl font-bold text-cyan-400 mb-6">Register New Arc Chain App</h2>
       
-      {!verificationHash ? (
+      {isLoadingState ? (
+        <div className="flex justify-center items-center py-10">
+          <Loader2 className="animate-spin text-cyan-400" size={32} />
+        </div>
+      ) : isVerified ? (
+        <div className="bg-green-900/20 border border-green-500/50 p-6 rounded-xl text-center space-y-4">
+          <div className="w-16 h-16 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle size={32} />
+          </div>
+          <h3 className="text-xl font-bold text-white">App Verified & Active!</h3>
+          <p className="text-sm text-green-200/80">
+            {formData.appName} is successfully registered on the ArcOmni Builder Ecosystem.
+          </p>
+          <div className="text-xs text-slate-400 mt-4 border-t border-[var(--border-dim)] pt-4">
+            If you provided a contract address, your app activity will appear in the Contract Tracker. If not, you can update it later.
+          </div>
+        </div>
+      ) : !verificationHash ? (
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
             <label className="block text-sm text-[var(--text-secondary)] mb-1">App Name</label>
