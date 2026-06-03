@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/main-logo.jpg",
   },
+  other: {
+    "arcomni-verification": "arcomni-7ttocccauqk-1780501120984"
+  }
 };
 
 export default function RootLayout({
