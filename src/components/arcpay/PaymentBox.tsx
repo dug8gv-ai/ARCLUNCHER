@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { ARCSLOTS_TOKENS } from '@/lib/arcslots/arcslots.constants';
 
 export function PaymentBox({ targetWallet }: { targetWallet: string }) {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const chainId = useChainId();
   const { sendTransactionAsync } = useSendTransaction();
   const { writeContractAsync } = useWriteContract();
