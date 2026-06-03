@@ -26,6 +26,7 @@ import ArcYield from '@/components/financial-layer/ArcYield';
 import UserGuide from '@/components/UserGuide';
 import { FreelanceHub } from '@/components/FreelanceHub';
 import { PredictionDashboard } from '@/components/PredictionDashboard';
+import { SlotMachine } from '@/components/arcslots/SlotMachine';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -1270,25 +1271,8 @@ export default function Home() {
 
             {/* ARCSLOTS TAB VIEW */}
             {currentView === 'slots' && (
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
-                <div className="text-center space-y-6 py-8">
-                  <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto">
-                    <Dices size={32} />
-                  </div>
-                  <div className="space-y-2 max-w-md mx-auto">
-                    <h2 className="text-2xl font-black text-slate-900">ArcSlots Game</h2>
-                    <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                      Click below to open the full ArcSlots experience with real-time gameplay, prize tables, and instant payouts.
-                    </p>
-                  </div>
-                  <a 
-                    href="/slots"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm rounded-2xl shadow-lg shadow-blue-500/20 transition-all hover:shadow-lg hover:shadow-blue-500/30 active:scale-95 cursor-pointer"
-                  >
-                    <Dices size={18} />
-                    Play ArcSlots Now
-                  </a>
-                </div>
+              <div className="animate-in fade-in duration-200">
+                <SlotMachine />
               </div>
             )}
 

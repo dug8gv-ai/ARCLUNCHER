@@ -7,8 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { useAccount, useWriteContract, useChainId, usePublicClient } from 'wagmi';
-import { parseUnits, erc20Abi } from 'viem';
-import { confirmSpin } from '@/lib/arcslots/arcslots.functions';
+import { parseUnits, formatUnits, decodeEventLog, erc20Abi } from 'viem';
 import { ARCSLOTS_CONFIG, ARCSLOTS_TOKENS, ARCSLOTS_ADDRESS, SLOT_SYMBOLS } from '@/lib/arcslots/arcslots.constants';
 import { Zap, Loader2, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -60,6 +59,19 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
   // ⚠️ CRITICAL: Network Validation (Arc Testnet ID: 5042002)
   const EXPECTED_CHAIN_ID = 5042002;
   const isCorrectNetwork = chainId === EXPECTED_CHAIN_ID;
+  const isAddressConfigured = ARCSLOTS_ADDRESS !== '0x0000000000000000000000000000000000000000';
+
+  if (!isAddressConfigured) {
+    return (
+      <div className="flex flex-col items-center gap-4 p-6 rounded-lg bg-red-950 border border-red-700">
+        <AlertCircle className="w-6 h-6 text-red-500" />
+        <div className="text-center">
+          <p className="text-red-200 font-semibold">ArcSlots Contract Not Configured</p>
+          <p className="text-red-400 text-sm mt-1">Set NEXT_PUBLIC_ARCSLOTS_ADDRESS in your environment to a valid contract address.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isConnected) {
     return (
@@ -128,24 +140,46 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
         args: [seed],
       });
       toast.loading('Spin submitted to ArcSlots contract...');
-      await publicClient.waitForTransactionReceipt({ hash: spinHash, timeout: 120_000 });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: spinHash, timeout: 120_000 });
+      
+      // Step 4: Parse Spin Event from Receipt to get actual results
+      let onChainSymbols: string[] = ["🎯", "🎯", "🎯"];
+      let payout = BigInt(0);
+      let won = false;
 
-      // Step 4: Generate display symbols locally while the contract handles payment
-      const symbols = Array.from({ length: 3 }, () =>
-        SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)]
-      );
-      setLastSymbols(symbols);
+      for (const log of receipt.logs) {
+        try {
+          const decoded = decodeEventLog({
+            abi: ARCSLOTS_CONTRACT_ABI,
+            data: log.data,
+            topics: log.topics,
+          });
+          
+          if (decoded.eventName === 'Spin') {
+            const args = decoded.args as any;
+            onChainSymbols = [
+              SLOT_SYMBOLS[args.s1 % SLOT_SYMBOLS.length],
+              SLOT_SYMBOLS[args.s2 % SLOT_SYMBOLS.length],
+              SLOT_SYMBOLS[args.s3 % SLOT_SYMBOLS.length]
+            ];
+            payout = args.payout;
+            won = payout > BigInt(0);
+          }
+        } catch (e) {
+          // Ignore logs that don't match our ABI
+        }
+      }
 
-      // Step 5: Confirm spin in database backend
-      const result = await confirmSpin(
-        userAddress,
-        spinCount,
-        spinHash,
-        symbols
-      );
+      setLastSymbols(onChainSymbols);
 
-      toast.success(`Won ${result.arc_reward} ARC! Multiplier: ${result.multiplier}x`);
-      onSpinComplete?.(symbols, result.arc_reward);
+      if (won) {
+        const formattedPayout = formatUnits(payout, ARCSLOTS_TOKENS.USDC_DECIMALS);
+        toast.success(`Jackpot! Won ${formattedPayout} USDC!`);
+        onSpinComplete?.(onChainSymbols, Number(formattedPayout));
+      } else {
+        toast.error("Better luck next time!");
+        onSpinComplete?.(onChainSymbols, 0);
+      }
     } catch (error: any) {
       const errorMsg = error?.message || 'Unknown error occurred';
       setNetworkError(errorMsg);
