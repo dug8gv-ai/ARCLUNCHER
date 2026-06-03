@@ -11,7 +11,7 @@ import { AffiliatesView } from '@/components/AffiliatesView';
 import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
 import { parseUnits, formatUnits, erc20Abi } from 'viem';
-import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp, Briefcase, PieChart, Dices } from 'lucide-react';
+import { Home as HomeIcon, Award, Coins, HelpCircle, Layers, ArrowRight, ShieldCheck, Trophy, Users, Droplet, Info, Send, Rocket, TrendingUp, Briefcase, PieChart, Dices, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi, USDC_ADDRESS, EURC_ADDRESS, CIRBTC_ADDRESS } from '@/lib/arcDefiAbi';
 import dynamic from 'next/dynamic';
@@ -31,6 +31,7 @@ import { ArcSlotsDashboard } from '@/components/arcslots/ArcSlotsDashboard';
 import { BuilderDashboard } from '@/components/builder/BuilderDashboard';
 import { UserProfileDrawer } from '@/components/arcpay/UserProfileDrawer';
 import { DiscreteTasks } from '@/components/airdrop/DiscreteTasks';
+import { MarketHubView } from '@/components/markethub/MarketHubView';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -66,10 +67,10 @@ export default function Home() {
   const getInitialView = () => {
     if (typeof window === 'undefined') return 'launcher';
     const hash = window.location.hash.replace('#', '');
-    const validViews = ['launcher','trade','social-pay','leaderboard','affiliates','earn','wallet','guide','staking','gigs','prediction-market','slots','builder'];
+    const validViews = ['launcher','trade','social-pay','leaderboard','affiliates','earn','wallet','guide','staking','gigs','prediction-market','slots','builder', 'markethub'];
     return validViews.includes(hash) ? hash as any : 'launcher';
   };
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'staking' | 'gigs' | 'prediction-market' | 'slots' | 'builder'>(getInitialView);
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'staking' | 'gigs' | 'prediction-market' | 'slots' | 'builder' | 'markethub'>(getInitialView);
 
   // Sync URL hash whenever view changes so refresh preserves position
   useEffect(() => {
@@ -961,6 +962,19 @@ export default function Home() {
               Social Pay
             </button>
 
+            {/* Market Hub Tab */}
+            <button 
+              onClick={() => setCurrentView('markethub')}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'markethub'
+                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <ShoppingCart size={16} className={currentView === 'markethub' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              Market Hub
+            </button>
+
             {/* Arc Gigs (New) Tab */}
             <button 
               onClick={() => {
@@ -1313,6 +1327,13 @@ export default function Home() {
             {currentView === 'social-pay' && (
               <div className="animate-in fade-in duration-200 space-y-8">
                 <UserProfileDrawer />
+              </div>
+            )}
+
+            {/* MARKET HUB VIEW */}
+            {currentView === 'markethub' && (
+              <div className="animate-in fade-in duration-200">
+                <MarketHubView />
               </div>
             )}
 

@@ -414,7 +414,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
       </div>
 
       <div className="space-y-5">
-        <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4">
+        <div className="bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4">
           <div className="flex justify-between text-[11px] text-[var(--text-secondary)] font-bold mb-2.5">
             <span>{isBuy ? 'Amount in USDC' : `Amount in ${token.ticker}`}</span>
             <div className="flex items-center gap-3">
@@ -482,7 +482,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
               });
             }
           }}
-          className="w-full py-2.5 rounded-xl border border-[var(--border-dim)] text-[var(--text-secondary)] text-xs hover:text-[var(--text-primary)] hover:bg-slate-50 font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 rounded-xl border border-[var(--border-dim)] text-[var(--text-secondary)] text-xs hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <Wallet size={14} className="text-[var(--text-secondary)]" />
           Add {token.ticker} to Wallet
@@ -528,7 +528,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
             </div>
 
             {/* Details List */}
-            <div className="space-y-3 bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
+            <div className="space-y-3 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
               {premiumAlert.details.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-0.5">
                   <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">{item.label}</span>
