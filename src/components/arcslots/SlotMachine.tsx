@@ -247,7 +247,7 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
 
           {/* Footer Text */}
           <p className="text-[10px] text-center uppercase tracking-widest text-slate-500 font-bold mt-4">
-            10% CASHBACK ON EVERY LOSING SPIN - JACKPOT WHEN POOL ≥ 1 USDC
+            50% CASHBACK ON EVERY LOSING SPIN • GUARANTEED JACKPOT EVERY 5-6 SPINS
           </p>
 
         </div>
