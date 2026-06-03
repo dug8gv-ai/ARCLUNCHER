@@ -43,6 +43,17 @@ CREATE TABLE IF NOT EXISTS public.market_orders (
 );
 
 -- =======================================================================================
+-- 4. Create the `product_reviews` table
+CREATE TABLE IF NOT EXISTS public.product_reviews (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id uuid NOT NULL REFERENCES public.market_products(id) ON DELETE CASCADE,
+  reviewer_wallet text NOT NULL,
+  rating integer NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment text,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- =======================================================================================
 -- RLS (Row Level Security) Policies
 -- =======================================================================================
 
@@ -75,6 +86,11 @@ CREATE POLICY "Orders are viewable by everyone" ON public.market_orders
   FOR SELECT USING (true);
 
 CREATE POLICY "Public Insert Orders" ON public.market_orders FOR INSERT WITH CHECK (true);
+
+-- PRODUCT REVIEWS
+ALTER TABLE public.product_reviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Reviews are viewable by everyone" ON public.product_reviews FOR SELECT USING (true);
+CREATE POLICY "Public Insert Reviews" ON public.product_reviews FOR INSERT WITH CHECK (true);
 
 -- =======================================================================================
 -- Storage Bucket Setup for Market Images

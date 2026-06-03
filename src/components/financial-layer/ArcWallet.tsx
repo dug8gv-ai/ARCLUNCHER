@@ -320,7 +320,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
 
         <form onSubmit={handleSwap} className="space-y-5">
           {/* FROM ASSET BOX */}
-          <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-2">
+          <div className="bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-2">
             <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
               <span>From Asset</span>
               <span className="cursor-pointer text-[var(--accent-cyan)]" onClick={() => setFromAmount(balances[fromAsset].toString())}>
@@ -362,7 +362,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
           </div>
 
           {/* TO ASSET BOX */}
-          <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-2">
+          <div className="bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-2">
             <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
               <span>To Asset (Estimated)</span>
             </div>

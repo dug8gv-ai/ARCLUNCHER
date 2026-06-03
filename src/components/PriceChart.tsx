@@ -55,7 +55,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: 'transparent' },
+        background: { type: ColorType.Solid, color: '#ffffff' },
         textColor: '#64748b',
       },
       grid: {

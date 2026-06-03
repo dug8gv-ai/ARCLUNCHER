@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { Marketplace } from './Marketplace';
 import { VendorProfile } from './VendorProfile';
 import { InventoryManager } from './InventoryManager';
-import { ShoppingCart, Store, Package } from 'lucide-react';
+import { BuyerOrders } from './BuyerOrders';
+import { ShoppingCart, Store, Package, PackageOpen } from 'lucide-react';
 
 export function MarketHubView() {
-  const [activeTab, setActiveTab] = useState<'market' | 'vendor' | 'inventory'>('market');
+  const [activeTab, setActiveTab] = useState<'market' | 'vendor' | 'inventory' | 'orders'>('market');
 
   return (
     <div className="animate-in fade-in duration-300 max-w-6xl mx-auto space-y-6">
@@ -46,6 +47,17 @@ export function MarketHubView() {
         >
           <Store size={16} /> Store Setup
         </button>
+
+        <button
+          onClick={() => setActiveTab('orders')}
+          className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 rounded-[24px] text-sm font-black transition-all ${
+            activeTab === 'orders'
+              ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]'
+              : 'text-[var(--text-secondary)] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'
+          }`}
+        >
+          <PackageOpen size={16} /> My Orders
+        </button>
       </div>
 
       {/* Render Active View */}
@@ -53,6 +65,7 @@ export function MarketHubView() {
         {activeTab === 'market' && <Marketplace />}
         {activeTab === 'inventory' && <InventoryManager />}
         {activeTab === 'vendor' && <VendorProfile />}
+        {activeTab === 'orders' && <BuyerOrders />}
       </div>
 
     </div>
