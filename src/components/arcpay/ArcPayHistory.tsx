@@ -33,13 +33,8 @@ export function ArcPayHistory() {
         // Simulated network request latency for the UI demonstration
         await new Promise(r => setTimeout(r, 1000));
         
-        // Mock data demonstrating the robust UI handling
-        const mockData: HistoricalTx[] = [
-          { hash: '0x123...abc', type: 'send', amount: '50.0', token: 'ARC', counterparty: '0xabc...123', timestamp: Date.now() - 3600000 },
-          { hash: '0x456...def', type: 'receive', amount: '120.5', token: 'USDC', counterparty: '0xdef...456', timestamp: Date.now() - 86400000 },
-        ];
-        
-        setTransactions(mockData);
+        // Empty for MVP unless we integrate with a real indexer
+        setTransactions([]);
       } catch (error) {
         console.error("Failed to fetch history:", error);
       } finally {

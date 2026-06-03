@@ -13,12 +13,8 @@ export function UserProfileDrawer() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const input = searchInput.trim();
-    if (isAddress(input)) {
+    if (input.length > 0) {
       setActiveProfile(input);
-    } else {
-      // If using custom usernames, we would do a Supabase lookup here.
-      // For this MVP, we enforce standard hex addresses to represent a user profile.
-      alert('Please enter a valid Arc Chain wallet address');
     }
   };
 
