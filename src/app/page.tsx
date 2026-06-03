@@ -28,6 +28,10 @@ import { FreelanceHub } from '@/components/FreelanceHub';
 import { PredictionDashboard } from '@/components/PredictionDashboard';
 import { SlotMachine } from '@/components/arcslots/SlotMachine';
 import { ArcSlotsDashboard } from '@/components/arcslots/ArcSlotsDashboard';
+import { BuilderDashboard } from '@/components/builder/BuilderDashboard';
+import { UserProfileDrawer } from '@/components/arcpay/UserProfileDrawer';
+import { ArcPayHistory } from '@/components/arcpay/ArcPayHistory';
+import { DiscreteTasks } from '@/components/airdrop/DiscreteTasks';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -63,10 +67,10 @@ export default function Home() {
   const getInitialView = () => {
     if (typeof window === 'undefined') return 'launcher';
     const hash = window.location.hash.replace('#', '');
-    const validViews = ['launcher','trade','social-pay','leaderboard','affiliates','earn','wallet','guide','staking','gigs','prediction-market','slots'];
+    const validViews = ['launcher','trade','social-pay','leaderboard','affiliates','earn','wallet','guide','staking','gigs','prediction-market','slots','builder'];
     return validViews.includes(hash) ? hash as any : 'launcher';
   };
-  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'staking' | 'gigs' | 'prediction-market' | 'slots'>(getInitialView);
+  const [currentView, setCurrentView] = useState<'launcher' | 'trade' | 'social-pay' | 'leaderboard' | 'affiliates' | 'earn' | 'wallet' | 'guide' | 'staking' | 'gigs' | 'prediction-market' | 'slots' | 'builder'>(getInitialView);
 
   // Sync URL hash whenever view changes so refresh preserves position
   useEffect(() => {
@@ -843,6 +847,21 @@ export default function Home() {
               Launcher
             </button>
 
+            {/* Builder Tab */}
+            <button 
+              onClick={() => {
+                setCurrentView('builder');
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+                currentView === 'builder'
+                  ? 'text-blue-600 bg-blue-50/70 border border-blue-200/50 shadow-sm shadow-blue-500/5'
+                  : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
+              }`}
+            >
+              <Layers size={16} className={currentView === 'builder' ? 'text-blue-600' : 'text-slate-400'} />
+              Builder
+            </button>
+
             {/* Trade Tab */}
             <button 
               onClick={() => {
@@ -1253,8 +1272,9 @@ export default function Home() {
 
             {/* SOCIAL PAY TAB VIEW */}
             {currentView === 'social-pay' && (
-              <div className="animate-in fade-in duration-200">
-                <SocialPay />
+              <div className="animate-in fade-in duration-200 space-y-8">
+                <UserProfileDrawer />
+                <ArcPayHistory />
               </div>
             )}
 
@@ -1277,6 +1297,13 @@ export default function Home() {
               </div>
             )}
 
+            {/* BUILDER TAB VIEW */}
+            {currentView === 'builder' && (
+              <div className="animate-in fade-in duration-200">
+                <BuilderDashboard />
+              </div>
+            )}
+
             {/* LEADERBOARD TAB VIEW */}
             {currentView === 'leaderboard' && (
               <div className="bg-white border border-slate-200/80 rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
@@ -1291,10 +1318,12 @@ export default function Home() {
               </div>
             )}
 
-            {/* EARN TAB VIEW (TEASER ONLY) */}
+            {/* EARN TAB VIEW */}
             {currentView === 'earn' && (
-              <div className="bg-white border border-slate-200/80 rounded-[32px] p-8 shadow-sm text-center max-w-xl mx-auto space-y-6 animate-in fade-in duration-200 py-12">
-                <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto animate-bounce">
+              <div className="animate-in fade-in duration-200 space-y-8">
+                <DiscreteTasks onPointsEarned={(points) => { console.log(`Earned ${points}`); }} />
+                <div className="bg-white border border-slate-200/80 rounded-[32px] p-8 shadow-sm text-center max-w-xl mx-auto space-y-6 py-12">
+                  <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto animate-bounce">
                   <Coins size={32} />
                 </div>
                 <div className="space-y-2">
@@ -1324,6 +1353,7 @@ export default function Home() {
                     <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">Stake ARCL points or locks to earn direct USDC gas rebates.</p>
                   </div>
                 </div>
+              </div>
               </div>
             )}
 
