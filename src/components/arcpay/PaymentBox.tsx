@@ -16,6 +16,7 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
 
   const [amount, setAmount] = useState('');
   const [token, setToken] = useState<'ARC' | 'USDC'>('ARC');
+  const [paymentMessage, setPaymentMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
   // STRICT ARC CHAIN ENFORCEMENT
@@ -49,7 +50,7 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
         await supabase.from('arcpay_chats').insert({
           sender_wallet: address?.toLowerCase(),
           receiver_wallet: targetWallet.toLowerCase(),
-          message: `💰 Sent ${amount} ARC`,
+          message: paymentMessage ? `💰 Sent ${amount} ARC: ${paymentMessage}` : `💰 Sent ${amount} ARC`,
         });
       } else if (token === 'USDC') {
         const value = parseUnits(amount, ARCSLOTS_TOKENS.USDC_DECIMALS);
@@ -64,11 +65,12 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
         await supabase.from('arcpay_chats').insert({
           sender_wallet: address?.toLowerCase(),
           receiver_wallet: targetWallet.toLowerCase(),
-          message: `💰 Sent ${amount} USDC`,
+          message: paymentMessage ? `💰 Sent ${amount} USDC: ${paymentMessage}` : `💰 Sent ${amount} USDC`,
         });
       }
 
       setAmount('');
+      setPaymentMessage('');
     } catch (error: any) {
       console.error(error);
       toast.error(error.shortMessage || error.message || 'Payment failed', { id: 'payment' });
@@ -78,10 +80,10 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
   };
 
   return (
-    <form onSubmit={handleSend} className="bg-slate-50 border border-[var(--border-dim)] p-5 rounded-2xl space-y-4">
-      <h4 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-wider">Direct Payment</h4>
+    <form onSubmit={handleSend} className="bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] p-5 rounded-2xl space-y-4">
+      <h4 className="text-xs font-black text-[var(--accent-cyan)] uppercase tracking-wider">Direct Payment</h4>
 
-      <div className="flex card rounded-xl overflow-hidden focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+      <div className="flex cyber-input rounded-xl overflow-hidden transition-all">
         <input
           type="number"
           step="0.0001"
@@ -93,17 +95,25 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
         <select
           value={token}
           onChange={e => setToken(e.target.value as any)}
-          className="bg-slate-50 border-l border-[var(--border-dim)] text-[var(--text-primary)] px-4 py-3 outline-none font-bold cursor-pointer"
+          className="bg-[rgba(6,8,20,0.8)] border-l border-[var(--border-dim)] text-[var(--text-primary)] px-4 py-3 outline-none font-bold cursor-pointer"
         >
           <option value="ARC">ARC</option>
           <option value="USDC">USDC</option>
         </select>
       </div>
 
+      <input
+        type="text"
+        placeholder="Add a message (optional)..."
+        value={paymentMessage}
+        onChange={e => setPaymentMessage(e.target.value)}
+        className="w-full cyber-input rounded-xl px-4 py-3 text-xs text-[var(--text-primary)] outline-none"
+      />
+
       <button
         type="submit"
         disabled={isSending || !amount || !isValidTarget}
-        className="w-full bg-blue-600 hover:bg-[rgba(0,242,254,0.05)]0 text-white font-bold py-3 rounded-xl flex justify-center items-center gap-2 transition-all disabled:opacity-50"
+        className="deploy-btn w-full py-3 text-sm flex justify-center items-center gap-2 disabled:opacity-50"
       >
         {isSending ? <Loader2 className="animate-spin" size={20} /> : (
           <>Pay {shortAddr} <ArrowRight size={18} /></>

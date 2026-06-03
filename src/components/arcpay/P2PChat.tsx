@@ -133,14 +133,14 @@ export function P2PChat({ targetWallet }: { targetWallet: string }) {
 
   if (!address) {
     return (
-      <div className="p-4 text-[var(--text-secondary)] bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-center text-xs font-semibold">
+      <div className="p-4 text-[var(--text-secondary)] bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl text-center text-xs font-semibold">
         Connect wallet to chat
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[360px] bg-slate-50 border border-[var(--border-dim)] rounded-2xl overflow-hidden">
+    <div className="flex flex-col h-[360px] stat-box rounded-2xl overflow-hidden">
       {/* Chat header */}
       <div className="p-3 border-b border-[var(--border-dim)] bg-[var(--bg-card)]">
         <h4 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-wider">Live Secure Chat</h4>
@@ -165,12 +165,12 @@ export function P2PChat({ targetWallet }: { targetWallet: string }) {
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm font-medium ${
                     isMe
-                      ? 'bg-blue-600 text-white rounded-br-sm'
+                      ? 'bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] border border-[var(--border-dim)] rounded-br-sm shadow-sm'
                       : 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-dim)] rounded-bl-sm shadow-sm'
                   }`}
                 >
                   {msg.message}
-                  <p className={`text-[9px] mt-1 ${isMe ? 'text-blue-200' : 'text-[var(--text-secondary)]'}`}>
+                  <p className={`text-[9px] mt-1 ${isMe ? 'text-[var(--accent-cyan)] opacity-80' : 'text-[var(--text-secondary)]'}`}>
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
@@ -187,12 +187,12 @@ export function P2PChat({ targetWallet }: { targetWallet: string }) {
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Message..."
-          className="flex-1 bg-slate-50 border border-[var(--border-dim)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] font-medium focus:border-blue-400 focus:ring-1 focus:ring-blue-100 outline-none transition-all"
+          className="flex-1 cyber-input rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] font-medium focus:outline-none focus:ring-4 focus:ring-[rgba(0,242,254,0.1)] focus:border-[var(--accent-cyan)] transition-all"
         />
         <button
           type="submit"
           disabled={!newMessage.trim()}
-          className="bg-blue-600 hover:bg-[rgba(0,242,254,0.05)]0 text-white p-2.5 rounded-xl disabled:opacity-50 transition-colors"
+          className="deploy-btn px-4 rounded-xl disabled:opacity-50 transition-colors"
         >
           <Send size={16} />
         </button>

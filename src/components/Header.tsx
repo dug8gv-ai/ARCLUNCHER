@@ -247,7 +247,7 @@ export function Header() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="glass-panel px-6 py-4 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40 bg-[var(--bg-card)]/90 backdrop-blur-md"
+        className="stat-box premium-highlight px-6 py-4 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-40 backdrop-blur-md"
       >
         {/* Brand Logo & Info */}
         <div className="flex items-center gap-3">
@@ -269,14 +269,14 @@ export function Header() {
         {/* Action Controls & Connected Profile Details */}
         <div className="flex flex-wrap items-center gap-3 justify-end w-full md:w-auto">
           {/* Active Network Status */}
-          <div className="hidden lg:flex items-center gap-2 text-xs text-[var(--text-secondary)] bg-slate-100/80 px-3 py-1.5 rounded-full font-medium">
+          <div className="hidden lg:flex items-center gap-2 text-xs text-[var(--text-secondary)] bg-[rgba(6,8,20,0.6)] border border-[var(--border-dim)] px-3 py-1.5 rounded-full font-medium">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             Arc Testnet Active
           </div>
 
           {/* Glowing Premium Airdrop Box */}
           {isConnected && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-[var(--border-dim)] rounded-full px-4 py-2 flex items-center gap-2 shadow-sm font-semibold text-xs text-[var(--accent-cyan)] animate-pulse">
+            <div className="bg-[rgba(0,242,254,0.08)] border border-[var(--border-dim)] rounded-full px-4 py-2 flex items-center gap-2 shadow-sm font-semibold text-xs text-[var(--accent-cyan)] animate-pulse">
               <Award size={14} className="text-[var(--accent-cyan)]" />
               <span>Airdrop: <strong className="font-extrabold text-[var(--accent-cyan)]">{points.toFixed(2)}</strong> ARCL</span>
             </div>
@@ -284,13 +284,13 @@ export function Header() {
 
           {/* Real USDC & EURC Wallet Balances Display */}
           {isConnected && (
-            <div className="hidden sm:flex items-center gap-3 bg-slate-50 border border-[var(--border-dim)] rounded-full px-4 py-2 font-semibold text-xs text-[var(--text-primary)] shadow-sm">
+            <div className="hidden sm:flex items-center gap-3 bg-[rgba(6,8,20,0.6)] border border-[var(--border-dim)] rounded-full px-4 py-2 font-semibold text-xs text-[var(--text-primary)] shadow-sm">
               <div className="flex items-center gap-1">
                 <span>🔵</span>
                 <span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase">USDC:</span>
                 <span className="font-extrabold text-[var(--text-primary)]">{usdcBalance.toFixed(2)}</span>
               </div>
-              <div className="w-[1px] h-3 bg-slate-200" />
+              <div className="w-[1px] h-3 bg-[var(--border-dim)]" />
               <div className="flex items-center gap-1">
                 <span>🟣</span>
                 <span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase">EURC:</span>
@@ -304,7 +304,7 @@ export function Header() {
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 bg-slate-50 border border-[var(--border-dim)] hover:bg-slate-100 text-[var(--text-primary)] px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold transition-all cursor-pointer"
+                className="flex items-center gap-2 bg-[rgba(6,8,20,0.6)] border border-[var(--border-dim)] hover:border-[var(--border-glow)] text-[var(--text-primary)] px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold transition-all cursor-pointer"
               >
                 <div className="w-6 h-6 rounded-full overflow-hidden border border-[var(--border-dim)] bg-[var(--bg-card)]">
                   <img src={profile.avatar} alt="Avatar" className="w-full h-full object-contain p-0.5" />
@@ -327,7 +327,7 @@ export function Header() {
                       setIsDropdownOpen(false);
                       setIsModalOpen(true);
                     }}
-                    className="w-full px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2 text-left cursor-pointer transition-colors"
+                    className="w-full px-4 py-2.5 hover:bg-[rgba(0,242,254,0.05)] flex items-center gap-2 text-left cursor-pointer transition-colors"
                   >
                     <Settings size={14} className="text-[var(--text-secondary)]" />
                     Profile Settings
@@ -337,7 +337,7 @@ export function Header() {
                       setIsDropdownOpen(false);
                       disconnect();
                     }}
-                    className="w-full px-4 py-2.5 hover:bg-red-50 text-red-600 flex items-center gap-2 text-left cursor-pointer transition-colors border-t border-[var(--border-dim)]"
+                    className="w-full px-4 py-2.5 hover:bg-red-500/10 text-red-400 flex items-center gap-2 text-left cursor-pointer transition-colors border-t border-[var(--border-dim)]"
                   >
                     <LogOut size={14} />
                     Disconnect Wallet
@@ -361,19 +361,19 @@ export function Header() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="w-full max-w-lg glass-modal p-8 space-y-6 relative border border-white"
+            className="w-full max-w-lg stat-box p-8 space-y-6 relative border border-[var(--border-glow)]"
           >
             {/* Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] p-2 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] p-2 rounded-full hover:bg-[rgba(0,242,254,0.05)] transition-colors cursor-pointer"
             >
               ✕
             </button>
@@ -396,7 +396,7 @@ export function Header() {
                   required
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  className="w-full p-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-semibold"
+                  className="w-full p-3.5 cyber-input focus:outline-none focus:ring-4 focus:ring-[rgba(0,242,254,0.1)] focus:border-[var(--accent-cyan)] transition-all font-semibold"
                 />
               </div>
 
@@ -409,14 +409,14 @@ export function Header() {
                       key={idx}
                       type="button"
                       onClick={() => setFormAvatar(av.url)}
-                      className={`relative aspect-square rounded-2xl overflow-hidden border-2 bg-slate-50 p-1 transition-all hover:scale-105 cursor-pointer ${
-                        formAvatar === av.url ? 'border-blue-600 shadow-md shadow-blue-500/10' : 'border-[var(--border-dim)]'
+                      className={`relative aspect-square rounded-2xl overflow-hidden border-2 bg-[rgba(6,8,20,0.5)] p-1 transition-all hover:scale-105 cursor-pointer ${
+                        formAvatar === av.url ? 'border-[var(--accent-cyan)] shadow-md shadow-[rgba(0,242,254,0.2)]' : 'border-[var(--border-dim)]'
                       }`}
                     >
                       <img src={av.url} alt={av.name} className="w-full h-full object-contain p-0.5" />
                       {formAvatar === av.url && (
-                        <div className="absolute inset-0 bg-blue-600/10 flex items-center justify-center">
-                          <div className="bg-blue-600 text-white rounded-full p-0.5">
+                        <div className="absolute inset-0 bg-[rgba(0,242,254,0.1)] flex items-center justify-center">
+                          <div className="bg-[var(--accent-cyan)] text-[#060814] rounded-full p-0.5">
                             <Check size={8} strokeWidth={4} />
                           </div>
                         </div>
@@ -428,7 +428,7 @@ export function Header() {
                 {/* Upload custom picture */}
                 <div className="space-y-1.5 mt-3">
                   <span className="text-[10px] text-[var(--text-secondary)] font-black block uppercase tracking-wider">Or upload custom profile picture</span>
-                  <label className="w-full flex flex-col items-center justify-center py-4 bg-slate-50 border border-dashed border-[var(--border-dim)] rounded-2xl cursor-pointer hover:bg-slate-100/50 hover:border-blue-400 transition-all">
+                  <label className="w-full flex flex-col items-center justify-center py-4 bg-[rgba(6,8,20,0.5)] border border-dashed border-[var(--border-dim)] rounded-2xl cursor-pointer hover:bg-[rgba(0,242,254,0.03)] hover:border-[var(--accent-cyan)] transition-all">
                     <svg className="w-6 h-6 text-[var(--text-secondary)] mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     <span className="text-[10px] font-bold text-[var(--text-secondary)]">
                       {formAvatar.startsWith('data:image') ? '✓ Photo Selected' : 'Upload Image (Max 200KB)'}
@@ -469,7 +469,7 @@ export function Header() {
                     placeholder="@Frianowzki"
                     value={formTwitter}
                     onChange={(e) => setFormTwitter(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-xs"
+                    className="w-full p-3 cyber-input focus:outline-none focus:ring-4 focus:ring-[rgba(0,242,254,0.1)] focus:border-[var(--accent-cyan)] transition-all font-medium text-xs"
                   />
                 </div>
 
@@ -484,7 +484,7 @@ export function Header() {
                     placeholder="frianowzki#1234"
                     value={formDiscord}
                     onChange={(e) => setFormDiscord(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-xs"
+                    className="w-full p-3 cyber-input focus:outline-none focus:ring-4 focus:ring-[rgba(0,242,254,0.1)] focus:border-[var(--accent-cyan)] transition-all font-medium text-xs"
                   />
                 </div>
               </div>
@@ -493,7 +493,7 @@ export function Header() {
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer mt-6"
+                className="deploy-btn w-full py-4 text-sm disabled:opacity-50 cursor-pointer mt-6"
               >
                 {saving ? (
                   <>

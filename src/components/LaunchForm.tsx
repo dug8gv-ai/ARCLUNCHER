@@ -237,7 +237,7 @@ export function LaunchForm() {
   };
 
   return (
-    <div className="glass-panel p-8">
+    <div className="stat-box p-8 premium-highlight">
       <div className="flex items-center gap-3 mb-6">
         <Rocket className="text-cyan-400" />
         <h2 className="text-2xl font-bold neon-text-cyan">Launch New Token</h2>
@@ -319,7 +319,7 @@ export function LaunchForm() {
           </div>
         </div>
 
-        <div className="bg-slate-50 p-4 rounded-xl border border-[var(--border-dim)] my-4 text-xs font-semibold text-[var(--text-secondary)] space-y-2">
+        <div className="bg-[rgba(6,8,20,0.6)] p-4 rounded-xl border border-[var(--border-dim)] my-4 text-xs font-semibold text-[var(--text-secondary)] space-y-2">
           <div className="flex justify-between text-[var(--text-primary)]">
             <span className="font-extrabold">Fixed Fee</span>
             <span className="font-black text-[var(--text-primary)]">4.00 USDC</span>
@@ -330,14 +330,14 @@ export function LaunchForm() {
           </div>
           <div className="flex justify-between">
             <span className="font-medium">↳ Platform Treasury</span>
-            <span className="text-amber-600 font-extrabold">1.00 USDC</span>
+            <span className="text-[var(--accent-cyan)] font-extrabold">1.00 USDC</span>
           </div>
         </div>
 
         <button 
           type="submit" 
           disabled={status !== 'idle'}
-          className="w-full cyber-button py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="deploy-btn w-full py-3.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {status === 'approving' && <><Loader2 className="animate-spin" /> Approving USDC...</>}
           {status === 'launching' && <><Loader2 className="animate-spin" /> Deploying Token...</>}

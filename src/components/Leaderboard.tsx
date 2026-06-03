@@ -300,20 +300,20 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
   };
 
   return (
-    <div className="glass-panel p-6 h-full flex flex-col card">
-      {/* Leaderboard Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h2 className="text-lg font-extrabold text-[var(--text-primary)] flex items-center gap-2">
-          <Trophy className="text-amber-500" size={22} />
+    <div className="stat-box p-6 h-full flex flex-col">
+      {/* Leaderboard Header Section - Cyan Gradient */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 -mx-6 -mt-6 px-6 py-4 rounded-t-[20px]" style={{ background: 'linear-gradient(90deg, rgba(0, 242, 254, 0.2) 0%, rgba(0, 242, 254, 0.05) 50%, transparent 100%)' }}>
+        <h2 className="text-lg font-extrabold text-[var(--accent-cyan)] flex items-center gap-2" style={{ textShadow: '0 0 10px rgba(0,242,254,0.4)' }}>
+          <Trophy className="text-[var(--accent-cyan)]" size={22} />
           Leaderboard
         </h2>
         
         {/* Toggle Switch Tabs */}
-        <div className="flex bg-slate-100/80 rounded-xl p-1 self-start sm:self-auto border border-[var(--border-dim)]">
+        <div className="flex bg-[rgba(6,8,20,0.6)] rounded-xl p-1 self-start sm:self-auto border border-[var(--border-dim)]">
           <button 
             onClick={() => setActiveTab('tokens')}
             className={`px-4.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'tokens' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              activeTab === 'tokens' ? 'bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             Live Markets
@@ -321,7 +321,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
           <button 
             onClick={() => setActiveTab('earners')}
             className={`px-4.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'earners' ? 'bg-[var(--bg-card)] text-[var(--accent-cyan)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              activeTab === 'earners' ? 'bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             <Award size={13} />
@@ -350,7 +350,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                   transition={{ delay: Math.min(i * 0.05, 0.4) }}
                   key={token.id} 
                   onClick={() => onSelectToken?.(token)}
-                  className="bg-slate-50 hover:bg-slate-100/50 border border-[var(--border-dim)] rounded-2xl p-4 hover:border-blue-300 transition-all cursor-pointer group flex items-center justify-between"
+                  className="bg-[rgba(6,8,20,0.5)] hover:bg-[rgba(13,17,39,0.8)] border border-[var(--border-dim)] rounded-2xl p-4 hover:border-[var(--border-glow)] transition-all cursor-pointer group flex items-center justify-between"
                 >
                   <div className="flex gap-4.5 items-center">
                     {/* Token Logo */}
@@ -369,7 +369,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                           </span>
                         )}
                         {token.name}
-                        <span className="text-[10px] bg-slate-200/80 text-[var(--text-secondary)] px-1.5 py-0.5 rounded font-black uppercase">
+                        <span className="text-[10px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] px-1.5 py-0.5 rounded font-black uppercase border border-[var(--border-dim)]">
                           {token.ticker}
                         </span>
                         {token.badge_type === 'official' && (
@@ -400,7 +400,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
 
                         {/* Admin Action Buttons */}
                         {isAdmin && (
-                          <div className="flex items-center gap-1 bg-slate-100 border border-[var(--border-dim)] p-0.5 rounded-lg ml-2">
+                          <div className="flex items-center gap-1 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] p-0.5 rounded-lg ml-2">
                             {/* Pin Toggle */}
                             <button
                               onClick={(e) => handleTogglePin(e, token.id, !!token.is_pinned)}
@@ -472,8 +472,8 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                   key={earner.wallet}
                   className={`border rounded-2xl p-4 flex items-center justify-between ${
                     userAddress?.toLowerCase() === earner.wallet.toLowerCase()
-                      ? 'bg-[rgba(0,242,254,0.05)] border-[var(--border-dim)]'
-                      : 'bg-slate-50 hover:bg-slate-100/50 border-[var(--border-dim)]'
+                      ? 'bg-[rgba(0,242,254,0.08)] border-[var(--border-glow)]'
+                      : 'bg-[rgba(6,8,20,0.5)] hover:bg-[rgba(13,17,39,0.8)] border-[var(--border-dim)]'
                   }`}
                 >
                   <div className="flex gap-4 items-center">
@@ -514,7 +514,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                       </div>
 
                       {/* Daily Check-in Stats Display */}
-                      <div className="flex items-center gap-2 mt-1.5 text-[9px] font-bold text-[var(--text-secondary)] bg-slate-100/60 border border-[var(--border-dim)] px-2.5 py-1 rounded-xl w-fit">
+                      <div className="flex items-center gap-2 mt-1.5 text-[9px] font-bold text-[var(--text-secondary)] bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] px-2.5 py-1 rounded-xl w-fit">
                         <span>📅 Check-ins: <span className="text-[var(--accent-cyan)] font-black">{earner.checkin_count || 0}d</span></span>
                         <span className="text-slate-300 font-normal">|</span>
                         <span>⚠️ Missed: <span className="text-[var(--text-secondary)] font-extrabold">{earner.missed_count || 0}d</span></span>
@@ -584,7 +584,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
             </div>
 
             {/* Details List */}
-            <div className="space-y-3 bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
+            <div className="space-y-3 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
               {premiumAlert.details.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-0.5">
                   <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">{item.label}</span>
@@ -623,7 +623,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
             </div>
 
             {/* Message Body */}
-            <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4">
+            <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4">
               {premiumConfirm.message}
             </p>
 

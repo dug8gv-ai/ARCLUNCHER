@@ -101,14 +101,16 @@ export function DashboardStats() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="glass-panel p-6 flex items-center justify-between card"
+        className="stat-box p-6 flex items-center justify-between"
       >
         <div>
           <p className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider mb-1">Total Market Volume (USDC)</p>
           <h3 className="text-2xl font-black text-[var(--accent-cyan)] tracking-tight">${stats.volume}</h3>
         </div>
-        <div className="h-11 w-11 rounded-xl bg-[rgba(0,242,254,0.05)] flex items-center justify-center border border-[var(--border-dim)] flex-shrink-0">
+        <div className="h-10 w-10 rounded-lg border border-[var(--border-glow)] flex items-center justify-center flex-shrink-0 shadow-[var(--neon-shadow)] bg-[rgba(0,242,254,0.05)]">
+          
           <Activity className="text-[var(--accent-cyan)]" size={20} />
+        
         </div>
       </motion.div>
 
@@ -116,14 +118,16 @@ export function DashboardStats() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="glass-panel p-6 flex items-center justify-between card"
+        className="stat-box p-6 flex items-center justify-between"
       >
         <div>
           <p className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider mb-1">Total Tokens Created</p>
-          <h3 className="text-2xl font-black text-amber-600 tracking-tight">{stats.tokens}</h3>
+          <h3 className="text-2xl font-black text-[var(--accent-cyan)] tracking-tight">{stats.tokens}</h3>
         </div>
-        <div className="h-11 w-11 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100 flex-shrink-0">
-          <Coins className="text-amber-600" size={20} />
+        <div className="h-10 w-10 rounded-lg border border-[var(--border-glow)] flex items-center justify-center flex-shrink-0 shadow-[var(--neon-shadow)] bg-[rgba(0,242,254,0.05)]">
+          
+          <Coins className="text-[var(--accent-cyan)]" size={20} />
+        
         </div>
       </motion.div>
 
@@ -131,14 +135,16 @@ export function DashboardStats() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="glass-panel p-6 flex items-center justify-between card"
+        className="stat-box p-6 flex items-center justify-between"
       >
         <div>
           <p className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider mb-1">Daily New Launches</p>
           <h3 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">{stats.newToday}</h3>
         </div>
-        <div className="h-11 w-11 rounded-xl bg-indigo-50 flex items-center justify-center border border-indigo-100 flex-shrink-0">
-          <TrendingUp className="text-indigo-600" size={20} />
+        <div className="h-10 w-10 rounded-lg border border-[var(--border-glow)] flex items-center justify-center flex-shrink-0 shadow-[var(--neon-shadow)] bg-[rgba(0,242,254,0.05)]">
+          
+          <TrendingUp className="text-[var(--accent-cyan)]" size={20} />
+        
         </div>
       </motion.div>
     </div>
@@ -148,48 +154,54 @@ export function DashboardStats() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="glass-panel p-6 flex items-center justify-between card"
+          className="stat-box p-6 flex items-center justify-between"
         >
           <div>
             <p className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider mb-1">Registered Members</p>
             <h3 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">{stats.registered}</h3>
           </div>
-          <div className="h-11 w-11 rounded-xl bg-slate-50 flex items-center justify-center border border-[var(--border-dim)] flex-shrink-0">
+          <div className="h-10 w-10 rounded-lg border border-[var(--border-glow)] flex items-center justify-center flex-shrink-0 shadow-[var(--neon-shadow)] bg-[rgba(0,242,254,0.05)]">
+          
             <Users className="text-[var(--text-secondary)]" size={20} />
-          </div>
+          
+        </div>
         </motion.div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="glass-panel p-6 flex items-center justify-between bg-emerald-50/50 border border-emerald-200/80"
+          className="stat-box p-6 flex items-center justify-between"
         >
           <div>
-            <p className="text-[10px] text-emerald-600/70 font-extrabold uppercase tracking-wider mb-1">Online Now</p>
+            <p className="text-[10px] text-[var(--accent-cyan)]/70 font-extrabold uppercase tracking-wider mb-1">Online Now</p>
             <div className="flex items-center gap-2">
-              <h3 className="text-2xl font-black text-emerald-600 tracking-tight">{stats.online}</h3>
+              <h3 className="text-2xl font-black text-[var(--accent-cyan)] tracking-tight">{stats.online}</h3>
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             </div>
           </div>
-          <div className="h-11 w-11 rounded-xl bg-emerald-100 flex items-center justify-center border border-emerald-200 flex-shrink-0">
-            <UserCheck className="text-emerald-600" size={20} />
-          </div>
+          <div className="h-10 w-10 rounded-lg border border-[var(--border-glow)] flex items-center justify-center flex-shrink-0 shadow-[var(--neon-shadow)] bg-[rgba(0,242,254,0.05)]">
+          
+            <UserCheck className="text-[var(--accent-cyan)]" size={20} />
+          
+        </div>
         </motion.div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="glass-panel p-6 flex items-center justify-between card"
+          className="stat-box p-6 flex items-center justify-between"
         >
           <div>
             <p className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider mb-1">Offline</p>
             <h3 className="text-2xl font-black text-[var(--text-secondary)] tracking-tight">{stats.offline}</h3>
           </div>
-          <div className="h-11 w-11 rounded-xl bg-slate-50 flex items-center justify-center border border-[var(--border-dim)] flex-shrink-0 grayscale opacity-50">
+          <div className="h-10 w-10 rounded-lg border border-[var(--border-glow)] flex items-center justify-center flex-shrink-0 shadow-[var(--neon-shadow)] bg-[rgba(0,242,254,0.05)]">
+          
             <UserMinus className="text-[var(--text-secondary)]" size={20} />
-          </div>
+          
+        </div>
         </motion.div>
       </div>
     </>

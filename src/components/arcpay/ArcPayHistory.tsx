@@ -11,7 +11,7 @@ interface Conversation {
   avatar: string;
   lastMessage: string;
   lastTime: string;
-  unreadHint: boolean;
+  unreadCount: number;
 }
 
 interface ArcPayHistoryProps {
@@ -46,8 +46,9 @@ export function ArcPayHistory({ onOpenProfile }: ArcPayHistoryProps) {
       }
 
       // Group by counterparty wallet
-      const convMap = new Map<string, { lastMsg: string; lastTime: string; isIncoming: boolean }>();
+      const convMap = new Map<string, { lastMsg: string; lastTime: string; unreadCount: number }>();
       
+      // We go from newest to oldest. We only want to set lastMsg/lastTime on the first encounter.
       for (const msg of messages) {
         const counterparty = msg.sender_wallet.toLowerCase() === myAddr
           ? msg.receiver_wallet.toLowerCase()
@@ -57,8 +58,14 @@ export function ArcPayHistory({ onOpenProfile }: ArcPayHistoryProps) {
           convMap.set(counterparty, {
             lastMsg: msg.message,
             lastTime: msg.created_at,
-            isIncoming: msg.sender_wallet.toLowerCase() !== myAddr,
+            unreadCount: 0,
           });
+        }
+
+        // Count unread messages (where I am receiver and is_read is not true)
+        if (msg.receiver_wallet.toLowerCase() === myAddr && !msg.is_read) {
+          const info = convMap.get(counterparty)!;
+          info.unreadCount += 1;
         }
       }
 
@@ -86,7 +93,7 @@ export function ArcPayHistory({ onOpenProfile }: ArcPayHistoryProps) {
           avatar: profile?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${wallet}`,
           lastMessage: info.lastMsg,
           lastTime: info.lastTime,
-          unreadHint: info.isIncoming,
+          unreadCount: info.unreadCount,
         });
       }
 
@@ -169,8 +176,10 @@ export function ArcPayHistory({ onOpenProfile }: ArcPayHistoryProps) {
                       }}
                     />
                   </div>
-                  {conv.unreadHint && (
-                    <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-blue-600 border-2 border-white rounded-full" />
+                  {conv.unreadCount > 0 && (
+                    <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full px-1 border-2 border-[var(--bg-card)]">
+                      {conv.unreadCount}
+                    </div>
                   )}
                 </div>
 

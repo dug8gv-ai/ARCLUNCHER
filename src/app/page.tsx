@@ -1097,7 +1097,7 @@ export default function Home() {
           <div className="card p-5 space-y-3 select-none">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider">Your Wallet</span>
-              <span className="text-[9px] bg-slate-100 text-[var(--text-secondary)] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="text-[9px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border border-[var(--border-dim)]">
                 Arc Chain Assets
               </span>
             </div>
@@ -1111,7 +1111,7 @@ export default function Home() {
                   {usdcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="w-full h-[1px] bg-slate-100" />
+              <div className="w-full h-[1px] bg-[var(--border-dim)]" />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xs">🟣</span>
@@ -1121,7 +1121,7 @@ export default function Home() {
                   {eurcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="w-full h-[1px] bg-slate-100" />
+              <div className="w-full h-[1px] bg-[var(--border-dim)]" />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xs">🟡</span>
@@ -1172,7 +1172,7 @@ export default function Home() {
             {currentView === 'launcher' && (
               <>
                 {/* Elegant Welcome Banner */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 card rounded-[32px] p-6 shadow-sm">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 stat-box rounded-[32px] p-6">
                   <div>
                     <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center gap-2">
                       Hello, {profileName} 👋
@@ -1188,8 +1188,8 @@ export default function Home() {
                         disabled={checkinLoading || !!(checkinStats?.last_checkin && new Date(checkinStats.last_checkin).toDateString() === new Date().toDateString())}
                         className={`px-5 py-3 rounded-2xl text-xs font-black tracking-wide uppercase transition-all duration-150 flex items-center gap-2 shadow-md cursor-pointer ${
                           !!(checkinStats?.last_checkin && new Date(checkinStats.last_checkin).toDateString() === new Date().toDateString())
-                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-200/30 cursor-not-allowed shadow-none'
-                            : 'btn-primary hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/20 active:scale-[0.98]'
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 cursor-not-allowed shadow-none'
+                            : 'deploy-btn active:scale-[0.98]'
                         }`}
                       >
                         {checkinLoading ? (
@@ -1257,7 +1257,7 @@ export default function Home() {
                     {/* Dynamic title bar for trade */}
                     <div className="flex items-center justify-between card rounded-[28px] p-5 shadow-sm">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-[var(--border-dim)] flex items-center justify-center">
+                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] flex items-center justify-center">
                           {selectedToken.image_url ? (
                             <img src={selectedToken.image_url} alt="" className="w-full h-full object-contain p-0.5" />
                           ) : (
@@ -1267,14 +1267,14 @@ export default function Home() {
                         <div>
                           <h3 className="font-extrabold text-[var(--text-primary)] text-base flex items-center gap-1.5">
                             {selectedToken.name}
-                            <span className="text-xs bg-slate-100 text-[var(--text-secondary)] px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
+                            <span className="text-xs bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] border border-[var(--border-dim)] px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
                           </h3>
                           <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">{selectedToken.token_address}</p>
                         </div>
                       </div>
                       <button
                         onClick={() => handleSelectToken(null)}
-                        className="text-xs bg-slate-50 hover:bg-slate-100 border border-[var(--border-dim)] text-[var(--text-secondary)] font-extrabold px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm"
+                        className="text-xs bg-[rgba(6,8,20,0.5)] hover:bg-[rgba(13,17,39,0.8)] border border-[var(--border-dim)] hover:border-[var(--border-glow)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-extrabold px-4 py-2 rounded-2xl transition-all cursor-pointer shadow-sm"
                       >
                         ← View Other Markets
                       </button>
@@ -1293,7 +1293,7 @@ export default function Home() {
                   </div>
                 ) : (
                   /* Market Selector if no token is currently selected */
-                  <div className="card rounded-[32px] p-8 shadow-sm space-y-6 animate-in fade-in duration-200">
+                  <div className="stat-box rounded-[32px] p-8 space-y-6 animate-in fade-in duration-200">
                     <div className="text-center max-w-md mx-auto space-y-2 py-4">
                       <TrendingUp className="mx-auto text-[var(--accent-cyan)]" size={32} />
                       <h2 className="text-xl font-black text-[var(--text-primary)]">Meme Markets Trading Desk</h2>

@@ -8,9 +8,9 @@
   --text-secondary: #7480a5;
   --accent-cyan: #00f2fe;
   --accent-blue: #4facfe;
-  --border-glow: rgba(0, 242, 254, 0.25);
-  --border-dim: rgba(0, 242, 254, 0.1);
-  --neon-shadow: 0 0 15px rgba(0, 242, 254, 0.35);
+  --border-glow: rgba(0, 242, 254, 0.4);
+  --border-dim: rgba(0, 242, 254, 0.15);
+  --neon-shadow: 0 0 20px rgba(0, 242, 254, 0.45);
 }
 
 @theme inline {
@@ -23,11 +23,37 @@
 
 body {
   background-color: var(--bg-main);
-  background-image: linear-gradient(rgba(6, 8, 20, 0.85), rgba(6, 8, 20, 0.85)), radial-gradient(circle at 80% 20%, rgba(0, 242, 254, 0.08) 0%, transparent 50%);
+  /* Complex Carbon Fiber + Radial Glows */
+  background-image: 
+    radial-gradient(circle at 100% 0%, rgba(0, 242, 254, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(0, 242, 254, 0.1) 0%, transparent 50%),
+    radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.01) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.01) 75%, rgba(255, 255, 255, 0.01)),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.01) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.01) 75%, rgba(255, 255, 255, 0.01));
+  background-size: 100% 100%, 100% 100%, 20px 20px, 20px 20px, 10px 10px, 10px 10px;
+  background-position: 0 0, 0 0, 0 0, 10px 10px, 0 0, 5px 5px;
   color: var(--text-primary);
   font-family: 'Inter', sans-serif;
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* Digital Circuitry Vertical Line Overlay on right side */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 5%;
+  width: 200px;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  background-image: 
+    linear-gradient(90deg, transparent 50%, rgba(0, 242, 254, 0.05) 50%, transparent 52%),
+    linear-gradient(90deg, transparent 20%, rgba(0, 242, 254, 0.08) 20%, transparent 22%),
+    linear-gradient(90deg, transparent 80%, rgba(0, 242, 254, 0.03) 80%, transparent 81%);
 }
 
 /* Sidebar Links */
@@ -50,13 +76,34 @@ body {
   border: 1px solid var(--border-dim);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-radius: 24px;
+  border-radius: 20px;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Diagonal Intersecting X-Pattern for stat boxes */
+.stat-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(135deg, transparent 48%, rgba(0, 242, 254, 0.04) 49%, rgba(0, 242, 254, 0.04) 51%, transparent 52%),
+    linear-gradient(45deg, transparent 48%, rgba(0, 242, 254, 0.04) 49%, rgba(0, 242, 254, 0.04) 51%, transparent 52%);
+  background-size: 100px 100px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure content stays above the X-Pattern */
+.stat-box > * {
+  position: relative;
+  z-index: 1;
 }
 
 .card:hover, .stat-box:hover {
-  border-color: rgba(0, 242, 254, 0.2);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  border-color: rgba(0, 242, 254, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
 /* High Priority Containers */
@@ -69,27 +116,28 @@ body {
 .btn-primary, .deploy-btn {
   background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%);
   color: #060814 !important;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  box-shadow: 0 4px 20px rgba(0, 242, 254, 0.4);
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
   border: none;
-  border-radius: 14px;
+  border-radius: 999px; /* Capsule */
   transition: all 0.2s ease-in-out;
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
+  letter-spacing: 0.05em;
 }
 
 .btn-primary:hover, .deploy-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 242, 254, 0.6);
+  box-shadow: 0 0 25px rgba(0, 242, 254, 0.8);
 }
 
 /* Inputs */
 .cyber-input {
-  background: rgba(6, 8, 20, 0.5);
+  background: #02040a;
   border: 1px solid var(--border-dim);
   color: var(--text-primary);
   border-radius: 12px;
@@ -100,17 +148,8 @@ body {
 .cyber-input:focus {
   outline: none;
   border-color: var(--accent-cyan);
-  background: rgba(13, 17, 39, 0.8);
-  box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
-}
-
-/* Legacy Overrides just in case */
-.glass-panel {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-dim);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 24px;
+  background: #060814;
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
 }
 
 /* Custom Scrollbar */
