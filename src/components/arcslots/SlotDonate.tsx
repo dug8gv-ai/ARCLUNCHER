@@ -7,6 +7,10 @@ import { ARCSLOTS_TOKENS, ARCSLOTS_ADDRESS } from '@/lib/arcslots/arcslots.const
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const DONATE_ABI = [
+  { inputs: [{ internalType: 'uint256', name: 'amount', type: 'uint256' }], name: 'donate', outputs: [], stateMutability: 'nonpayable', type: 'function' }
+];
+
 export function SlotDonate() {
   const { isConnected } = useAccount();
   const chainId = useChainId();
@@ -26,17 +30,32 @@ export function SlotDonate() {
       setIsDonating(true);
       const amountBN = parseUnits(amount, ARCSLOTS_TOKENS.USDC_DECIMALS);
       
-      const tx = await writeContractAsync({
+      // 1. Approve USDC
+      toast.loading('Approving USDC...', { id: 'donate' });
+      const approveHash = await writeContractAsync({
         address: ARCSLOTS_TOKENS.USDC_ADDRESS as `0x${string}`,
         abi: erc20Abi,
-        functionName: 'transfer',
+        functionName: 'approve',
         args: [ARCSLOTS_ADDRESS as `0x${string}`, amountBN],
       });
       
-      toast.loading('Donating to pool...', { id: 'donate' });
       if (publicClient) {
-        await publicClient.waitForTransactionReceipt({ hash: tx, timeout: 120_000 });
+        await publicClient.waitForTransactionReceipt({ hash: approveHash, timeout: 120_000 });
       }
+
+      // 2. Call Donate
+      toast.loading('Sending donation...', { id: 'donate' });
+      const donateHash = await writeContractAsync({
+        address: ARCSLOTS_ADDRESS as `0x${string}`,
+        abi: DONATE_ABI,
+        functionName: 'donate',
+        args: [amountBN],
+      });
+
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: donateHash, timeout: 120_000 });
+      }
+
       toast.success('Successfully boosted the jackpot!', { id: 'donate' });
     } catch (e: any) {
       toast.error(e?.message || 'Donation failed', { id: 'donate' });

@@ -40,6 +40,7 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
         { internalType: 'uint8', name: 's3', type: 'uint8' },
         { internalType: 'bool', name: 'wonJackpot', type: 'bool' },
         { internalType: 'uint256', name: 'payout', type: 'uint256' },
+        { internalType: 'uint256', name: 'cashback', type: 'uint256' },
       ],
     },
     {
@@ -52,6 +53,7 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
         { indexed: false, internalType: 'uint8', name: 's2', type: 'uint8' },
         { indexed: false, internalType: 'uint8', name: 's3', type: 'uint8' },
         { indexed: false, internalType: 'uint256', name: 'payout', type: 'uint256' },
+        { indexed: false, internalType: 'uint256', name: 'cashback', type: 'uint256' },
       ],
     },
   ];
@@ -59,7 +61,7 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
   // ⚠️ CRITICAL: Network Validation (Arc Testnet ID: 5042002)
   const EXPECTED_CHAIN_ID = 5042002;
   const isCorrectNetwork = chainId === EXPECTED_CHAIN_ID;
-  const isAddressConfigured = ARCSLOTS_ADDRESS !== '0x0000000000000000000000000000000000000000';
+  const isAddressConfigured = (ARCSLOTS_ADDRESS as string) !== '0x0000000000000000000000000000000000000000';
 
   const handleIncrement = () => setNumSpins(prev => Math.min(prev + 1, ARCSLOTS_CONFIG.MAX_SPINS_PER_TX));
   const handleDecrement = () => setNumSpins(prev => Math.max(prev - 1, 1));
@@ -122,6 +124,7 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
       let onChainSymbols: string[] = ["🍒", "🍒", "🍒"];
       let payout = BigInt(0);
       let won = false;
+      let cashback = BigInt(0);
 
       for (const log of receipt.logs) {
         try {
@@ -138,6 +141,7 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
               SLOT_SYMBOLS[args.s3 % SLOT_SYMBOLS.length]
             ];
             payout = args.payout;
+            cashback = args.cashback;
             won = payout > BigInt(0);
           }
         } catch (e) {}
@@ -150,7 +154,8 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
         toast.success(`Jackpot! Won ${formattedPayout} USDC!`);
         onSpinComplete?.(onChainSymbols, Number(formattedPayout));
       } else {
-        toast.error("Better luck next time!");
+        const formattedCashback = formatUnits(cashback, ARCSLOTS_TOKENS.USDC_DECIMALS);
+        toast.success(`Better luck next time! 50% Cashback received: ${formattedCashback} USDC`, { icon: '💸' });
         onSpinComplete?.(onChainSymbols, 0);
       }
     } catch (error: any) {

@@ -33,8 +33,8 @@ export const ARCSLOTS_TOKENS = {
   ARC_DECIMALS: 18,
 } as const;
 
-// ArcSlots Contract Address
-export const ARCSLOTS_ADDRESS = process.env.NEXT_PUBLIC_ARCSLOTS_ADDRESS?.trim() || "0x55F9837482d9511252D1Ca56194B763C89F4791f";
+// Deployed on Arc Testnet (Chain ID 5042002)
+export const ARCSLOTS_ADDRESS = "0x4399EbB49F4287c2A403131CDbB931EDa2611eDD";
 
 // Treasury Address for claim fee / platform revenue
 export const ARCSLOTS_TREASURY_ADDRESS = process.env.NEXT_PUBLIC_ARCSLOTS_TREASURY_ADDRESS?.trim() || process.env.NEXT_PUBLIC_TREASURY_ADDRESS?.trim() || "0x0000000000000000000000000000000000000000";

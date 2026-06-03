@@ -1,8 +1,50 @@
+'use client';
+
 import React from 'react';
+import { useReadContracts } from 'wagmi';
+import { formatUnits } from 'viem';
+import { ARCSLOTS_ADDRESS, ARCSLOTS_TOKENS } from '@/lib/arcslots/arcslots.constants';
 import { SlotMachine } from './SlotMachine';
 import { SlotDonate } from './SlotDonate';
 
+const STATS_ABI = [
+  { inputs: [], name: 'totalSpins', outputs: [{ type: 'uint256', name: '' }], stateMutability: 'view', type: 'function' },
+  { inputs: [], name: 'totalJackpots', outputs: [{ type: 'uint256', name: '' }], stateMutability: 'view', type: 'function' },
+  { inputs: [], name: 'globalVolume', outputs: [{ type: 'uint256', name: '' }], stateMutability: 'view', type: 'function' },
+  { inputs: [], name: 'totalWallets', outputs: [{ type: 'uint256', name: '' }], stateMutability: 'view', type: 'function' },
+  { inputs: [], name: 'poolBalance', outputs: [{ type: 'uint256', name: '' }], stateMutability: 'view', type: 'function' }
+];
+
 export function ArcSlotsDashboard() {
+  const contractConfig = {
+    address: ARCSLOTS_ADDRESS as `0x${string}`,
+    abi: STATS_ABI,
+  };
+
+  const { data: statsData } = useReadContracts({
+    contracts: [
+      { ...contractConfig, functionName: 'totalSpins' },
+      { ...contractConfig, functionName: 'totalJackpots' },
+      { ...contractConfig, functionName: 'globalVolume' },
+      { ...contractConfig, functionName: 'totalWallets' },
+      { ...contractConfig, functionName: 'poolBalance' },
+    ],
+    query: {
+      refetchInterval: 5000, // Poll every 5s for live updates
+    }
+  });
+
+  const totalSpins = statsData?.[0]?.result?.toString() || '0';
+  const totalJackpots = statsData?.[1]?.result?.toString() || '0';
+  
+  const rawGlobalVolume = statsData?.[2]?.result as bigint | undefined;
+  const globalVolume = rawGlobalVolume ? Number(formatUnits(rawGlobalVolume, ARCSLOTS_TOKENS.USDC_DECIMALS)).toFixed(2) : '0.00';
+  
+  const totalWallets = statsData?.[3]?.result?.toString() || '0';
+  
+  const rawPoolBalance = statsData?.[4]?.result as bigint | undefined;
+  const poolBalance = rawPoolBalance ? Number(formatUnits(rawPoolBalance, ARCSLOTS_TOKENS.USDC_DECIMALS)).toFixed(2) : '0.00';
+
   return (
     <div className="min-h-screen bg-[#0a0a16] text-white p-4 md:p-8 font-sans selection:bg-cyan-500/30">
       
@@ -32,19 +74,19 @@ export function ArcSlotsDashboard() {
         {/* STATS ROW */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-[#0f1021] border border-slate-800/80 rounded-2xl p-6 text-center shadow-xl">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-3">Active Spinners</p>
-            <p className="text-3xl font-black text-cyan-400 mb-1" style={{ textShadow: '0 0 10px rgba(34,211,238,0.3)' }}>12</p>
-            <p className="text-[9px] uppercase tracking-wider text-slate-600 font-bold">Last 10 Min</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-3">Total Spins</p>
+            <p className="text-3xl font-black text-cyan-400 mb-1" style={{ textShadow: '0 0 10px rgba(34,211,238,0.3)' }}>{totalSpins}</p>
+            <p className="text-[9px] uppercase tracking-wider text-slate-600 font-bold">All Time</p>
           </div>
           <div className="bg-[#0f1021] border border-slate-800/80 rounded-2xl p-6 text-center shadow-xl">
             <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-3">Total Wallets</p>
-            <p className="text-3xl font-black text-yellow-400 mb-1" style={{ textShadow: '0 0 10px rgba(250,204,21,0.3)' }}>148</p>
+            <p className="text-3xl font-black text-yellow-400 mb-1" style={{ textShadow: '0 0 10px rgba(250,204,21,0.3)' }}>{totalWallets}</p>
             <p className="text-[9px] uppercase tracking-wider text-slate-600 font-bold">All Time</p>
           </div>
           <div className="bg-[#0f1021] border border-slate-800/80 rounded-2xl p-6 text-center shadow-xl">
             <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-3">Global Volume</p>
-            <p className="text-3xl font-black text-yellow-400 mb-1" style={{ textShadow: '0 0 10px rgba(250,204,21,0.3)' }}>1,450 USDC</p>
-            <p className="text-[9px] uppercase tracking-wider text-slate-600 font-bold">Spins + Donations + Jackpots</p>
+            <p className="text-3xl font-black text-yellow-400 mb-1" style={{ textShadow: '0 0 10px rgba(250,204,21,0.3)' }}>{globalVolume} USDC</p>
+            <p className="text-[9px] uppercase tracking-wider text-slate-600 font-bold">Spins + Donations</p>
           </div>
         </div>
 
@@ -55,12 +97,12 @@ export function ArcSlotsDashboard() {
             <p className="text-xs uppercase tracking-[0.3em] text-cyan-400 font-bold mb-4">Current Jackpot Pool</p>
             <div className="flex items-baseline justify-center gap-3">
               <span className="text-6xl md:text-8xl font-black text-yellow-400 tracking-tighter" style={{ textShadow: '0 0 30px rgba(250,204,21,0.4)' }}>
-                160.29
+                {poolBalance}
               </span>
               <span className="text-2xl md:text-4xl font-bold text-yellow-500/80">USDC</span>
             </div>
             <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-6">
-              36 Spins • 4 Jackpots Paid
+              {totalSpins} Spins • {totalJackpots} Jackpots Paid
             </p>
           </div>
         </div>
