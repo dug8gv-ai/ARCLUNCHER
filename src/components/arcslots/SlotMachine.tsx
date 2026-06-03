@@ -96,18 +96,20 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
       const totalFeeBN = spinFeePerTx * BigInt(numSpins);
 
       // Step 2: Approve USDC spending
+      const approveToastId = toast.loading('Approving USDC...');
       const approveHash = await writeContractAsync({
         address: ARCSLOTS_TOKENS.USDC_ADDRESS as `0x${string}`,
         abi: erc20Abi,
         functionName: 'approve',
         args: [ARCSLOTS_ADDRESS as `0x${string}`, totalFeeBN],
       });
-      toast.loading('Approving USDC...');
+      
       if (!publicClient) throw new Error('Network client unavailable.');
       await publicClient.waitForTransactionReceipt({ hash: approveHash, timeout: 120_000 });
-      toast.success('USDC approved. Sending spin...');
+      toast.success('USDC approved. Sending spin...', { id: approveToastId });
 
       // Step 3: Call ArcSlots spin() on-chain
+      const spinToastId = toast.loading('Spin submitted to ArcSlots contract...');
       const seed = BigInt(Date.now());
       const spinHash = await writeContractAsync({
         address: ARCSLOTS_ADDRESS as `0x${string}`,
@@ -115,9 +117,9 @@ export function SlotMachine({ onSpinComplete, disabled = false }: SlotMachinePro
         functionName: 'spin',
         args: [seed], // Just passing 1 spin seed for now based on smart contract
       });
-      toast.loading('Spin submitted to ArcSlots contract...');
-      const receipt = await publicClient.waitForTransactionReceipt({ hash: spinHash, timeout: 120_000 });
       
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: spinHash, timeout: 120_000 });
+      toast.dismiss(spinToastId);
       clearInterval(interval);
 
       // Step 4: Parse Spin Event from Receipt
