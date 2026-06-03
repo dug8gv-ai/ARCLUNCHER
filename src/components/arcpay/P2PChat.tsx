@@ -10,6 +10,7 @@ interface ChatMessage {
   sender_wallet: string;
   receiver_wallet: string;
   message: string;
+  is_read?: boolean;
   created_at: string;
 }
 
@@ -40,7 +41,20 @@ export function P2PChat({ targetWallet }: { targetWallet: string }) {
       if (error) {
         console.error('Chat fetch error:', error);
       }
-      if (data) setMessages(data);
+      if (data) {
+        setMessages(data);
+        
+        // Mark any unread messages from them to me as read
+        const hasUnread = data.some(m => m.receiver_wallet.toLowerCase() === myAddr && !m.is_read);
+        if (hasUnread) {
+          await supabase
+            .from('arcpay_chats')
+            .update({ is_read: true })
+            .eq('receiver_wallet', myAddr)
+            .eq('sender_wallet', theirAddr)
+            .eq('is_read', false);
+        }
+      }
       setIsLoading(false);
     };
 

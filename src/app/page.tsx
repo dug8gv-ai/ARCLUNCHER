@@ -613,6 +613,40 @@ export default function Home() {
     last_checkin: string | null;
   } | null>(null);
 
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  useEffect(() => {
+    if (!isConnected || !userAddress) return;
+
+    const myWallet = userAddress.toLowerCase();
+
+    const fetchUnreadCount = async () => {
+      const { count } = await supabase
+        .from('arcpay_chats')
+        .select('*', { count: 'exact', head: true })
+        .eq('receiver_wallet', myWallet)
+        .eq('is_read', false);
+      
+      setUnreadChatCount(count || 0);
+    };
+
+    fetchUnreadCount();
+
+    const channel = supabase
+      .channel('unread_chats_tracker')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'arcpay_chats' }, (payload) => {
+        const msg = payload.new as any;
+        if (msg.receiver_wallet?.toLowerCase() === myWallet) {
+          fetchUnreadCount();
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isConnected, userAddress]);
+
   const fetchCheckinStats = async () => {
     if (!isConnected || !userAddress) return;
     try {
@@ -906,7 +940,6 @@ export default function Home() {
               Staking & Yield
             </button>
 
-            {/* Social Pay (New) Tab */}
             <button 
               onClick={() => {
                 setCurrentView('social-pay');
@@ -917,7 +950,14 @@ export default function Home() {
                   : 'text-slate-500 hover:bg-slate-50 border border-transparent hover:text-slate-800'
               }`}
             >
-              <Send size={16} className={currentView === 'social-pay' ? 'text-blue-600' : 'text-slate-400'} />
+              <div className="relative flex items-center justify-center">
+                <Send size={16} className={currentView === 'social-pay' ? 'text-blue-600' : 'text-slate-400'} />
+                {unreadChatCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
+                    {unreadChatCount > 9 ? '9+' : unreadChatCount}
+                  </span>
+                )}
+              </div>
               Social Pay
             </button>
 
