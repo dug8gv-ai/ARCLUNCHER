@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { P2PChat } from './P2PChat';
 import { PaymentBox } from './PaymentBox';
+import { ArcPayHistory } from './ArcPayHistory';
 import { Search, X, User, Loader2, AtSign, MessageCircle } from 'lucide-react';
 import { isAddress } from 'viem';
 import toast from 'react-hot-toast';
@@ -21,9 +22,8 @@ export function UserProfileDrawer() {
   const [activeProfile, setActiveProfile] = useState<ResolvedProfile | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const input = searchInput.trim();
+  // Core search function that can be called from form or from inbox click
+  const doSearch = async (input: string) => {
     if (!input) return;
 
     setIsSearching(true);
@@ -47,7 +47,6 @@ export function UserProfileDrawer() {
             discord: data.discord,
           });
         } else {
-          // Wallet exists but no profile saved — still allow P2P
           setActiveProfile({
             wallet: input,
             name: input.slice(0, 6) + '...' + input.slice(-4),
@@ -61,7 +60,6 @@ export function UserProfileDrawer() {
       const withAt = input.startsWith('@') ? input : `@${input}`;
       const withoutAt = input.startsWith('@') ? input.slice(1) : input;
 
-      // Try exact match with @, without @, and partial match
       const { data } = await supabase
         .from('profiles')
         .select('wallet, name, avatar, twitter, discord')
@@ -88,6 +86,18 @@ export function UserProfileDrawer() {
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const input = searchInput.trim();
+    await doSearch(input);
+  };
+
+  // Called when user clicks a conversation in the inbox
+  const handleOpenFromInbox = (name: string) => {
+    setSearchInput(name);
+    doSearch(name);
   };
 
   return (
@@ -185,6 +195,9 @@ export function UserProfileDrawer() {
           </div>
         </div>
       )}
+
+      {/* Inbox — Recent Conversations */}
+      <ArcPayHistory onOpenProfile={handleOpenFromInbox} />
     </div>
   );
 }

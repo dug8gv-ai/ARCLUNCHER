@@ -1,102 +1,210 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAccount, usePublicClient } from 'wagmi';
-import { ArrowDownLeft, ArrowUpRight, ExternalLink, Loader2 } from 'lucide-react';
-import { formatEther } from 'viem';
+import { useAccount } from 'wagmi';
+import { supabase } from '@/lib/supabase';
+import { MessageCircle, ArrowRight, Loader2, Inbox } from 'lucide-react';
 
-interface HistoricalTx {
-  hash: string;
-  type: 'send' | 'receive';
-  amount: string;
-  token: string;
-  counterparty: string;
-  timestamp: number;
+interface Conversation {
+  wallet: string;
+  name: string;
+  avatar: string;
+  lastMessage: string;
+  lastTime: string;
+  unreadHint: boolean;
 }
 
-export function ArcPayHistory() {
+interface ArcPayHistoryProps {
+  onOpenProfile?: (username: string) => void;
+}
+
+export function ArcPayHistory({ onOpenProfile }: ArcPayHistoryProps) {
   const { address } = useAccount();
-  const publicClient = usePublicClient();
-  const [transactions, setTransactions] = useState<HistoricalTx[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (!address || !publicClient) return;
+  const myAddr = address?.toLowerCase() || '';
 
-    // In a fully scaled production app, fetching full transaction history is done via an Indexer 
-    // (e.g. The Graph, Alchemy, or a dedicated Arc Chain block explorer API).
-    // For this Web3 dashboard MVP on Arc Testnet, we'll simulate the robust UI with graceful 
-    // fallback parsing to prevent blank fields, assuming a block explorer API returns standard format.
-    
-    const fetchHistory = async () => {
-      try {
-        // Simulated network request latency for the UI demonstration
-        await new Promise(r => setTimeout(r, 1000));
-        
-        // Empty for MVP unless we integrate with a real indexer
-        setTransactions([]);
-      } catch (error) {
-        console.error("Failed to fetch history:", error);
-      } finally {
+  useEffect(() => {
+    if (!myAddr) return;
+
+    const fetchConversations = async () => {
+      setIsLoading(true);
+
+      // Get all messages where I'm sender or receiver
+      const { data: messages, error } = await supabase
+        .from('arcpay_chats')
+        .select('*')
+        .or(`sender_wallet.eq.${myAddr},receiver_wallet.eq.${myAddr}`)
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      if (error || !messages || messages.length === 0) {
+        setConversations([]);
         setIsLoading(false);
+        return;
       }
+
+      // Group by counterparty wallet
+      const convMap = new Map<string, { lastMsg: string; lastTime: string; isIncoming: boolean }>();
+      
+      for (const msg of messages) {
+        const counterparty = msg.sender_wallet.toLowerCase() === myAddr
+          ? msg.receiver_wallet.toLowerCase()
+          : msg.sender_wallet.toLowerCase();
+
+        if (!convMap.has(counterparty)) {
+          convMap.set(counterparty, {
+            lastMsg: msg.message,
+            lastTime: msg.created_at,
+            isIncoming: msg.sender_wallet.toLowerCase() !== myAddr,
+          });
+        }
+      }
+
+      // Fetch profiles for all counterparties
+      const wallets = Array.from(convMap.keys());
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('wallet, name, avatar')
+        .in('wallet', wallets);
+
+      const profileMap = new Map<string, { name: string; avatar: string }>();
+      if (profiles) {
+        for (const p of profiles) {
+          profileMap.set(p.wallet.toLowerCase(), { name: p.name, avatar: p.avatar });
+        }
+      }
+
+      // Build conversation list
+      const convList: Conversation[] = [];
+      for (const [wallet, info] of convMap.entries()) {
+        const profile = profileMap.get(wallet);
+        convList.push({
+          wallet,
+          name: profile?.name || `${wallet.slice(0, 6)}...${wallet.slice(-4)}`,
+          avatar: profile?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${wallet}`,
+          lastMessage: info.lastMsg,
+          lastTime: info.lastTime,
+          unreadHint: info.isIncoming,
+        });
+      }
+
+      setConversations(convList);
+      setIsLoading(false);
     };
 
-    fetchHistory();
-  }, [address, publicClient]);
+    fetchConversations();
+
+    // Realtime: refresh when new messages arrive
+    const channel = supabase
+      .channel('inbox_realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'arcpay_chats',
+      }, (payload) => {
+        const msg = payload.new as any;
+        if (msg.sender_wallet?.toLowerCase() === myAddr || msg.receiver_wallet?.toLowerCase() === myAddr) {
+          fetchConversations();
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [myAddr]);
 
   if (!address) {
-    return <div className="text-center p-8 text-slate-500">Connect wallet to view transaction history</div>;
+    return (
+      <div className="bg-white border border-slate-200/80 rounded-[28px] p-8 text-center">
+        <p className="text-sm text-slate-500 font-semibold">Connect wallet to view your inbox</p>
+      </div>
+    );
   }
 
   return (
-    <div className="bg-[#0a0a16] border border-slate-800 rounded-3xl overflow-hidden">
-      <div className="p-6 border-b border-slate-800 bg-[#0d0e1c]">
-        <h3 className="text-lg font-bold text-white">Arc Chain Transaction History</h3>
-        <p className="text-xs text-slate-400">Native ARC & USDC transfers</p>
+    <div className="bg-white border border-slate-200/80 rounded-[28px] overflow-hidden shadow-sm">
+      {/* Header */}
+      <div className="p-5 border-b border-slate-100 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+          <Inbox size={18} className="text-blue-600" />
+        </div>
+        <div>
+          <h3 className="text-sm font-black text-slate-900">Inbox</h3>
+          <p className="text-[10px] text-slate-400 font-semibold">Recent conversations & payments</p>
+        </div>
       </div>
-      
-      <div className="p-0">
+
+      {/* Content */}
+      <div className="max-h-[400px] overflow-y-auto">
         {isLoading ? (
-          <div className="flex justify-center p-12"><Loader2 className="animate-spin text-cyan-400" /></div>
-        ) : transactions.length === 0 ? (
-          <div className="text-center p-12 text-slate-500">No recent transactions found</div>
+          <div className="flex justify-center p-12">
+            <Loader2 className="animate-spin text-blue-400" />
+          </div>
+        ) : conversations.length === 0 ? (
+          <div className="text-center p-12 space-y-3">
+            <MessageCircle size={32} className="text-slate-300 mx-auto" />
+            <p className="text-xs text-slate-400 font-semibold">No conversations yet</p>
+            <p className="text-[10px] text-slate-300">Search a username above to start chatting</p>
+          </div>
         ) : (
-          <div className="divide-y divide-slate-800">
-            {transactions.map((tx, idx) => (
-              <div key={idx} className="p-4 hover:bg-slate-800/30 transition-colors flex items-center justify-between">
-                
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'receive' ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'}`}>
-                    {tx.type === 'receive' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
+          <div className="divide-y divide-slate-100">
+            {conversations.map((conv) => (
+              <button
+                key={conv.wallet}
+                onClick={() => onOpenProfile?.(conv.name)}
+                className="w-full p-4 hover:bg-blue-50/50 transition-colors flex items-center gap-3.5 text-left group cursor-pointer"
+              >
+                {/* Avatar */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-slate-100">
+                    <img
+                      src={conv.avatar}
+                      alt={conv.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/bottts/svg?seed=${conv.wallet}`;
+                      }}
+                    />
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-white">
-                      {tx.type === 'receive' ? 'Received from' : 'Sent to'} <span className="font-mono text-slate-300">{tx.counterparty || 'Unknown'}</span>
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {new Date(tx.timestamp).toLocaleString()}
-                    </p>
-                  </div>
+                  {conv.unreadHint && (
+                    <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-blue-600 border-2 border-white rounded-full" />
+                  )}
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className={`text-base font-bold ${tx.type === 'receive' ? 'text-green-400' : 'text-white'}`}>
-                      {tx.type === 'receive' ? '+' : '-'}{tx.amount || '0.00'} {tx.token || 'ARC'}
-                    </p>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-center mb-0.5">
+                    <span className="text-sm font-bold text-slate-800 truncate">{conv.name}</span>
+                    <span className="text-[9px] text-slate-400 font-semibold flex-shrink-0 ml-2">
+                      {formatTimeAgo(conv.lastTime)}
+                    </span>
                   </div>
-                  
-                  <a href={`https://explorer.testnet.arc.network/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-cyan-400 transition-colors">
-                    <ExternalLink size={18} />
-                  </a>
+                  <p className="text-xs text-slate-500 truncate font-medium">{conv.lastMessage}</p>
                 </div>
 
-              </div>
+                {/* Arrow */}
+                <ArrowRight size={14} className="text-slate-300 group-hover:text-blue-500 transition-colors flex-shrink-0" />
+              </button>
             ))}
           </div>
         )}
       </div>
     </div>
   );
+}
+
+function formatTimeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = now - then;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }

@@ -30,7 +30,6 @@ import { SlotMachine } from '@/components/arcslots/SlotMachine';
 import { ArcSlotsDashboard } from '@/components/arcslots/ArcSlotsDashboard';
 import { BuilderDashboard } from '@/components/builder/BuilderDashboard';
 import { UserProfileDrawer } from '@/components/arcpay/UserProfileDrawer';
-import { ArcPayHistory } from '@/components/arcpay/ArcPayHistory';
 import { DiscreteTasks } from '@/components/airdrop/DiscreteTasks';
 
 export default function Home() {
@@ -1274,7 +1273,6 @@ export default function Home() {
             {currentView === 'social-pay' && (
               <div className="animate-in fade-in duration-200 space-y-8">
                 <UserProfileDrawer />
-                <ArcPayHistory />
               </div>
             )}
 

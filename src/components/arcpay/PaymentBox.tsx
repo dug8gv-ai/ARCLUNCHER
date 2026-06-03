@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, useWriteContract, useChainId } from 'wagmi';
 import { parseUnits, parseEther, erc20Abi, isAddress } from 'viem';
 import { Loader2, ArrowRight } from 'lucide-react';
@@ -44,6 +45,12 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
           value,
         });
         toast.success(`Transaction sent! Hash: ${hash.slice(0, 10)}...`, { id: 'payment' });
+        // Log payment as chat message so receiver sees it in inbox
+        await supabase.from('arcpay_chats').insert({
+          sender_wallet: address?.toLowerCase(),
+          receiver_wallet: targetWallet.toLowerCase(),
+          message: `💰 Sent ${amount} ARC`,
+        });
       } else if (token === 'USDC') {
         const value = parseUnits(amount, ARCSLOTS_TOKENS.USDC_DECIMALS);
         const hash = await writeContractAsync({
@@ -53,6 +60,12 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
           args: [targetWallet as `0x${string}`, value]
         });
         toast.success(`USDC sent! Hash: ${hash.slice(0, 10)}...`, { id: 'payment' });
+        // Log payment as chat message so receiver sees it in inbox
+        await supabase.from('arcpay_chats').insert({
+          sender_wallet: address?.toLowerCase(),
+          receiver_wallet: targetWallet.toLowerCase(),
+          message: `💰 Sent ${amount} USDC`,
+        });
       }
 
       setAmount('');
