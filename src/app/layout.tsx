@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     icon: "/main-logo.jpg",
   },
   other: {
-    "arcomni-verification": "arcomni-7ttocccauqk-1780501120984"
+    "arcomni-verification": "arcomni-goyb9fv4cus-1780501834352"
   }
 };
 
