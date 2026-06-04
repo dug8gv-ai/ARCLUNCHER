@@ -3,10 +3,11 @@ import * as cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Note: In a real production setup, you would want a Service Role Key here to bypass RLS for updating the verified status.
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  auth: { persistSession: false },
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,7 +51,8 @@ export async function POST(req: NextRequest) {
     } else {
       return NextResponse.json({ success: false, error: 'Meta tag not found or hash mismatch' }, { status: 400 });
     }
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown verification error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

@@ -24,20 +24,35 @@ export function Leaderboard() {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
-      const { data, error } = await supabase
-        .from('registered_apps')
-        .select('id, app_name, app_url, description, category, team_size, developer_wallet, logo_url, banner_url, sample_images')
-        .eq('is_verified', true)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      try {
+        const { data, error } = await supabase
+          .from('registered_apps')
+          .select('id, app_name, app_url, description, category, team_size, developer_wallet, logo_url, banner_url, sample_images')
+          .eq('is_verified', true)
+          .order('created_at', { ascending: false })
+          .limit(20);
 
-      if (!error && data) {
-        setApps(data);
+        if (!error && data) {
+          setApps(data);
+        }
+      } catch (err) {
+        console.error('Failed to refresh builder leaderboard', err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     fetchLeaderboard();
+
+    const handleRefresh = () => {
+      fetchLeaderboard();
+    };
+
+    window.addEventListener('builder-app-verified', handleRefresh);
+
+    return () => {
+      window.removeEventListener('builder-app-verified', handleRefresh);
+    };
   }, []);
 
   if (isLoading) {

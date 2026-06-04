@@ -121,6 +121,7 @@ export function AppRegistration() {
       
       if (data.success) {
         setIsVerified(true);
+        window.dispatchEvent(new CustomEvent('builder-app-verified'));
         toast.success('App Verified Successfully!');
         if (existingApp) {
           setExistingApp({ ...existingApp, is_verified: true });
