@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
-import { CheckCircle, Copy, Loader2, Edit3, Save, ImagePlus, X, ExternalLink, Globe } from 'lucide-react';
+import { CheckCircle, Copy, Loader2, Edit3, Save, ImagePlus, X, Globe } from 'lucide-react';
 
 export function AppRegistration() {
   const { address, isConnected } = useAccount();
@@ -30,6 +30,7 @@ export function AppRegistration() {
   const [isLoadingState, setIsLoadingState] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
   useEffect(() => {
     if (!address) {
@@ -174,6 +175,44 @@ export function AppRegistration() {
     }
   };
 
+  const uploadMediaToBucket = async (file: File, path: string) => {
+    const { error } = await supabase.storage.from('market_images').upload(path, file, { upsert: true });
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage.from('market_images').getPublicUrl(path);
+    return publicUrl;
+  };
+
+  const handleMediaUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner' | 'sample') => {
+    const file = event.target.files?.[0];
+    if (!file || !address) return;
+
+    try {
+      setIsUploadingMedia(true);
+      const path = `${address.toLowerCase()}/${type}-${Date.now()}-${file.name}`;
+      const publicUrl = await uploadMediaToBucket(file, path);
+
+      if (type === 'logo') {
+        setProfileData(prev => ({ ...prev, logoUrl: publicUrl }));
+      } else if (type === 'banner') {
+        setProfileData(prev => ({ ...prev, bannerUrl: publicUrl }));
+      } else if (type === 'sample') {
+        if (profileData.sampleImages.length >= 5) {
+          toast.error('Maximum 5 sample images allowed');
+          return;
+        }
+        setProfileData(prev => ({ ...prev, sampleImages: [...prev.sampleImages, publicUrl] }));
+      }
+      toast.success('Image uploaded successfully');
+    } catch (error: any) {
+      console.error('Image upload failed', error);
+      toast.error(error.message || 'Image upload failed');
+    } finally {
+      setIsUploadingMedia(false);
+      event.target.value = '';
+    }
+  };
+
   const addSampleImage = () => {
     if (!newSampleUrl.trim()) return;
     if (profileData.sampleImages.length >= 5) {
@@ -301,21 +340,23 @@ export function AppRegistration() {
               <hr className="border-[var(--border-dim)]" />
 
               <div>
-                <label className="block text-xs text-slate-400 mb-1 font-bold">Logo URL</label>
-                <input type="url" value={profileData.logoUrl} onChange={e => setProfileData({...profileData, logoUrl: e.target.value})} className={inputClass} placeholder="https://example.com/logo.png" />
+                <label className="block text-xs text-slate-400 mb-1 font-bold">Logo</label>
+                <input type="file" accept="image/*" onChange={(e) => handleMediaUpload(e, 'logo')} className="block w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-500/10 file:text-cyan-300" />
+                <input type="url" value={profileData.logoUrl} onChange={e => setProfileData({...profileData, logoUrl: e.target.value})} className={`${inputClass} mt-2`} placeholder="https://example.com/logo.png" />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1 font-bold">Banner URL</label>
-                <input type="url" value={profileData.bannerUrl} onChange={e => setProfileData({...profileData, bannerUrl: e.target.value})} className={inputClass} placeholder="https://example.com/banner.jpg" />
+                <label className="block text-xs text-slate-400 mb-1 font-bold">Banner</label>
+                <input type="file" accept="image/*" onChange={(e) => handleMediaUpload(e, 'banner')} className="block w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-500/10 file:text-cyan-300" />
+                <input type="url" value={profileData.bannerUrl} onChange={e => setProfileData({...profileData, bannerUrl: e.target.value})} className={`${inputClass} mt-2`} placeholder="https://example.com/banner.jpg" />
               </div>
 
               {/* Sample Images */}
               <div>
                 <label className="block text-xs text-slate-400 mb-1 font-bold">Sample Screenshots (max 5)</label>
                 <div className="flex gap-2 mb-2">
-                  <input type="url" value={newSampleUrl} onChange={e => setNewSampleUrl(e.target.value)} className={`${inputClass} flex-1`} placeholder="https://example.com/screenshot.png" />
+                  <input type="file" accept="image/*" onChange={(e) => handleMediaUpload(e, 'sample')} className="block w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-500/10 file:text-cyan-300" />
                   <button onClick={addSampleImage} className="bg-cyan-600 hover:bg-cyan-500 text-white px-3 rounded-lg text-xs font-bold transition-colors flex items-center gap-1">
-                    <ImagePlus size={14} /> Add
+                    <ImagePlus size={14} /> Add URL
                   </button>
                 </div>
                 {profileData.sampleImages.length > 0 && (
@@ -340,8 +381,8 @@ export function AppRegistration() {
                 disabled={isSaving}
                 className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition-all flex justify-center items-center gap-2"
               >
-                {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save size={16} />}
-                {isSaving ? 'Saving...' : 'Save Profile'}
+                {isSaving || isUploadingMedia ? <Loader2 className="animate-spin w-4 h-4" /> : <Save size={16} />}
+                {isSaving ? 'Saving...' : isUploadingMedia ? 'Uploading...' : 'Save Profile'}
               </button>
             </div>
           )}
