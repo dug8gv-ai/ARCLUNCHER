@@ -71,7 +71,7 @@ export function Leaderboard() {
 
         try {
           const blockNumber = await publicClient.getBlockNumber();
-          const fromBlock = blockNumber - 1000n;
+          const fromBlock = blockNumber - BigInt(1000);
           const logs = await publicClient.getLogs({
             address: app.contract_address as `0x${string}`,
             fromBlock,
