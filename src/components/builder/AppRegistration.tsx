@@ -1,91 +1,188 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
-import { CheckCircle, Copy, Loader2, Edit3, Save, ImagePlus, X, Globe } from 'lucide-react';
+import {
+  CheckCircle, Copy, Loader2, Edit3, Save, ImagePlus,
+  X, Globe, PlusCircle, ChevronDown, AlertTriangle,
+} from 'lucide-react';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface RegisteredApp {
+  id: string;
+  app_name: string;
+  app_url: string;
+  description: string;
+  category: string;
+  team_size: number;
+  contract_address: string;
+  logo_url: string;
+  banner_url: string;
+  sample_images: string[];
+  verification_hash: string;
+  is_verified: boolean;
+  developer_wallet: string;
+}
+
+const EMPTY_FORM = {
+  appName: '', appUrl: '', description: '',
+  category: '', teamSize: '1', contractAddress: '',
+};
+
+const EMPTY_PROFILE = { logoUrl: '', bannerUrl: '', sampleImages: [] as string[] };
+
+const MAX_PROJECTS = 10;
+
+// ─── localStorage helpers ─────────────────────────────────────────────────────
+function lsKey(address: string) {
+  return `arcomni_builder_project_${address.toLowerCase()}`;
+}
+function lsSave(address: string, data: Record<string, unknown>) {
+  try { localStorage.setItem(lsKey(address), JSON.stringify(data)); } catch { /* quota / SSR */ }
+}
+function lsLoad(address: string): Record<string, unknown> | null {
+  try {
+    const raw = localStorage.getItem(lsKey(address));
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 export function AppRegistration() {
   const { address, isConnected } = useAccount();
-  const [formData, setFormData] = useState({
-    appName: '',
-    appUrl: '',
-    description: '',
-    category: '',
-    teamSize: '1',
-    contractAddress: '',
-  });
-  const [profileData, setProfileData] = useState({
-    logoUrl: '',
-    bannerUrl: '',
-    sampleImages: [] as string[],
-  });
-  const [newSampleUrl, setNewSampleUrl] = useState('');
+
+  // project list
+  const [projects, setProjects] = useState<RegisteredApp[]>([]);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [selectorOpen, setSelectorOpen] = useState(false);
+
+  // form / profile state
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [profileData, setProfileData] = useState(EMPTY_PROFILE);
   const [verificationHash, setVerificationHash] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+
+  // UI flags
+  const [isLoadingState, setIsLoadingState] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [existingApp, setExistingApp] = useState<any>(null);
-  const [isLoadingState, setIsLoadingState] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [fetchError, setFetchError] = useState('');
+  const [newSampleUrl, setNewSampleUrl] = useState('');
+
+  // ── Load all projects for wallet ─────────────────────────────────────────
+  const loadProjects = useCallback(async (addr: string) => {
+    setIsLoadingState(true);
+    setFetchError('');
+
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 10_000)
+    );
+
+    try {
+      const supabaseQuery = supabase
+        .from('registered_apps')
+        .select('*')
+        .eq('developer_wallet', addr)
+        .order('created_at', { ascending: true });
+
+      const result = await Promise.race([supabaseQuery, timeout]);
+      const { data, error } = result as { data: RegisteredApp[] | null; error: unknown };
+
+      if (error) throw error;
+
+      const list = (data ?? []) as RegisteredApp[];
+      setProjects(list);
+
+      if (list.length > 0) {
+        const first = list[0];
+        setActiveProjectId(first.id);
+        applyProject(first);
+        // Supabase is authoritative — overwrite localStorage
+        lsSave(addr, first as unknown as Record<string, unknown>);
+      } else {
+        // No projects — show blank form
+        resetForm();
+      }
+    } catch {
+      setFetchError('Could not load your projects. Please refresh.');
+      setProjects([]);
+      resetForm();
+    } finally {
+      setIsLoadingState(false);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!address) {
       setIsLoadingState(false);
+      setProjects([]);
+      setActiveProjectId(null);
+      resetForm();
       return;
     }
+    loadProjects(address);
+  }, [address, loadProjects]);
 
-    const fetchExistingApp = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('registered_apps')
-          .select('*')
-          .eq('developer_wallet', address)
-          .single();
-        
-        if (data) {
-          setExistingApp(data);
-          setFormData({
-            appName: data.app_name || '',
-            appUrl: data.app_url || '',
-            description: data.description || '',
-            category: data.category || '',
-            teamSize: data.team_size?.toString() || '1',
-            contractAddress: data.contract_address || '',
-          });
-          setProfileData({
-            logoUrl: data.logo_url || '',
-            bannerUrl: data.banner_url || '',
-            sampleImages: data.sample_images || [],
-          });
-          setVerificationHash(data.verification_hash || '');
-          setIsVerified(data.is_verified || false);
-        }
-      } catch (err) {
-        console.error("Error fetching app", err);
-      } finally {
-        setIsLoadingState(false);
-      }
-    };
+  // ── Apply a project to local form state ──────────────────────────────────
+  const applyProject = (p: RegisteredApp) => {
+    setFormData({
+      appName: p.app_name ?? '',
+      appUrl: p.app_url ?? '',
+      description: p.description ?? '',
+      category: p.category ?? '',
+      teamSize: p.team_size?.toString() ?? '1',
+      contractAddress: p.contract_address ?? '',
+    });
+    setProfileData({
+      logoUrl: p.logo_url ?? '',
+      bannerUrl: p.banner_url ?? '',
+      sampleImages: p.sample_images ?? [],
+    });
+    setVerificationHash(p.verification_hash ?? '');
+    setIsVerified(p.is_verified ?? false);
+    setIsEditing(false);
+  };
 
-    fetchExistingApp();
-  }, [address]);
+  const resetForm = () => {
+    setFormData(EMPTY_FORM);
+    setProfileData(EMPTY_PROFILE);
+    setVerificationHash('');
+    setIsVerified(false);
+    setIsEditing(false);
+  };
 
+  // ── Switch active project ─────────────────────────────────────────────────
+  const switchProject = (id: string) => {
+    const p = projects.find(x => x.id === id);
+    if (!p) return;
+    setActiveProjectId(id);
+    applyProject(p);
+    setSelectorOpen(false);
+  };
+
+  // ── Start registering a new project ───────────────────────────────────────
+  const startNewProject = () => {
+    setActiveProjectId(null);
+    resetForm();
+    setSelectorOpen(false);
+  };
+
+  // ── Register new app ─────────────────────────────────────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isConnected || !address) {
-      toast.error('Connect your wallet first');
-      return;
-    }
+    if (!isConnected || !address) { toast.error('Connect your wallet first'); return; }
+    if (projects.length >= MAX_PROJECTS) { toast.error(`Maximum ${MAX_PROJECTS} projects allowed`); return; }
 
+    setIsRegistering(true);
     try {
-      setIsRegistering(true);
       const hash = `arcomni-${Math.random().toString(36).substring(2, 15)}-${Date.now()}`;
-      
-      const { error } = await supabase
+
+      const { data, error } = await supabase
         .from('registered_apps')
         .insert({
           developer_wallet: address,
@@ -96,68 +193,68 @@ export function AppRegistration() {
           team_size: parseInt(formData.teamSize),
           contract_address: formData.contractAddress,
           verification_hash: hash,
-          is_verified: false
-        });
+          is_verified: false,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
-      
+
+      const newApp = data as RegisteredApp;
+      setProjects(prev => [...prev, newApp]);
+      setActiveProjectId(newApp.id);
       setVerificationHash(hash);
-      toast.success('Project saved! Please complete verification.');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to register app');
+      toast.success('Project saved! Complete verification below.');
+    } catch (err: unknown) {
+      toast.error((err as { message?: string }).message || 'Failed to register app');
     } finally {
       setIsRegistering(false);
     }
   };
 
+  // ── Verify ────────────────────────────────────────────────────────────────
   const handleVerify = async () => {
+    setIsVerifying(true);
     try {
-      setIsVerifying(true);
       const res = await fetch('/api/builder/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appUrl: formData.appUrl, hash: verificationHash, wallet: address })
+        body: JSON.stringify({ appUrl: formData.appUrl, hash: verificationHash, wallet: address }),
       });
-      const data = await res.json();
-      
-      if (data.success) {
+      const result = await res.json();
+
+      if (result.success) {
         setIsVerified(true);
+
+        // Update projects array
+        setProjects(prev =>
+          prev.map(p => p.id === activeProjectId ? { ...p, is_verified: true } : p)
+        );
+
+        // Persist to localStorage
+        if (address) {
+          const cached = lsLoad(address) ?? {};
+          lsSave(address, { ...cached, is_verified: true, verification_hash: verificationHash });
+        }
+
         window.dispatchEvent(new CustomEvent('builder-app-verified'));
         toast.success('App Verified Successfully!');
-        if (existingApp) {
-          setExistingApp({ ...existingApp, is_verified: true });
-        }
       } else {
         toast.error('Verification failed: Meta tag not found');
       }
-    } catch (error: any) {
+    } catch {
       toast.error('Error during verification');
     } finally {
       setIsVerifying(false);
     }
   };
 
+  // ── Save profile ──────────────────────────────────────────────────────────
   const handleSaveProfile = async () => {
-    if (!address || !existingApp) return;
+    if (!address || !activeProjectId) return;
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('registered_apps')
-        .update({
-          app_name: formData.appName,
-          description: formData.description,
-          category: formData.category,
-          contract_address: formData.contractAddress,
-          logo_url: profileData.logoUrl,
-          banner_url: profileData.bannerUrl,
-          sample_images: profileData.sampleImages,
-        })
-        .eq('developer_wallet', address);
-
-      if (error) throw error;
-      
-      setExistingApp({
-        ...existingApp,
+      const updates = {
         app_name: formData.appName,
         description: formData.description,
         category: formData.category,
@@ -165,276 +262,387 @@ export function AppRegistration() {
         logo_url: profileData.logoUrl,
         banner_url: profileData.bannerUrl,
         sample_images: profileData.sampleImages,
-      });
+      };
+
+      const { error } = await supabase
+        .from('registered_apps')
+        .update(updates)
+        .eq('id', activeProjectId);
+
+      if (error) throw error;
+
+      setProjects(prev =>
+        prev.map(p => p.id === activeProjectId ? { ...p, ...updates } : p)
+      );
+
+      // Sync localStorage
+      const existing = lsLoad(address) ?? {};
+      lsSave(address, { ...existing, ...updates });
+
       setIsEditing(false);
-      toast.success('Profile updated successfully!');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to update profile');
+      toast.success('Profile updated!');
+    } catch (err: unknown) {
+      toast.error((err as { message?: string }).message || 'Failed to save');
     } finally {
       setIsSaving(false);
     }
   };
 
+  // ── Media upload ──────────────────────────────────────────────────────────
   const uploadMediaToBucket = async (file: File, path: string) => {
-    const { error } = await supabase.storage.from('market_images').upload(path, file, { upsert: true });
+    const { error } = await supabase.storage
+      .from('market_images')
+      .upload(path, file, { upsert: true });
     if (error) throw error;
-
-    const { data: { publicUrl } } = supabase.storage.from('market_images').getPublicUrl(path);
+    const { data: { publicUrl } } = supabase.storage
+      .from('market_images')
+      .getPublicUrl(path);
     return publicUrl;
   };
 
-  const handleMediaUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner' | 'sample') => {
+  const persistMediaData = async (updatedData: Partial<typeof profileData>) => {
+    if (!address || !activeProjectId) return;
+    const { error } = await supabase
+      .from('registered_apps')
+      .update({
+        logo_url: updatedData.logoUrl ?? profileData.logoUrl,
+        banner_url: updatedData.bannerUrl ?? profileData.bannerUrl,
+        sample_images: updatedData.sampleImages ?? profileData.sampleImages,
+      })
+      .eq('id', activeProjectId);
+    if (error) throw error;
+  };
+
+  const handleMediaUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: 'logo' | 'banner' | 'sample'
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !address) return;
-
+    setIsUploadingMedia(true);
     try {
-      setIsUploadingMedia(true);
       const path = `${address.toLowerCase()}/${type}-${Date.now()}-${file.name}`;
       const publicUrl = await uploadMediaToBucket(file, path);
 
       if (type === 'logo') {
-        setProfileData(prev => ({ ...prev, logoUrl: publicUrl }));
+        const next = { ...profileData, logoUrl: publicUrl };
+        setProfileData(next);
+        await persistMediaData({ logoUrl: publicUrl });
       } else if (type === 'banner') {
-        setProfileData(prev => ({ ...prev, bannerUrl: publicUrl }));
-      } else if (type === 'sample') {
-        if (profileData.sampleImages.length >= 5) {
-          toast.error('Maximum 5 sample images allowed');
-          return;
-        }
-        setProfileData(prev => ({ ...prev, sampleImages: [...prev.sampleImages, publicUrl] }));
+        const next = { ...profileData, bannerUrl: publicUrl };
+        setProfileData(next);
+        await persistMediaData({ bannerUrl: publicUrl });
+      } else {
+        if (profileData.sampleImages.length >= 5) { toast.error('Max 5 sample images'); return; }
+        const nextImages = [...profileData.sampleImages, publicUrl];
+        setProfileData(prev => ({ ...prev, sampleImages: nextImages }));
+        await persistMediaData({ sampleImages: nextImages });
       }
-      toast.success('Image uploaded successfully');
-    } catch (error: any) {
-      console.error('Image upload failed', error);
-      toast.error(error.message || 'Image upload failed');
+      toast.success('Image uploaded!');
+    } catch (err: unknown) {
+      toast.error((err as { message?: string }).message || 'Upload failed');
     } finally {
       setIsUploadingMedia(false);
       event.target.value = '';
     }
   };
 
-  const addSampleImage = () => {
+  const addSampleImageUrl = () => {
     if (!newSampleUrl.trim()) return;
-    if (profileData.sampleImages.length >= 5) {
-      toast.error('Maximum 5 sample images allowed');
-      return;
-    }
-    setProfileData(prev => ({
-      ...prev,
-      sampleImages: [...prev.sampleImages, newSampleUrl.trim()]
-    }));
+    if (profileData.sampleImages.length >= 5) { toast.error('Max 5 sample images'); return; }
+    setProfileData(prev => ({ ...prev, sampleImages: [...prev.sampleImages, newSampleUrl.trim()] }));
     setNewSampleUrl('');
   };
 
   const removeSampleImage = (index: number) => {
     setProfileData(prev => ({
       ...prev,
-      sampleImages: prev.sampleImages.filter((_, i) => i !== index)
+      sampleImages: prev.sampleImages.filter((_, i) => i !== index),
     }));
   };
 
   const copyToClipboard = () => {
-    const metaTag = `<meta name="arcomni-verification" content="${verificationHash}">`;
-    navigator.clipboard.writeText(metaTag);
-    toast.success('Copied to clipboard!');
+    navigator.clipboard.writeText(
+      `<meta name="arcomni-verification" content="${verificationHash}">`
+    );
+    toast.success('Copied!');
   };
 
-  // INPUT STYLE (reusable)
-  const inputClass = "w-full bg-[#090a12] border border-[var(--border-dim)] rounded-lg p-2.5 text-white text-sm focus:border-cyan-500/50 outline-none transition-colors";
+  // ── Active project object ─────────────────────────────────────────────────
+  const activeProject = projects.find(p => p.id === activeProjectId);
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="bg-[#0d0e1c] p-6 rounded-2xl border border-[var(--border-dim)]">
-      <h2 className="text-xl font-bold text-cyan-400 mb-6">Register New Arc Chain App</h2>
-      
+    <div className="bd-card p-6">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h2 className="text-lg font-black" style={{ color: 'var(--bd-accent-gold)' }}>
+          Register New Arc Chain App
+        </h2>
+        {/* Project count badge */}
+        {projects.length > 0 && (
+          <span
+            className="text-xs font-bold px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(245,197,66,0.12)', color: 'var(--bd-accent-gold)', border: '1px solid rgba(245,197,66,0.3)' }}
+          >
+            {projects.length} / {MAX_PROJECTS} project{projects.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
+      {/* ── Project selector ── */}
+      {projects.length >= 2 && (
+        <div className="mb-4 relative">
+          <button
+            onClick={() => setSelectorOpen(v => !v)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold"
+            style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.2)', color: '#e2e8f0' }}
+          >
+            <span className="truncate">{activeProject?.app_name ?? 'Select project…'}</span>
+            <ChevronDown size={14} className="flex-shrink-0 ml-2" style={{ color: 'var(--bd-accent-gold)' }} />
+          </button>
+          {selectorOpen && (
+            <div
+              className="absolute z-20 left-0 right-0 mt-1 rounded-xl overflow-hidden shadow-2xl"
+              style={{ background: '#0f0f1a', border: '1px solid rgba(245,197,66,0.2)' }}
+            >
+              {projects.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => switchProject(p.id)}
+                  className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-white/5 transition-colors"
+                  style={{ color: p.id === activeProjectId ? 'var(--bd-accent-gold)' : '#e2e8f0' }}
+                >
+                  {p.is_verified && <CheckCircle size={12} style={{ color: 'var(--bd-accent-gold)' }} />}
+                  <span className="truncate">{p.app_name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Loading skeleton ── */}
       {isLoadingState ? (
-        <div className="flex justify-center items-center py-10">
-          <Loader2 className="animate-spin text-cyan-400" size={32} />
+        <div className="space-y-3 py-4">
+          <div className="bd-skeleton h-32 w-full" />
+          <div className="bd-skeleton h-6 w-2/3" />
+          <div className="bd-skeleton h-6 w-1/2" />
+          <div className="bd-skeleton h-10 w-full" />
+        </div>
+
+      ) : fetchError ? (
+        <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background: 'rgba(245,197,66,0.08)', color: 'var(--bd-accent-gold)', border: '1px solid rgba(245,197,66,0.2)' }}>
+          <AlertTriangle size={16} /> {fetchError}
         </div>
 
       ) : isVerified ? (
-        /* ======= VERIFIED: Profile Dashboard ======= */
-        <div className="space-y-6">
-          
-          {/* Banner Preview */}
-          <div className="relative h-36 rounded-xl overflow-hidden bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border border-[var(--border-dim)]">
-            {profileData.bannerUrl ? (
-              <img src={profileData.bannerUrl} className="w-full h-full object-cover" alt="Banner" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">No Banner Set</div>
-            )}
-            {/* Logo overlay */}
+        /* ── Verified profile view ── */
+        <div className="space-y-5">
+          {/* Banner */}
+          <div className="relative h-36 rounded-xl overflow-hidden" style={{ background: 'rgba(245,197,66,0.06)', border: '1px solid rgba(245,197,66,0.15)' }}>
+            {profileData.bannerUrl
+              ? <img src={profileData.bannerUrl} className="w-full h-full object-cover" alt="Banner" />
+              : <div className="w-full h-full flex items-center justify-center text-xs" style={{ color: 'rgba(245,197,66,0.4)' }}>No Banner Set</div>
+            }
+            {/* Logo */}
             <div className="absolute -bottom-6 left-5">
-              <div className="w-16 h-16 rounded-xl bg-[#0d0e1c] border-2 border-[var(--border-dim)] overflow-hidden shadow-lg">
-                {profileData.logoUrl ? (
-                  <img src={profileData.logoUrl} className="w-full h-full object-cover" alt="Logo" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-cyan-900/20 text-cyan-400 text-lg font-black">
-                    {formData.appName?.[0]?.toUpperCase() || '?'}
-                  </div>
-                )}
+              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg" style={{ background: '#0a0a0f', border: '2px solid rgba(245,197,66,0.4)' }}>
+                {profileData.logoUrl
+                  ? <img src={profileData.logoUrl} className="w-full h-full object-cover" alt="Logo" />
+                  : <div className="w-full h-full flex items-center justify-center text-base font-black" style={{ color: 'var(--bd-accent-gold)' }}>
+                      {formData.appName?.[0]?.toUpperCase() || '?'}
+                    </div>
+                }
               </div>
             </div>
-            {/* Verified Badge */}
-            <div className="absolute top-3 right-3 bg-green-500/20 backdrop-blur text-green-400 px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 border border-green-500/30">
-              <CheckCircle size={12} /> Verified
+            {/* Verified badge */}
+            <div className="bd-badge-verified absolute top-3 right-3 px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1">
+              <CheckCircle size={11} /> Verified
             </div>
           </div>
 
-          {/* Info / Header */}
-          <div className="pt-4 flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-black text-white">{formData.appName}</h3>
-              <a href={formData.appUrl} target="_blank" rel="noreferrer" className="text-xs text-cyan-400 flex items-center gap-1 mt-1 hover:underline">
+          {/* Info + Actions */}
+          <div className="pt-5 flex flex-col md:flex-row justify-between items-start gap-3">
+            <div className="min-w-0">
+              <h3 className="text-base font-black text-white truncate">{formData.appName}</h3>
+              <a
+                href={formData.appUrl} target="_blank" rel="noreferrer"
+                className="text-xs flex items-center gap-1 mt-1 hover:underline truncate"
+                style={{ color: 'var(--bd-accent-gold)' }}
+              >
                 <Globe size={11} /> {formData.appUrl}
               </a>
               {formData.description && (
-                <p className="text-xs text-slate-400 mt-2 leading-relaxed max-w-md">{formData.description}</p>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-sm">{formData.description}</p>
               )}
             </div>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                isEditing
-                  ? 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20'
-                  : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20'
-              }`}
-            >
-              {isEditing ? <><X size={12} /> Cancel</> : <><Edit3 size={12} /> Edit Profile</>}
-            </button>
+            <div className="flex flex-wrap gap-2 flex-shrink-0">
+              <button
+                onClick={() => setIsEditing(v => !v)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={isEditing
+                  ? { background: 'rgba(245,197,66,0.1)', color: 'var(--bd-accent-gold)', border: '1px solid rgba(245,197,66,0.3)' }
+                  : { background: 'rgba(245,197,66,0.08)', color: 'var(--bd-accent-gold)', border: '1px solid rgba(245,197,66,0.2)' }
+                }
+              >
+                {isEditing ? <><X size={12} /> Cancel</> : <><Edit3 size={12} /> Edit Profile</>}
+              </button>
+
+              <button
+                onClick={startNewProject}
+                disabled={projects.length >= MAX_PROJECTS}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: 'rgba(192,132,252,0.1)', color: 'var(--bd-accent-purple)', border: '1px solid rgba(192,132,252,0.2)' }}
+                title={projects.length >= MAX_PROJECTS ? `Maximum ${MAX_PROJECTS} projects reached` : 'Register another project'}
+              >
+                <PlusCircle size={12} /> Register New App
+              </button>
+            </div>
           </div>
 
-          {/* Sample Images Gallery (View Only) */}
+          {/* Sample images — view only */}
           {!isEditing && profileData.sampleImages.length > 0 && (
             <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Sample Screenshots</p>
-              <div className="flex gap-3 overflow-x-auto pb-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(245,197,66,0.5)' }}>
+                Sample Screenshots
+              </p>
+              <div className="bd-img-scroll">
                 {profileData.sampleImages.map((url, i) => (
-                  <img key={i} src={url} className="h-24 rounded-lg object-cover border border-[var(--border-dim)]" alt={`Sample ${i+1}`} />
+                  <img key={i} src={url} className="h-24 flex-shrink-0 rounded-lg object-cover" style={{ border: '1px solid rgba(245,197,66,0.15)' }} alt={`Sample ${i + 1}`} />
                 ))}
               </div>
             </div>
           )}
 
-          {/* ======= EDIT FORM ======= */}
+          {/* Edit form */}
           {isEditing && (
-            <div className="space-y-4 p-5 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl">
+            <div className="space-y-4 p-4 rounded-2xl" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.15)' }}>
               <div>
-                <label className="block text-xs text-slate-400 mb-1 font-bold">App Name</label>
-                <input type="text" value={formData.appName} onChange={e => setFormData({...formData, appName: e.target.value})} className={inputClass} />
+                <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>App Name</label>
+                <input className="bd-input" type="text" value={formData.appName} onChange={e => setFormData({ ...formData, appName: e.target.value })} />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1 font-bold">Description</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className={inputClass} rows={3} />
+                <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>Description</label>
+                <textarea className="bd-input" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1 font-bold">Category</label>
-                  <input type="text" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className={inputClass} placeholder="DeFi, NFT, etc." />
+                  <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>Category</label>
+                  <input className="bd-input" type="text" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} placeholder="DeFi, NFT…" />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1 font-bold">Contract Address</label>
-                  <input type="text" value={formData.contractAddress} onChange={e => setFormData({...formData, contractAddress: e.target.value})} className={inputClass} placeholder="0x..." />
+                  <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>Contract Address</label>
+                  <input className="bd-input" type="text" value={formData.contractAddress} onChange={e => setFormData({ ...formData, contractAddress: e.target.value })} placeholder="0x…" />
                 </div>
               </div>
 
-              <hr className="border-[var(--border-dim)]" />
+              <hr style={{ borderColor: 'rgba(245,197,66,0.1)' }} />
 
               <div>
-                <label className="block text-xs text-slate-400 mb-1 font-bold">Logo</label>
-                <input type="file" accept="image/*" onChange={(e) => handleMediaUpload(e, 'logo')} className="block w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-500/10 file:text-cyan-300" />
-                <input type="url" value={profileData.logoUrl} onChange={e => setProfileData({...profileData, logoUrl: e.target.value})} className={`${inputClass} mt-2`} placeholder="https://example.com/logo.png" />
+                <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>Logo</label>
+                <input type="file" accept="image/*" onChange={e => handleMediaUpload(e, 'logo')} className="block w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:cursor-pointer file:bg-[rgba(245,197,66,0.1)] file:text-[#f5c542]" />
+                <input className="bd-input mt-2" type="url" value={profileData.logoUrl} onChange={e => setProfileData({ ...profileData, logoUrl: e.target.value })} placeholder="https://…/logo.png" />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1 font-bold">Banner</label>
-                <input type="file" accept="image/*" onChange={(e) => handleMediaUpload(e, 'banner')} className="block w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-500/10 file:text-cyan-300" />
-                <input type="url" value={profileData.bannerUrl} onChange={e => setProfileData({...profileData, bannerUrl: e.target.value})} className={`${inputClass} mt-2`} placeholder="https://example.com/banner.jpg" />
+                <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>Banner</label>
+                <input type="file" accept="image/*" onChange={e => handleMediaUpload(e, 'banner')} className="block w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:cursor-pointer file:bg-[rgba(245,197,66,0.1)] file:text-[#f5c542]" />
+                <input className="bd-input mt-2" type="url" value={profileData.bannerUrl} onChange={e => setProfileData({ ...profileData, bannerUrl: e.target.value })} placeholder="https://…/banner.jpg" />
               </div>
 
-              {/* Sample Images */}
               <div>
-                <label className="block text-xs text-slate-400 mb-1 font-bold">Sample Screenshots (max 5)</label>
+                <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>
+                  Sample Screenshots <span className="opacity-50">(max 5)</span>
+                </label>
                 <div className="flex gap-2 mb-2">
-                  <input type="file" accept="image/*" onChange={(e) => handleMediaUpload(e, 'sample')} className="block w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-500/10 file:text-cyan-300" />
-                  <button onClick={addSampleImage} className="bg-cyan-600 hover:bg-cyan-500 text-white px-3 rounded-lg text-xs font-bold transition-colors flex items-center gap-1">
-                    <ImagePlus size={14} /> Add URL
+                  <input type="file" accept="image/*" onChange={e => handleMediaUpload(e, 'sample')} className="block w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:cursor-pointer file:bg-[rgba(245,197,66,0.1)] file:text-[#f5c542]" />
+                  <input className="bd-input" type="url" value={newSampleUrl} onChange={e => setNewSampleUrl(e.target.value)} placeholder="or paste URL" />
+                  <button onClick={addSampleImageUrl} className="bd-btn-primary px-3 rounded-lg flex-shrink-0 flex items-center gap-1 text-xs">
+                    <ImagePlus size={14} />
                   </button>
                 </div>
                 {profileData.sampleImages.length > 0 && (
                   <div className="flex gap-2 flex-wrap">
                     {profileData.sampleImages.map((url, i) => (
                       <div key={i} className="relative group">
-                        <img src={url} className="h-16 w-24 rounded-lg object-cover border border-[var(--border-dim)]" alt="" />
-                        <button 
-                          onClick={() => removeSampleImage(i)} 
-                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          ✕
-                        </button>
+                        <img src={url} className="h-16 w-24 rounded-lg object-cover" style={{ border: '1px solid rgba(245,197,66,0.15)' }} alt="" />
+                        <button
+                          onClick={() => removeSampleImage(i)}
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ background: '#f5c542', color: '#0a0a0f' }}
+                        >✕</button>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              <button
-                onClick={handleSaveProfile}
-                disabled={isSaving}
-                className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition-all flex justify-center items-center gap-2"
-              >
-                {isSaving || isUploadingMedia ? <Loader2 className="animate-spin w-4 h-4" /> : <Save size={16} />}
-                {isSaving ? 'Saving...' : isUploadingMedia ? 'Uploading...' : 'Save Profile'}
+              <button onClick={handleSaveProfile} disabled={isSaving || isUploadingMedia} className="bd-btn-primary w-full py-3 rounded-xl flex justify-center items-center gap-2 text-sm">
+                {isSaving || isUploadingMedia
+                  ? <><Loader2 className="animate-spin w-4 h-4" /> {isUploadingMedia ? 'Uploading…' : 'Saving…'}</>
+                  : <><Save size={15} /> Save Profile</>
+                }
               </button>
             </div>
           )}
         </div>
 
       ) : !verificationHash ? (
-        /* ======= REGISTRATION FORM ======= */
+        /* ── Registration form ── */
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
-            <label className="block text-sm text-[var(--text-secondary)] mb-1">App Name</label>
-            <input required type="text" value={formData.appName} onChange={e => setFormData({...formData, appName: e.target.value})} className={inputClass} />
+            <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>App Name</label>
+            <input required className="bd-input" type="text" value={formData.appName} onChange={e => setFormData({ ...formData, appName: e.target.value })} />
           </div>
           <div>
-            <label className="block text-sm text-[var(--text-secondary)] mb-1">Website URL</label>
-            <input required type="url" value={formData.appUrl} onChange={e => setFormData({...formData, appUrl: e.target.value})} className={inputClass} placeholder="https://myapp.com" />
+            <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>Website URL</label>
+            <input required className="bd-input" type="url" value={formData.appUrl} onChange={e => setFormData({ ...formData, appUrl: e.target.value })} placeholder="https://myapp.com" />
           </div>
           <div>
-            <label className="block text-sm text-[var(--text-secondary)] mb-1">Description</label>
-            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className={inputClass} rows={3}></textarea>
+            <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>Description</label>
+            <textarea className="bd-input" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} rows={3} />
           </div>
           <div>
-            <label className="block text-sm text-[var(--text-secondary)] mb-1">Arc Chain Contract Address (Optional)</label>
-            <input type="text" value={formData.contractAddress} onChange={e => setFormData({...formData, contractAddress: e.target.value})} className={inputClass} placeholder="0x..." />
+            <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>
+              Arc Chain Contract Address <span className="opacity-50">(optional)</span>
+            </label>
+            <input className="bd-input" type="text" value={formData.contractAddress} onChange={e => setFormData({ ...formData, contractAddress: e.target.value })} placeholder="0x…" />
           </div>
-          <button disabled={isRegistering} type="submit" className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-lg transition-all flex justify-center items-center">
-            {isRegistering ? <Loader2 className="animate-spin w-5 h-5" /> : 'Generate Metadata Tag'}
+          <button disabled={isRegistering} type="submit" className="bd-btn-primary w-full py-2.5 rounded-xl flex justify-center items-center gap-2 text-sm">
+            {isRegistering ? <Loader2 className="animate-spin w-4 h-4" /> : 'Generate Metadata Tag'}
           </button>
         </form>
 
       ) : (
-        /* ======= VERIFICATION STEPS ======= */
-        <div className="space-y-6">
-          <div className="p-4 bg-slate-800/50 rounded-xl border border-[var(--border-dim)]">
-            <h3 className="text-sm text-slate-300 font-bold mb-2">Step 1: Add this meta tag to your &lt;head&gt;</h3>
+        /* ── Verification steps ── */
+        <div className="space-y-5">
+          <div className="p-4 rounded-xl space-y-2" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.15)' }}>
+            <h3 className="text-sm font-bold" style={{ color: 'var(--bd-accent-gold)' }}>
+              Step 1: Add this meta tag to your &lt;head&gt;
+            </h3>
             <div className="flex items-center gap-2">
-              <code className="flex-1 bg-black p-2 rounded text-cyan-300 text-xs overflow-x-auto">
-                &lt;meta name="arcomni-verification" content="{verificationHash}"&gt;
+              <code className="flex-1 p-2 rounded text-xs overflow-x-auto" style={{ background: '#000', color: 'var(--bd-accent-gold)' }}>
+                {`<meta name="arcomni-verification" content="${verificationHash}">`}
               </code>
-              <button onClick={copyToClipboard} className="p-2 bg-slate-700 hover:bg-slate-600 rounded text-white">
-                <Copy size={16} />
+              <button onClick={copyToClipboard} className="p-2 rounded-lg flex-shrink-0" style={{ background: 'rgba(245,197,66,0.1)', color: 'var(--bd-accent-gold)', border: '1px solid rgba(245,197,66,0.2)' }}>
+                <Copy size={15} />
               </button>
             </div>
           </div>
 
-          <div className="p-4 bg-slate-800/50 rounded-xl border border-[var(--border-dim)]">
-            <h3 className="text-sm text-slate-300 font-bold mb-2">Step 2: Verify Configuration</h3>
-            <button 
-              onClick={handleVerify} 
+          <div className="p-4 rounded-xl space-y-2" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.15)' }}>
+            <h3 className="text-sm font-bold" style={{ color: 'var(--bd-accent-gold)' }}>Step 2: Verify Configuration</h3>
+            <button
+              onClick={handleVerify}
               disabled={isVerifying || isVerified}
-              className={`w-full py-2 rounded-lg font-bold flex justify-center items-center gap-2 transition-all ${isVerified ? 'bg-green-600/20 text-green-400 border border-green-500' : 'bg-cyan-600 hover:bg-cyan-500 text-white'}`}
+              className={`w-full py-2.5 rounded-xl font-bold flex justify-center items-center gap-2 text-sm transition-all ${isVerified ? '' : 'bd-btn-primary'}`}
+              style={isVerified ? { background: 'rgba(245,197,66,0.15)', color: 'var(--bd-accent-gold)', border: '1px solid rgba(245,197,66,0.4)' } : {}}
             >
-              {isVerifying ? <Loader2 className="animate-spin w-5 h-5" /> : isVerified ? <><CheckCircle size={18}/> Verified</> : 'Verify Now'}
+              {isVerifying
+                ? <Loader2 className="animate-spin w-4 h-4" />
+                : isVerified
+                  ? <><CheckCircle size={16} /> Verified</>
+                  : 'Verify Now'
+              }
             </button>
           </div>
         </div>
