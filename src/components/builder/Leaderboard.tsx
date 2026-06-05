@@ -140,7 +140,56 @@ export function Leaderboard() {
             }
           }
 
-          const record: StatsRecord = { txs, uniqueWallets: wallets.size, volume: formatEther(volumeWei) };
+          // If on-chain native volume is 0 (ERC20 interactions have tx.value == 0),
+          // fall back to Supabase token_swaps for USDC volume — 3-step fallback.
+          let volumeDisplay = formatEther(volumeWei);
+          let volumeSuffix  = 'ARC';
+          if (volumeWei === BIGINT_ZERO && app.contract_address) {
+            try {
+              // Step 1: query token_swaps by this contract's token address
+              const contractAddr = app.contract_address.toLowerCase();
+              let { data: swapRows } = await supabase
+                .from('token_swaps')
+                .select('usdc_amount')
+                .eq('token_address', contractAddr);
+
+              // Step 2: if no results, get all token_launch addresses, sum their swaps
+              if (!swapRows || swapRows.length === 0) {
+                const { data: launches } = await supabase
+                  .from('token_launches')
+                  .select('token_address');
+                const tokenAddresses = (launches ?? []).map((l: { token_address: string }) => l.token_address);
+                if (tokenAddresses.length > 0) {
+                  const { data: allSwaps } = await supabase
+                    .from('token_swaps')
+                    .select('usdc_amount')
+                    .in('token_address', tokenAddresses);
+                  swapRows = allSwaps;
+                }
+              }
+
+              // Step 3: sum usdc_amount
+              if (swapRows && swapRows.length > 0) {
+                const totalUsdc = swapRows.reduce(
+                  (sum: number, row: { usdc_amount: number | string | null }) =>
+                    sum + (parseFloat(String(row.usdc_amount ?? '0')) || 0),
+                  0
+                );
+                if (totalUsdc > 0) {
+                  volumeDisplay = totalUsdc.toFixed(2);
+                  volumeSuffix  = 'USDC';
+                }
+              }
+            } catch {
+              // Supabase fallback failed — keep 0.0000 ARC display
+            }
+          }
+
+          const record: StatsRecord = {
+            txs,
+            uniqueWallets: wallets.size,
+            volume: volumeSuffix === 'USDC' ? `${volumeDisplay} USDC` : formatEther(volumeWei),
+          };
           updates[app.id] = record;
           saveCache(app.contract_address, record);
         } catch {
@@ -228,7 +277,13 @@ export function Leaderboard() {
                   <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
                     <div className="text-center">
                       <div className="text-[9px] font-bold uppercase" style={{ color: 'rgba(245,197,66,0.4)' }}>Vol</div>
-                      <div className="text-xs font-black stat-value">{parseFloat(s?.volume ?? '0').toFixed(2)}</div>
+                      <div className="text-xs font-black stat-value">
+                        {(() => {
+                          const vol = s?.volume ?? '0';
+                          if (vol.includes('USDC')) return vol;
+                          return parseFloat(vol).toFixed(2);
+                        })()}
+                      </div>
                     </div>
                     <div className="text-center">
                       <div className="text-[9px] font-bold uppercase" style={{ color: 'rgba(245,197,66,0.4)' }}>Txs</div>
@@ -290,7 +345,13 @@ export function Leaderboard() {
                             <Zap size={10} style={{ color: 'rgba(245,197,66,0.4)' }} />
                             <span className="text-[10px] uppercase tracking-widest" style={{ color: 'rgba(245,197,66,0.4)' }}>Live Volume</span>
                           </div>
-                          <div className="text-2xl font-black stat-value">{parseFloat(s?.volume ?? '0').toFixed(4)} ARC</div>
+                          <div className="text-2xl font-black stat-value">
+                            {(() => {
+                              const vol = s?.volume ?? '0';
+                              if (vol.includes('USDC')) return vol;
+                              return `${parseFloat(vol).toFixed(4)} ARC`;
+                            })()}
+                          </div>
                         </div>
                         <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.12)' }}>
                           <div className="flex items-center justify-center gap-2 mb-1">

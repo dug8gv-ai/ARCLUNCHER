@@ -92,7 +92,10 @@ export function AppRegistration() {
     }
 
     // 2. Fetch fresh from Supabase
+    // Capture activeId at the moment the effect runs so the async IIFE can use it
+    // without it becoming a reactive dependency (which would cause infinite loops).
     let cancelled = false;
+    const capturedActiveId = activeId;
     (async () => {
       try {
         const { data, error } = await supabase
@@ -105,14 +108,33 @@ export function AppRegistration() {
         if (error) throw error;
 
         const list = (data ?? []) as RegisteredApp[];
-        setProjects(list);
-        lsSave(address, list);
 
-        if (list.length > 0) {
-          // Pick first project, apply its full record directly — NO functional update
-          const first = list[0];
-          setActiveId(first.id);
-          setForm(toForm(first));   // toForm is pure, no closures
+        // Merge cached is_verified — never downgrade from verified to unverified
+        // (protects against RLS silently returning wrong is_verified value)
+        const cached = lsLoad(address);
+        const mergedList = list.map(freshItem => {
+          const cachedItem = cached?.find(c => c.id === freshItem.id);
+          return {
+            ...freshItem,
+            is_verified: freshItem.is_verified || cachedItem?.is_verified || false,
+            logo_url: freshItem.logo_url || cachedItem?.logo_url || '',
+            banner_url: freshItem.banner_url || cachedItem?.banner_url || '',
+            sample_images: (freshItem.sample_images?.length ? freshItem.sample_images : cachedItem?.sample_images) || [],
+          };
+        });
+
+        setProjects(mergedList);
+        lsSave(address, mergedList);
+
+        if (mergedList.length > 0) {
+          // If we already have an activeId and it exists in the new list, keep it.
+          // Only fall back to first if no active project exists.
+          const currentActiveId = capturedActiveId;
+          const keepProject = currentActiveId
+            ? (mergedList.find(p => p.id === currentActiveId) ?? mergedList[0])
+            : mergedList[0];
+          setActiveId(keepProject.id);
+          setForm(toForm(keepProject));
         } else {
           setActiveId(null);
           setForm(EMPTY_FORM);
