@@ -130,24 +130,48 @@ export function ContractTracker() {
             }
           }
 
-          // Volume: sum native value first. For ERC20/DeFi contracts with value=0, use token_swaps table
+          // Volume: sum native value first. For ERC20/DeFi contracts (value=0), sum from token_swaps
           let volumeDisplay: string;
           const nativeVolume = parseFloat(formatEther(volumeWei));
           if (nativeVolume > 0) {
             volumeDisplay = nativeVolume.toFixed(4) + ' ARC';
           } else {
-            // Try token_swaps table (platform token trades)
+            // Query token_swaps for all tokens deployed via this contract or all platform volume
             try {
-              const { data: swapRows } = await supabase
+              // Try by contract_address as token_address first (for deployed tokens)
+              const { data: direct } = await supabase
                 .from('token_swaps')
                 .select('usdc_amount')
                 .eq('token_address', app.contract_address.toLowerCase());
-              const totalUsdc = (swapRows ?? []).reduce(
-                (acc: number, r: { usdc_amount: string | number }) => acc + Number(r.usdc_amount), 0
+
+              const directTotal = (direct ?? []).reduce(
+                (acc: number, r: { usdc_amount: string|number }) => acc + Number(r.usdc_amount), 0
               );
-              volumeDisplay = totalUsdc > 0
-                ? totalUsdc.toFixed(2) + ' USDC'
-                : '0.0000 ARC';
+
+              if (directTotal > 0) {
+                volumeDisplay = directTotal.toFixed(2) + ' USDC';
+              } else {
+                // For ArcLauncher/router contracts: sum all swaps that used this contract
+                // by checking token_launches.launcher_address or just show all platform swaps
+                const { data: launches } = await supabase
+                  .from('token_launches')
+                  .select('token_address');
+
+                if (launches && launches.length > 0) {
+                  const tokenAddresses = launches.map((l: { token_address: string }) => l.token_address.toLowerCase());
+                  const { data: allSwaps } = await supabase
+                    .from('token_swaps')
+                    .select('usdc_amount')
+                    .in('token_address', tokenAddresses);
+
+                  const total = (allSwaps ?? []).reduce(
+                    (acc: number, r: { usdc_amount: string|number }) => acc + Number(r.usdc_amount), 0
+                  );
+                  volumeDisplay = total > 0 ? total.toFixed(2) + ' USDC' : '0.0000 ARC';
+                } else {
+                  volumeDisplay = '0.0000 ARC';
+                }
+              }
             } catch {
               volumeDisplay = '0.0000 ARC';
             }
