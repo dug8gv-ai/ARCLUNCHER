@@ -101,21 +101,47 @@ export function AppRegistration() {
       if (list.length > 0) {
         const first = list[0];
         setActiveProjectId(first.id);
-        applyProject(first);
+
+        // ── Inline apply (avoids stale closure from applyProject ref) ──
+        setFormData({
+          appName: first.app_name ?? '',
+          appUrl: first.app_url ?? '',
+          description: first.description ?? '',
+          category: first.category ?? '',
+          teamSize: first.team_size?.toString() ?? '1',
+          contractAddress: first.contract_address ?? '',
+        });
+        setProfileData({
+          logoUrl: first.logo_url ?? '',
+          bannerUrl: first.banner_url ?? '',
+          sampleImages: first.sample_images ?? [],
+        });
+        setVerificationHash(first.verification_hash ?? '');
+        setIsVerified(first.is_verified ?? false);
+        setIsEditing(false);
+
         // Supabase is authoritative — overwrite localStorage
         lsSave(addr, first as unknown as Record<string, unknown>);
       } else {
         // No projects — show blank form
-        resetForm();
+        setFormData(EMPTY_FORM);
+        setProfileData(EMPTY_PROFILE);
+        setVerificationHash('');
+        setIsVerified(false);
+        setIsEditing(false);
       }
     } catch {
       setFetchError('Could not load your projects. Please refresh.');
       setProjects([]);
-      resetForm();
+      setFormData(EMPTY_FORM);
+      setProfileData(EMPTY_PROFILE);
+      setVerificationHash('');
+      setIsVerified(false);
     } finally {
       setIsLoadingState(false);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!address) {
@@ -255,13 +281,13 @@ export function AppRegistration() {
     setIsSaving(true);
     try {
       const updates = {
-        app_name: formData.appName,
-        description: formData.description,
-        category: formData.category,
+        app_name:         formData.appName,
+        description:      formData.description,
+        category:         formData.category,
         contract_address: formData.contractAddress,
-        logo_url: profileData.logoUrl,
-        banner_url: profileData.bannerUrl,
-        sample_images: profileData.sampleImages,
+        logo_url:         profileData.logoUrl   || '',
+        banner_url:       profileData.bannerUrl || '',
+        sample_images:    profileData.sampleImages,
       };
 
       const { error } = await supabase
@@ -271,6 +297,7 @@ export function AppRegistration() {
 
       if (error) throw error;
 
+      // Update local projects array
       setProjects(prev =>
         prev.map(p => p.id === activeProjectId ? { ...p, ...updates } : p)
       );
@@ -280,9 +307,11 @@ export function AppRegistration() {
       lsSave(address, { ...existing, ...updates });
 
       setIsEditing(false);
-      toast.success('Profile updated!');
+      toast.success('Profile saved!');
     } catch (err: unknown) {
-      toast.error((err as { message?: string }).message || 'Failed to save');
+      const msg = (err as { message?: string; details?: string }).message || 'Failed to save';
+      const detail = (err as { details?: string }).details || '';
+      toast.error(detail ? `${msg}: ${detail}` : msg);
     } finally {
       setIsSaving(false);
     }
@@ -302,13 +331,15 @@ export function AppRegistration() {
 
   const persistMediaData = async (updatedData: Partial<typeof profileData>) => {
     if (!address || !activeProjectId) return;
+    // Use only the explicitly passed fields — do NOT read profileData from closure
+    const patch: Record<string, unknown> = {};
+    if (updatedData.logoUrl   !== undefined) patch.logo_url       = updatedData.logoUrl;
+    if (updatedData.bannerUrl !== undefined) patch.banner_url     = updatedData.bannerUrl;
+    if (updatedData.sampleImages !== undefined) patch.sample_images = updatedData.sampleImages;
+
     const { error } = await supabase
       .from('registered_apps')
-      .update({
-        logo_url: updatedData.logoUrl ?? profileData.logoUrl,
-        banner_url: updatedData.bannerUrl ?? profileData.bannerUrl,
-        sample_images: updatedData.sampleImages ?? profileData.sampleImages,
-      })
+      .update(patch)
       .eq('id', activeProjectId);
     if (error) throw error;
   };
