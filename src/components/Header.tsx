@@ -253,65 +253,74 @@ export function Header() {
         {/* Brand Logo & Info */}
         <div className="flex items-center gap-3">
           <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileHover={{ scale: 1.08, rotate: 4 }}
             transition={{ type: 'spring', stiffness: 300 }}
-            className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shadow-blue-500/10"
+            className="w-10 h-10 rounded-xl overflow-hidden shadow-lg"
+            style={{ boxShadow: '0 0 18px rgba(245,197,66,0.3)' }}
           >
             <img src="/main-logo.jpg" alt="ArcOmni" className="w-full h-full object-contain p-0.5" />
           </motion.div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-2">
-              ArcOmni <span className="text-xs bg-[rgba(0,242,254,0.05)]0/10 text-[var(--accent-cyan)] px-2 py-0.5 rounded-full font-bold">PRO</span>
+            <h1 className="text-xl font-black tracking-tight flex items-center gap-2" style={{ color: 'var(--accent-gold)' }}>
+              ArcOmni{' '}
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-black" style={{ background: 'rgba(245,197,66,0.12)', color: 'var(--accent-gold)', border: '1px solid rgba(245,197,66,0.3)' }}>
+                PRO
+              </span>
             </h1>
-            <p className="text-xs text-[var(--text-secondary)] hidden md:block font-medium">High-Frequency Premium Token Launchpad</p>
+            <p className="text-xs hidden md:block font-medium" style={{ color: 'var(--text-secondary)' }}>
+              High-Frequency Premium Token Launchpad
+            </p>
           </div>
         </div>
 
-        {/* Action Controls & Connected Profile Details */}
+        {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-3 justify-end w-full md:w-auto">
-          {/* Active Network Status */}
-          <div className="hidden lg:flex items-center gap-2 text-xs text-[var(--text-secondary)] bg-[rgba(6,8,20,0.6)] border border-[var(--border-dim)] px-3 py-1.5 rounded-full font-medium">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+          {/* Network status */}
+          <div className="hidden lg:flex items-center gap-2 text-xs px-3 py-1.5 rounded-full font-medium" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-dim)', color: 'var(--text-secondary)' }}>
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             Arc Testnet Active
           </div>
 
-          {/* Glowing Premium Airdrop Box */}
+          {/* Airdrop points */}
           {isConnected && (
-            <div className="bg-[rgba(0,242,254,0.08)] border border-[var(--border-dim)] rounded-full px-4 py-2 flex items-center gap-2 shadow-sm font-semibold text-xs text-[var(--accent-cyan)] animate-pulse">
-              <Award size={14} className="text-[var(--accent-cyan)]" />
-              <span>Airdrop: <strong className="font-extrabold text-[var(--accent-cyan)]">{points.toFixed(2)}</strong> ARCL</span>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold" style={{ background: 'rgba(245,197,66,0.08)', border: '1px solid rgba(245,197,66,0.2)', color: 'var(--accent-gold)' }}>
+              <Award size={14} style={{ color: 'var(--accent-gold)' }} />
+              <span>Airdrop: <strong className="font-extrabold">{points.toFixed(2)}</strong> ARCL</span>
             </div>
           )}
 
-          {/* Real USDC & EURC Wallet Balances Display */}
+          {/* Balances */}
           {isConnected && (
-            <div className="hidden sm:flex items-center gap-3 bg-[rgba(6,8,20,0.6)] border border-[var(--border-dim)] rounded-full px-4 py-2 font-semibold text-xs text-[var(--text-primary)] shadow-sm">
+            <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-full text-xs font-semibold" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}>
               <div className="flex items-center gap-1">
-                <span>🔵</span>
-                <span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase">USDC:</span>
-                <span className="font-extrabold text-[var(--text-primary)]">{usdcBalance.toFixed(2)}</span>
+                <span style={{ color: 'var(--accent-gold)' }}>◈</span>
+                <span className="text-[10px] font-bold uppercase" style={{ color: 'var(--text-secondary)' }}>USDC:</span>
+                <span className="font-extrabold">{usdcBalance.toFixed(2)}</span>
               </div>
-              <div className="w-[1px] h-3 bg-[var(--border-dim)]" />
+              <div className="w-px h-3" style={{ background: 'var(--border-dim)' }} />
               <div className="flex items-center gap-1">
-                <span>🟣</span>
-                <span className="text-[10px] text-[var(--text-secondary)] font-bold uppercase">EURC:</span>
-                <span className="font-extrabold text-[var(--text-primary)]">{eurcBalance.toFixed(2)}</span>
+                <span style={{ color: 'var(--accent-gold)' }}>◈</span>
+                <span className="text-[10px] font-bold uppercase" style={{ color: 'var(--text-secondary)' }}>EURC:</span>
+                <span className="font-extrabold">{eurcBalance.toFixed(2)}</span>
               </div>
             </div>
           )}
 
-          {/* Social Profile Dropdown */}
+          {/* Profile dropdown */}
           {isConnected && profile && (
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 bg-[rgba(6,8,20,0.6)] border border-[var(--border-dim)] hover:border-[var(--border-glow)] text-[var(--text-primary)] px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold transition-all cursor-pointer"
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
+                style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(245,197,66,0.45)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-dim)')}
               >
-                <div className="w-6 h-6 rounded-full overflow-hidden border border-[var(--border-dim)] bg-[var(--bg-card)]">
+                <div className="w-6 h-6 rounded-full overflow-hidden" style={{ border: '1px solid rgba(245,197,66,0.3)' }}>
                   <img src={profile.avatar} alt="Avatar" className="w-full h-full object-contain p-0.5" />
                 </div>
-                <span className="max-w-[100px] truncate text-[var(--text-primary)]">{profile.name}</span>
-                <ChevronDown size={14} className="text-[var(--text-secondary)]" />
+                <span className="max-w-[100px] truncate">{profile.name}</span>
+                <ChevronDown size={14} style={{ color: 'var(--text-secondary)' }} />
               </button>
 
               <AnimatePresence>
@@ -321,24 +330,25 @@ export function Header() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2.5 w-48 card rounded-2xl shadow-xl py-2 z-50 text-xs font-medium text-[var(--text-primary)]"
+                  className="absolute right-0 mt-2.5 w-48 rounded-2xl shadow-2xl py-2 z-50 text-xs font-medium"
+                  style={{ background: '#0e0c07', border: '1px solid rgba(245,197,66,0.2)', color: 'var(--text-primary)' }}
                 >
                   <button
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      setIsModalOpen(true);
-                    }}
-                    className="w-full px-4 py-2.5 hover:bg-[rgba(0,242,254,0.05)] flex items-center gap-2 text-left cursor-pointer transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsModalOpen(true); }}
+                    className="w-full px-4 py-2.5 flex items-center gap-2 text-left cursor-pointer transition-colors"
+                    style={{ color: 'var(--text-primary)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(245,197,66,0.06)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <Settings size={14} className="text-[var(--text-secondary)]" />
+                    <Settings size={14} style={{ color: 'var(--text-secondary)' }} />
                     Profile Settings
                   </button>
                   <button
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      disconnect();
-                    }}
-                    className="w-full px-4 py-2.5 hover:bg-red-500/10 text-red-400 flex items-center gap-2 text-left cursor-pointer transition-colors border-t border-[var(--border-dim)]"
+                    onClick={() => { setIsDropdownOpen(false); disconnect(); }}
+                    className="w-full px-4 py-2.5 flex items-center gap-2 text-left cursor-pointer transition-colors text-red-400"
+                    style={{ borderTop: '1px solid rgba(245,197,66,0.1)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.06)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     <LogOut size={14} />
                     Disconnect Wallet
@@ -354,7 +364,7 @@ export function Header() {
         </div>
       </motion.header>
 
-      {/* Persistent Social Profile Settings Modal (Radius Glassmorphism) */}
+      {/* Profile Settings Modal */}
       <AnimatePresence>
       {isModalOpen && (
         <motion.div
@@ -362,62 +372,58 @@ export function Header() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="w-full max-w-lg stat-box p-8 space-y-6 relative border border-[var(--border-glow)]"
+            className="w-full max-w-lg stat-box p-8 space-y-6 relative"
+            style={{ border: '1px solid rgba(245,197,66,0.35)' }}
           >
-            {/* Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] p-2 rounded-full hover:bg-[rgba(0,242,254,0.05)] transition-colors cursor-pointer"
-            >
-              ✕
-            </button>
+              className="absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer"
+              style={{ color: 'var(--text-secondary)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-gold)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(245,197,66,0.08)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            >✕</button>
 
             <div className="text-center space-y-1">
-              <h2 className="text-2xl font-extrabold text-[var(--text-primary)] flex items-center justify-center gap-2">
-                <User className="text-[var(--accent-cyan)]" />
+              <h2 className="text-2xl font-extrabold flex items-center justify-center gap-2" style={{ color: 'var(--accent-gold)' }}>
+                <User style={{ color: 'var(--accent-gold)' }} />
                 Profile Settings
               </h2>
-              <p className="text-xs text-[var(--text-secondary)]">Customize your ArcOmni identity. Saved securely on Supabase.</p>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                Customize your ArcOmni identity. Saved securely on Supabase.
+              </p>
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-5">
-              {/* Profile Name */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Username</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Frianowzki"
-                  required
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  className="w-full p-3.5 cyber-input focus:outline-none focus:ring-4 focus:ring-[rgba(0,242,254,0.1)] focus:border-[var(--accent-cyan)] transition-all font-semibold"
-                />
+                <label className="block text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Username</label>
+                <input type="text" placeholder="e.g. Frianowzki" required value={formName} onChange={e => setFormName(e.target.value)} className="cyber-input w-full" />
               </div>
 
-              {/* Avatar Chooser */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Select Premium Avatar</label>
+                <label className="block text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Select Premium Avatar</label>
                 <div className="grid grid-cols-6 gap-2">
                   {PRESET_AVATARS.map((av, idx) => (
                     <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setFormAvatar(av.url)}
-                      className={`relative aspect-square rounded-2xl overflow-hidden border-2 bg-[rgba(6,8,20,0.5)] p-1 transition-all hover:scale-105 cursor-pointer ${
-                        formAvatar === av.url ? 'border-[var(--accent-cyan)] shadow-md shadow-[rgba(0,242,254,0.2)]' : 'border-[var(--border-dim)]'
-                      }`}
+                      key={idx} type="button" onClick={() => setFormAvatar(av.url)}
+                      className="relative aspect-square rounded-2xl overflow-hidden p-1 transition-all hover:scale-105 cursor-pointer"
+                      style={{
+                        background: 'rgba(0,0,0,0.4)',
+                        border: formAvatar === av.url ? '2px solid var(--accent-gold)' : '2px solid var(--border-dim)',
+                        boxShadow: formAvatar === av.url ? '0 0 12px rgba(245,197,66,0.3)' : 'none',
+                      }}
                     >
                       <img src={av.url} alt={av.name} className="w-full h-full object-contain p-0.5" />
                       {formAvatar === av.url && (
-                        <div className="absolute inset-0 bg-[rgba(0,242,254,0.1)] flex items-center justify-center">
-                          <div className="bg-[var(--accent-cyan)] text-[#060814] rounded-full p-0.5">
+                        <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(245,197,66,0.1)' }}>
+                          <div className="rounded-full p-0.5" style={{ background: 'var(--accent-gold)', color: '#08080f' }}>
                             <Check size={8} strokeWidth={4} />
                           </div>
                         </div>
@@ -425,85 +431,55 @@ export function Header() {
                     </button>
                   ))}
                 </div>
-                
-                {/* Upload custom picture */}
+
                 <div className="space-y-1.5 mt-3">
-                  <span className="text-[10px] text-[var(--text-secondary)] font-black block uppercase tracking-wider">Or upload custom profile picture</span>
-                  <label className="w-full flex flex-col items-center justify-center py-4 bg-[rgba(6,8,20,0.5)] border border-dashed border-[var(--border-dim)] rounded-2xl cursor-pointer hover:bg-[rgba(0,242,254,0.03)] hover:border-[var(--accent-cyan)] transition-all">
-                    <svg className="w-6 h-6 text-[var(--text-secondary)] mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    <span className="text-[10px] font-bold text-[var(--text-secondary)]">
+                  <span className="text-[10px] font-black block uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Or upload custom profile picture</span>
+                  <label
+                    className="w-full flex flex-col items-center justify-center py-4 cursor-pointer transition-all rounded-2xl"
+                    style={{ background: 'rgba(0,0,0,0.35)', border: '1px dashed var(--border-dim)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = 'rgba(245,197,66,0.4)'; (e.currentTarget as HTMLLabelElement).style.background = 'rgba(245,197,66,0.04)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = 'var(--border-dim)'; (e.currentTarget as HTMLLabelElement).style.background = 'rgba(0,0,0,0.35)'; }}
+                  >
+                    <svg className="w-6 h-6 mb-1" style={{ color: 'var(--text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-[10px] font-bold" style={{ color: 'var(--text-secondary)' }}>
                       {formAvatar.startsWith('data:image') ? '✓ Photo Selected' : 'Upload Image (Max 200KB)'}
                     </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.size > 200 * 1024) {
-                            toast.error("Image is too large! Please upload a photo under 200KB.");
-                            return;
-                          }
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setFormAvatar(reader.result as string);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="hidden"
-                    />
+                    <input type="file" accept="image/*" onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 200 * 1024) { toast.error('Image too large! Max 200KB.'); return; }
+                        const reader = new FileReader();
+                        reader.onloadend = () => setFormAvatar(reader.result as string);
+                        reader.readAsDataURL(file);
+                      }
+                    }} className="hidden" />
                   </label>
                 </div>
               </div>
 
-              {/* Social Channels */}
               <div className="grid grid-cols-2 gap-4">
-                {/* Twitter */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" className="text-[#1DA1F2]"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  <label className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style={{ color: '#1DA1F2' }}>
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
                     X / Twitter
                   </label>
-                  <input
-                    type="text"
-                    placeholder="@Frianowzki"
-                    value={formTwitter}
-                    onChange={(e) => setFormTwitter(e.target.value)}
-                    className="w-full p-3 cyber-input focus:outline-none focus:ring-4 focus:ring-[rgba(0,242,254,0.1)] focus:border-[var(--accent-cyan)] transition-all font-medium text-xs"
-                  />
+                  <input type="text" placeholder="@Frianowzki" value={formTwitter} onChange={e => setFormTwitter(e.target.value)} className="cyber-input w-full text-xs" />
                 </div>
-
-                {/* Discord */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
-                    <MessageSquare size={12} className="text-[#5865F2]" />
+                  <label className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    <MessageSquare size={12} style={{ color: '#5865F2' }} />
                     Discord
                   </label>
-                  <input
-                    type="text"
-                    placeholder="frianowzki#1234"
-                    value={formDiscord}
-                    onChange={(e) => setFormDiscord(e.target.value)}
-                    className="w-full p-3 cyber-input focus:outline-none focus:ring-4 focus:ring-[rgba(0,242,254,0.1)] focus:border-[var(--accent-cyan)] transition-all font-medium text-xs"
-                  />
+                  <input type="text" placeholder="frianowzki#1234" value={formDiscord} onChange={e => setFormDiscord(e.target.value)} className="cyber-input w-full text-xs" />
                 </div>
               </div>
 
-              {/* Save Button */}
-              <button
-                type="submit"
-                disabled={saving}
-                className="deploy-btn w-full py-4 text-sm disabled:opacity-50 cursor-pointer mt-6"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    Saving Identity...
-                  </>
-                ) : (
-                  'Save Profile'
-                )}
+              <button type="submit" disabled={saving} className="deploy-btn w-full py-4 text-sm disabled:opacity-50 cursor-pointer mt-6">
+                {saving ? <><Loader2 size={16} className="animate-spin" /> Saving Identity...</> : 'Save Profile'}
               </button>
             </form>
           </motion.div>
