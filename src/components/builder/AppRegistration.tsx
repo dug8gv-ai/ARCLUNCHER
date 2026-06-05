@@ -372,7 +372,7 @@ export function AppRegistration() {
         )}
       </div>
 
-      {/* Project selector */}
+      {/* Project selector — only show if 2+ projects */}
       {projects.length >= 2 && (
         <div className="mb-4 relative">
           <button onClick={() => setSelectorOpen(v => !v)} className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.2)', color: '#e2e8f0' }}>

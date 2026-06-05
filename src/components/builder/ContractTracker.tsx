@@ -130,10 +130,33 @@ export function ContractTracker() {
             }
           }
 
+          // Volume: sum native value first. For ERC20/DeFi contracts with value=0, use token_swaps table
+          let volumeDisplay: string;
+          const nativeVolume = parseFloat(formatEther(volumeWei));
+          if (nativeVolume > 0) {
+            volumeDisplay = nativeVolume.toFixed(4) + ' ARC';
+          } else {
+            // Try token_swaps table (platform token trades)
+            try {
+              const { data: swapRows } = await supabase
+                .from('token_swaps')
+                .select('usdc_amount')
+                .eq('token_address', app.contract_address.toLowerCase());
+              const totalUsdc = (swapRows ?? []).reduce(
+                (acc: number, r: { usdc_amount: string | number }) => acc + Number(r.usdc_amount), 0
+              );
+              volumeDisplay = totalUsdc > 0
+                ? totalUsdc.toFixed(2) + ' USDC'
+                : '0.0000 ARC';
+            } catch {
+              volumeDisplay = '0.0000 ARC';
+            }
+          }
+
           const record: StatsRecord = {
             txs,
             uniqueWallets: fromAddresses.size,
-            volume: formatEther(volumeWei),
+            volume: volumeDisplay,
             lastUpdated: new Date().toLocaleTimeString(),
             sampled,
             warning: false,
@@ -248,7 +271,11 @@ export function ContractTracker() {
               <div className="flex flex-wrap gap-3">
                 <StatCard icon={<Activity size={14} />} label="Recent Txs" value={s?.txs ?? 0} />
                 <StatCard icon={<Users size={14} />} label="Active Wallets" value={s?.uniqueWallets ?? 0} />
-                <StatCard icon={<Zap size={14} />} label="Volume" value={`${parseFloat(s?.volume ?? '0').toFixed(4)} ARC`} />
+                <StatCard icon={<Zap size={14} />} label="Volume" value={
+                  s?.volume
+                    ? (s.volume.includes('USDC') ? s.volume : `${parseFloat(s.volume).toFixed(4)} ARC`)
+                    : '0.0000 ARC'
+                } />
               </div>
             </div>
           );
