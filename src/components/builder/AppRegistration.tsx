@@ -127,12 +127,16 @@ export function AppRegistration() {
         lsSave(address, mergedList);
 
         if (mergedList.length > 0) {
-          // If we already have an activeId and it exists in the new list, keep it.
-          // Only fall back to first if no active project exists.
+          // Priority: pick verified project first, then fall back to capturedActiveId, then first
+          const verifiedProject = mergedList.find(p => p.is_verified);
           const currentActiveId = capturedActiveId;
-          const keepProject = currentActiveId
-            ? (mergedList.find(p => p.id === currentActiveId) ?? mergedList[0])
-            : mergedList[0];
+          const keepProject = 
+            // If there's a currently active project in the list, keep it
+            (currentActiveId && mergedList.find(p => p.id === currentActiveId)) ||
+            // Otherwise prefer any verified project
+            verifiedProject ||
+            // Last resort: first project
+            mergedList[0];
           setActiveId(keepProject.id);
           setForm(toForm(keepProject));
         } else {
@@ -322,7 +326,7 @@ export function AppRegistration() {
         )}
       </div>
 
-      {/* Project selector — only for 2+ projects */}
+      {/* Project selector — only for 2+ projects, prioritize verified ones */}
       {projects.length >= 2 && (
         <div className="mb-4 relative">
           <button onClick={() => setSelectorOpen(v => !v)}
