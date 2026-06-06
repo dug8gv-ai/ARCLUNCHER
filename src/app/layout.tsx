@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "@/components/Web3Provider";
 import { Toaster } from "react-hot-toast";
+import { WelcomeSplash } from "@/components/WelcomeSplash";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,10 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} antialiased`}
-      >
+      <body className={`${inter.variable} antialiased`}>
         <Web3Provider>
+          <WelcomeSplash />
           <Toaster position="top-center" />
           {children}
         </Web3Provider>

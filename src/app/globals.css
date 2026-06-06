@@ -419,3 +419,57 @@ table tr:hover td { background: rgba(59,130,246,0.03); }
   border: 1px solid rgba(203,213,225,0.6);
   backdrop-filter: blur(16px);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   HARDCODED DARK BACKGROUND OVERRIDES
+   Neutralize rgba(6,8,20,x) and similar dark values used inline
+   across Leaderboard, TradingPanel, etc.
+════════════════════════════════════════════════════════════════ */
+
+/* Leaderboard token/earner rows — was dark, now light glass */
+[class*="bg-[rgba(6,8,20"],
+[class*="bg-[rgba(13,17,39"],
+[class*="bg-[rgba(6,8,20"] {
+  background: rgba(255,255,255,0.7) !important;
+  border-color: rgba(59,130,246,0.12) !important;
+}
+
+/* Leaderboard header gradient — was dark cyan, now light blue */
+[style*="rgba(0, 242, 254"] {
+  background: linear-gradient(90deg, rgba(59,130,246,0.08) 0%, rgba(59,130,246,0.03) 50%, transparent 100%) !important;
+}
+
+/* Any element with explicit dark bg-[#...] overrides */
+.bg-\[\#060814\], .bg-\[\#090a12\], .bg-\[\#0d0e1c\], .bg-\[\#0f1021\], .bg-\[\#08080f\], .bg-\[\#0a0a0f\] {
+  background-color: rgba(255,255,255,0.75) !important;
+}
+
+/* Dark inline bg on hover states */
+[class*="hover:bg-[rgba(13,17"]:hover {
+  background: rgba(59,130,246,0.05) !important;
+}
+
+/* Check-in stats badge in leaderboard earners */
+[class*="bg-[rgba(6,8,20,0.5)] border"] {
+  background: rgba(241,245,249,0.9) !important;
+  border-color: rgba(203,213,225,0.6) !important;
+}
+
+/* Text that was light-on-dark, now keep dark-on-light */
+[class*="text-slate-300"] { color: #475569 !important; }
+[class*="text-slate-400"] { color: #64748b !important; }
+[class*="text-slate-500"] { color: #64748b !important; }
+
+/* Dark modal backdrops — keep blur, lighten bg */
+.bg-slate-900\/20 { background: rgba(15,23,42,0.08) !important; }
+.bg-black\/60    { background: rgba(15,23,42,0.15) !important; }
+
+/* Leaderboard inner "card" row used in earners check-in block */
+.bg-\[rgba\(6\2c 8\2c 20\2c 0\.5\)\] {
+  background: rgba(248,250,252,0.9) !important;
+}
+
+/* Premium alert modal inner dark detail box */
+.bg-\[rgba\(6\2c 8\2c 20\2c 0\.5\)\].border {
+  background: rgba(241,245,249,0.95) !important;
+}
