@@ -1,10 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useArcUX } from '@/context/ArcGlobalUXContext';
-import { ArcLayoutSwitcher } from '@/components/ArcLayoutSwitcher';
-import { ArcNewLayout } from '@/components/ArcNewLayout';
-import { NewLayoutViewContent } from '@/components/NewLayoutViewContent';
 import { Header } from '@/components/Header';
 import { NetworkGuard } from '@/components/NetworkGuard';
 import { DashboardStats } from '@/components/DashboardStats';
@@ -42,8 +38,6 @@ export default function Home() {
   const publicClient = usePublicClient();
   const { sendTransactionAsync } = useSendTransaction();
   const { writeContractAsync } = useWriteContract();
-  const { currentLayout } = useArcUX();
-  const [profileAvatar, setProfileAvatar] = useState<string>('');
   
   // Premium Alert State
   const [premiumAlert, setPremiumAlert] = useState<{
@@ -777,15 +771,15 @@ export default function Home() {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('name, avatar')
+            .select('name')
             .eq('wallet', userAddress.toLowerCase())
             .single();
           if (data && !error) {
             setProfileName(data.name || 'Trader');
-            setProfileAvatar(data.avatar || '');
           } else {
             setProfileName('Trader');
-          }        } catch (e) {
+          }
+        } catch (e) {
           setProfileName('Trader');
         }
       };
@@ -854,54 +848,6 @@ export default function Home() {
   };
 
   return (
-    <>
-      {/* ── Global Layout + Theme Switcher bar (always visible at top) ── */}
-      <ArcLayoutSwitcher />
-
-      {currentLayout === 'new_layout' ? (
-        /* ════ NEW LAYOUT: 3-column glassmorphism shell ════ */
-        <div style={{ paddingTop: '41px' }}>
-          <ArcNewLayout
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-            profileName={profileName}
-            profileAvatar={profileAvatar}
-            usdcBalance={usdcWalletBalance}
-          >
-            {/* Header stays inside new layout center column */}
-            <div className="p-4 border-b" style={{ borderColor: 'rgba(245,197,66,0.1)' }}>
-              <Header />
-              <NetworkGuard />
-            </div>
-
-            {/* View content injected into center column */}
-            <div className="p-4">
-              {/* Shared view renderer — mirrors original layout views */}
-              <NewLayoutViewContent
-                currentView={currentView}
-                selectedToken={selectedToken}
-                handleSelectToken={handleSelectToken}
-                isConnected={isConnected}
-                userAddress={userAddress}
-                profileName={profileName}
-                checkinLoading={checkinLoading}
-                checkinStats={checkinStats}
-                handleDailyCheckin={handleDailyCheckin}
-                usdcWalletBalance={usdcWalletBalance}
-                eurcWalletBalance={eurcWalletBalance}
-                cirbtcWalletBalance={cirbtcWalletBalance}
-                totalLockedUSD={totalLockedUSD}
-                lockedUSDC={lockedUSDC}
-                lockedEURC={lockedEURC}
-                isLockerOpen={isLockerOpen}
-                setIsLockerOpen={setIsLockerOpen}
-              />
-            </div>
-          </ArcNewLayout>
-        </div>
-      ) : (
-        /* ════ ORIGINAL LAYOUT: untouched legacy structure ════ */
-        <div style={{ paddingTop: '41px' }}>
     <div className="min-h-screen flex antialiased selection:bg-blue-900 selection:text-white">
       
       {/* 1. Desktop Sidebar Navigation (Luxury White & Calm Blue layout) */}
@@ -1837,8 +1783,8 @@ export default function Home() {
           </div>
         </div>
       )}
-      </div>
-      </div>
+          </div>
+        </div>
       )}
 
       {/* Premium Styled Dialog Alert Overlay */}
@@ -1892,8 +1838,5 @@ export default function Home() {
         </div>
       )}
     </div>
-    </div>
-    )}
-    </>
   );
 }
