@@ -259,7 +259,7 @@ export function ContractTracker() {
         {appList.map(app => {
           const s = statsMap[app.id];
           return (
-            <div key={app.id} className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(245,197,66,0.1)' }}>
+            <div key={app.id} className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(203,213,225,0.7)' }}>
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -275,17 +275,17 @@ export function ContractTracker() {
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] font-mono mt-0.5 truncate max-w-xs" style={{ color: 'rgba(245,197,66,0.4)' }}>
+                  <p className="text-[11px] font-mono mt-0.5 truncate max-w-xs" style={{ color: '#64748b' }}>
                     {app.contract_address}
                   </p>
                 </div>
                 {s?.lastUpdated && !offNetwork && (
-                  <div className="flex items-center gap-1 text-[10px] flex-shrink-0" style={{ color: 'rgba(245,197,66,0.4)' }}>
+                  <div className="flex items-center gap-1 text-[10px] flex-shrink-0" style={{ color: '#64748b' }}>
                     <Clock size={10} /> {s.lastUpdated}
                   </div>
                 )}
                 {offNetwork && (
-                  <span className="text-[10px] px-2 py-0.5 rounded flex-shrink-0" style={{ background: 'rgba(245,197,66,0.08)', color: 'rgba(245,197,66,0.6)' }}>
+                  <span className="text-[10px] px-2 py-0.5 rounded flex-shrink-0" style={{ background: 'rgba(59,130,246,0.08)', color: '#64748b' }}>
                     cached
                   </span>
                 )}
@@ -313,10 +313,10 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; value: string
   return (
     <div
       className="flex-1 text-center p-3 rounded-xl"
-      style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.1)', minWidth: '90px' }}
+      style={{ background: '#f8fafc', border: '1px solid rgba(203,213,225,0.7)', minWidth: '90px' }}
     >
       <div className="flex justify-center mb-1" style={{ color: 'var(--bd-accent-gold)' }}>{icon}</div>
-      <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(245,197,66,0.5)' }}>{label}</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#64748b' }}>{label}</div>
       <div className="text-lg font-black stat-value">{value}</div>
     </div>
   );

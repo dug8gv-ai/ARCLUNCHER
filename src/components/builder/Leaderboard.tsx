@@ -46,12 +46,12 @@ function saveCache(addr: string, s: StatsRecord) {
 // Medal component
 function RankBadge({ index }: { index: number }) {
   if (index === 0) return (
-    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black" style={{ background: 'linear-gradient(135deg,#f5c542,#d4940c)', color: '#08080f', boxShadow: '0 0 12px rgba(245,197,66,0.5)' }}>
+    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', color: '#08080f', boxShadow: '0 2px 6px rgba(59,130,246,0.15)' }}>
       1
     </div>
   );
   if (index === 1) return (
-    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black" style={{ background: 'linear-gradient(135deg,#c0c0c0,#8a8a8a)', color: '#08080f', boxShadow: '0 0 8px rgba(192,192,192,0.4)' }}>
+    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black" style={{ background: 'linear-gradient(135deg,#c0c0c0,#8a8a8a)', color: '#08080f', boxShadow: '0 2px 4px rgba(148,163,184,0.2)' }}>
       2
     </div>
   );
@@ -61,7 +61,7 @@ function RankBadge({ index }: { index: number }) {
     </div>
   );
   return (
-    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: 'rgba(245,197,66,0.08)', color: 'rgba(245,197,66,0.6)', border: '1px solid rgba(245,197,66,0.15)' }}>
+    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: 'rgba(59,130,246,0.08)', color: 'rgba(59,130,246,0.6)', border: '1px solid rgba(203,213,225,0.7)' }}>
       {index + 1}
     </div>
   );
@@ -221,7 +221,7 @@ export function Leaderboard() {
 
       <div className="space-y-3">
         {apps.length === 0 ? (
-          <p className="text-center py-8 text-sm" style={{ color: 'rgba(245,197,66,0.4)' }}>
+          <p className="text-center py-8 text-sm" style={{ color: '#94a3b8' }}>
             No verified applications yet. Be the first!
           </p>
         ) : (
@@ -234,9 +234,9 @@ export function Leaderboard() {
                 key={app.id}
                 className="rounded-xl overflow-hidden transition-all"
                 style={{
-                  background: 'rgba(0,0,0,0.3)',
-                  border: `1px solid ${isExpanded ? 'rgba(245,197,66,0.4)' : 'rgba(245,197,66,0.1)'}`,
-                  boxShadow: isExpanded ? '0 0 20px rgba(245,197,66,0.1)' : 'none',
+                  background: '#ffffff',
+                  border: '1px solid rgba(226,232,240,0.8)',
+                  boxShadow: isExpanded ? 'none' : 'none',
                 }}
               >
                 {/* ── Main row ── */}
@@ -250,7 +250,7 @@ export function Leaderboard() {
                   {/* Logo */}
                   <div
                     className="w-10 h-10 flex-shrink-0 rounded-xl overflow-hidden flex items-center justify-center text-sm font-black"
-                    style={{ background: 'rgba(245,197,66,0.1)', border: '1px solid rgba(245,197,66,0.25)', color: 'var(--bd-accent-gold)' }}
+                    style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(203,213,225,0.7)', color: 'var(--bd-accent-gold)' }}
                   >
                     {app.logo_url
                       ? <img src={app.logo_url} className="w-full h-full object-cover" alt={app.app_name} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -265,7 +265,7 @@ export function Leaderboard() {
                     </h3>
                     <div className="flex items-center gap-2 mt-0.5">
                       {app.category && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(245,197,66,0.08)', color: 'rgba(245,197,66,0.6)' }}>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(59,130,246,0.08)', color: '#64748b' }}>
                           {app.category}
                         </span>
                       )}
@@ -276,7 +276,7 @@ export function Leaderboard() {
                   {/* Stats mini preview */}
                   <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
                     <div className="text-center">
-                      <div className="text-[9px] font-bold uppercase" style={{ color: 'rgba(245,197,66,0.4)' }}>Vol</div>
+                      <div className="text-[9px] font-bold uppercase" style={{ color: '#94a3b8' }}>Vol</div>
                       <div className="text-xs font-black stat-value">
                         {(() => {
                           const vol = s?.volume ?? '0';
@@ -286,7 +286,7 @@ export function Leaderboard() {
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-[9px] font-bold uppercase" style={{ color: 'rgba(245,197,66,0.4)' }}>Txs</div>
+                      <div className="text-[9px] font-bold uppercase" style={{ color: '#94a3b8' }}>Txs</div>
                       <div className="text-xs font-black stat-value">{s?.txs ?? 0}</div>
                     </div>
                   </div>
@@ -304,7 +304,7 @@ export function Leaderboard() {
 
                   {isExpanded
                     ? <ChevronUp size={14} style={{ color: 'var(--bd-accent-gold)', flexShrink: 0 }} />
-                    : <ChevronDown size={14} style={{ color: 'rgba(245,197,66,0.4)', flexShrink: 0 }} />
+                    : <ChevronDown size={14} style={{ color: '#94a3b8', flexShrink: 0 }} />
                   }
                 </div>
 
@@ -322,7 +322,7 @@ export function Leaderboard() {
                     <div className="p-5 space-y-4">
                       {/* Logo large + app name */}
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden flex items-center justify-center text-2xl font-black" style={{ background: 'rgba(245,197,66,0.1)', border: '2px solid rgba(245,197,66,0.3)', color: 'var(--bd-accent-gold)' }}>
+                        <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden flex items-center justify-center text-2xl font-black" style={{ background: 'rgba(59,130,246,0.1)', border: '2px solid rgba(203,213,225,0.7)', color: 'var(--bd-accent-gold)' }}>
                           {app.logo_url
                             ? <img src={app.logo_url} className="w-full h-full object-cover" alt={app.app_name} />
                             : (app.app_name?.[0]?.toUpperCase() || '?')
@@ -336,14 +336,14 @@ export function Leaderboard() {
 
                       {/* Stat cards — Rank, Volume, Wallets/Txs */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.12)' }}>
-                          <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: 'rgba(245,197,66,0.4)' }}>Rank</div>
+                        <div className="rounded-xl p-3 text-center" style={{ background: '#f8fafc', border: '1px solid rgba(226,232,240,0.7)' }}>
+                          <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>Rank</div>
                           <div className="text-2xl font-black stat-value">#{index + 1}</div>
                         </div>
-                        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.12)' }}>
+                        <div className="rounded-xl p-3 text-center" style={{ background: '#f8fafc', border: '1px solid rgba(226,232,240,0.7)' }}>
                           <div className="flex items-center justify-center gap-1 mb-1">
-                            <Zap size={10} style={{ color: 'rgba(245,197,66,0.4)' }} />
-                            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'rgba(245,197,66,0.4)' }}>Live Volume</span>
+                            <Zap size={10} style={{ color: '#94a3b8' }} />
+                            <span className="text-[10px] uppercase tracking-widest" style={{ color: '#94a3b8' }}>Live Volume</span>
                           </div>
                           <div className="text-2xl font-black stat-value">
                             {(() => {
@@ -353,12 +353,12 @@ export function Leaderboard() {
                             })()}
                           </div>
                         </div>
-                        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.12)' }}>
+                        <div className="rounded-xl p-3 text-center" style={{ background: '#f8fafc', border: '1px solid rgba(226,232,240,0.7)' }}>
                           <div className="flex items-center justify-center gap-2 mb-1">
-                            <Users size={10} style={{ color: 'rgba(245,197,66,0.4)' }} />
-                            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'rgba(245,197,66,0.4)' }}>Wallets</span>
-                            <Activity size={10} style={{ color: 'rgba(245,197,66,0.4)' }} />
-                            <span className="text-[10px] uppercase tracking-widest" style={{ color: 'rgba(245,197,66,0.4)' }}>Txs</span>
+                            <Users size={10} style={{ color: '#94a3b8' }} />
+                            <span className="text-[10px] uppercase tracking-widest" style={{ color: '#94a3b8' }}>Wallets</span>
+                            <Activity size={10} style={{ color: '#94a3b8' }} />
+                            <span className="text-[10px] uppercase tracking-widest" style={{ color: '#94a3b8' }}>Txs</span>
                           </div>
                           <div className="text-2xl font-black stat-value">{s?.uniqueWallets ?? 0} / {s?.txs ?? 0}</div>
                         </div>
@@ -376,7 +376,7 @@ export function Leaderboard() {
                             <Zap size={11} /> {app.contract_address.slice(0,8)}…{app.contract_address.slice(-6)}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: 'rgba(245,197,66,0.06)', color: 'rgba(245,197,66,0.4)', border: '1px solid rgba(245,197,66,0.1)' }}>
+                          <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: 'rgba(203,213,225,0.1)', color: '#64748b', border: '1px solid rgba(203,213,225,0.7)' }}>
                             <AlertTriangle size={11} /> No contract configured
                           </span>
                         )}
@@ -385,7 +385,7 @@ export function Leaderboard() {
                       {/* Screenshot gallery */}
                       {app.sample_images && app.sample_images.length > 0 && (
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(245,197,66,0.4)' }}>Screenshots</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: '#94a3b8' }}>Screenshots</p>
                           <div className="bd-img-scroll">
                             {app.sample_images.map((url, i) => (
                               <img key={i} src={url} className="h-28 flex-shrink-0 rounded-xl object-cover hover:scale-105 transition-transform cursor-pointer" style={{ border: '1px solid rgba(245,197,66,0.15)' }} alt={`S${i+1}`} />

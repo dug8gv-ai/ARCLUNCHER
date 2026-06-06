@@ -276,7 +276,7 @@ export function Header() {
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-3 justify-end w-full md:w-auto">
           {/* Network status */}
-          <div className="hidden lg:flex items-center gap-2 text-xs px-3 py-1.5 rounded-full font-medium" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-dim)', color: 'var(--text-secondary)' }}>
+          <div className="hidden lg:flex items-center gap-2 text-xs px-3 py-1.5 rounded-full font-medium" style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid var(--border-dim)', color: 'var(--text-secondary)' }}>
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             Arc Testnet Active
           </div>
@@ -291,7 +291,7 @@ export function Header() {
 
           {/* Balances */}
           {isConnected && (
-            <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-full text-xs font-semibold" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}>
+            <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-full text-xs font-semibold" style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}>
               <div className="flex items-center gap-1">
                 <span style={{ color: 'var(--accent-gold)' }}>◈</span>
                 <span className="text-[10px] font-bold uppercase" style={{ color: 'var(--text-secondary)' }}>USDC:</span>
@@ -312,7 +312,7 @@ export function Header() {
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
-                style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}
+                style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}
                 onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(245,197,66,0.45)')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-dim)')}
               >
@@ -331,7 +331,7 @@ export function Header() {
                   exit={{ opacity: 0, y: -8, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
                   className="absolute right-0 mt-2.5 w-48 rounded-2xl shadow-2xl py-2 z-50 text-xs font-medium"
-                  style={{ background: '#0e0c07', border: '1px solid rgba(245,197,66,0.2)', color: 'var(--text-primary)' }}
+                  style={{ background: '#f8fafc', border: '1px solid rgba(203,213,225,0.7)', color: 'var(--text-primary)' }}
                 >
                   <button
                     onClick={() => { setIsDropdownOpen(false); setIsModalOpen(true); }}
@@ -373,7 +373,7 @@ export function Header() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+          style={{ background: 'rgba(241,245,249,0.9)', backdropFilter: 'blur(6px)' }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -381,7 +381,7 @@ export function Header() {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="w-full max-w-lg stat-box p-8 space-y-6 relative"
-            style={{ border: '1px solid rgba(245,197,66,0.35)' }}
+            style={{ border: '1px solid rgba(203,213,225,0.7)' }}
           >
             <button
               onClick={() => setIsModalOpen(false)}
@@ -415,14 +415,14 @@ export function Header() {
                       key={idx} type="button" onClick={() => setFormAvatar(av.url)}
                       className="relative aspect-square rounded-2xl overflow-hidden p-1 transition-all hover:scale-105 cursor-pointer"
                       style={{
-                        background: 'rgba(0,0,0,0.4)',
+                        background: 'rgba(248,250,252,0.95)',
                         border: formAvatar === av.url ? '2px solid var(--accent-gold)' : '2px solid var(--border-dim)',
-                        boxShadow: formAvatar === av.url ? '0 0 12px rgba(245,197,66,0.3)' : 'none',
+                        boxShadow: formAvatar === av.url ? '0 2px 6px rgba(59,130,246,0.15)' : 'none',
                       }}
                     >
                       <img src={av.url} alt={av.name} className="w-full h-full object-contain p-0.5" />
                       {formAvatar === av.url && (
-                        <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(245,197,66,0.1)' }}>
+                        <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.1)' }}>
                           <div className="rounded-full p-0.5" style={{ background: 'var(--accent-gold)', color: '#08080f' }}>
                             <Check size={8} strokeWidth={4} />
                           </div>
@@ -436,9 +436,9 @@ export function Header() {
                   <span className="text-[10px] font-black block uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Or upload custom profile picture</span>
                   <label
                     className="w-full flex flex-col items-center justify-center py-4 cursor-pointer transition-all rounded-2xl"
-                    style={{ background: 'rgba(0,0,0,0.35)', border: '1px dashed var(--border-dim)' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = 'rgba(245,197,66,0.4)'; (e.currentTarget as HTMLLabelElement).style.background = 'rgba(245,197,66,0.04)'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = 'var(--border-dim)'; (e.currentTarget as HTMLLabelElement).style.background = 'rgba(0,0,0,0.35)'; }}
+                    style={{ background: 'rgba(248,250,252,0.95)', border: '1px dashed var(--border-dim)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = 'rgba(203,213,225,0.7)'; (e.currentTarget as HTMLLabelElement).style.background = 'rgba(59,130,246,0.04)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLLabelElement).style.borderColor = 'var(--border-dim)'; (e.currentTarget as HTMLLabelElement).style.background = 'rgba(248,250,252,0.95)'; }}
                   >
                     <svg className="w-6 h-6 mb-1" style={{ color: 'var(--text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />

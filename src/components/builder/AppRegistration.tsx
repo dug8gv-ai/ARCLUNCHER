@@ -415,7 +415,7 @@ export function AppRegistration() {
           <button
             onClick={() => setSelectorOpen(v => !v)}
             className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold"
-            style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.2)', color: '#e2e8f0' }}
+            style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(203,213,225,0.7)', color: '#1e293b' }}
           >
             <span className="truncate">{activeProject?.app_name ?? 'Select project…'}</span>
             <ChevronDown size={14} className="flex-shrink-0 ml-2" style={{ color: 'var(--bd-accent-gold)' }} />
@@ -423,14 +423,14 @@ export function AppRegistration() {
           {selectorOpen && (
             <div
               className="absolute z-20 left-0 right-0 mt-1 rounded-xl overflow-hidden shadow-2xl"
-              style={{ background: '#0f0f1a', border: '1px solid rgba(245,197,66,0.2)' }}
+              style={{ background: '#f8fafc', border: '1px solid rgba(203,213,225,0.7)' }}
             >
               {projects.map(p => (
                 <button
                   key={p.id}
                   onClick={() => switchProject(p.id)}
                   className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-white/5"
-                  style={{ color: p.id === activeId ? 'var(--bd-accent-gold)' : '#e2e8f0' }}
+                  style={{ color: p.id === activeId ? 'var(--bd-accent-gold)' : '#1e293b' }}
                 >
                   {p.is_verified && <CheckCircle size={12} style={{ color: 'var(--bd-accent-gold)' }} />}
                   <span className="truncate">{p.app_name}</span>
@@ -509,7 +509,7 @@ export function AppRegistration() {
             }
             <div className="absolute -bottom-6 left-5">
               <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg"
-                style={{ background: '#0a0a0f', border: '2px solid rgba(245,197,66,0.4)' }}>
+                style={{ background: '#f8fafc', border: '2px solid rgba(245,197,66,0.4)' }}>
                 {form.logoUrl
                   ? <img src={form.logoUrl} className="w-full h-full object-cover" alt="Logo" />
                   : <div className="w-full h-full flex items-center justify-center text-base font-black" style={{ color: 'var(--bd-accent-gold)' }}>
@@ -541,7 +541,7 @@ export function AppRegistration() {
           {/* Screenshots (view-only) */}
           {!isEditing && form.sampleImages.length > 0 && (
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(245,197,66,0.5)' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: '#94a3b8' }}>
                 Sample Screenshots
               </p>
               <div className="bd-img-scroll">
@@ -556,7 +556,7 @@ export function AppRegistration() {
           {/* Edit form — shown when isEditing toggled from header button */}
           {isEditing && (
             <div className="space-y-4 p-4 rounded-2xl animate-in fade-in duration-150"
-              style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.15)' }}>
+              style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(245,197,66,0.15)' }}>
               <div>
                 <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>App Name</label>
                 <input className="bd-input" type="text" value={form.appName}
@@ -615,7 +615,7 @@ export function AppRegistration() {
                           style={{ border: '1px solid rgba(245,197,66,0.15)' }} alt="" />
                         <button onClick={() => removeSample(i)}
                           className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity"
-                          style={{ background: '#f5c542', color: '#0a0a0f' }}>✕</button>
+                          style={{ background: '#f5c542', color: '#1e293b' }}>✕</button>
                       </div>
                     ))}
                   </div>
@@ -637,7 +637,7 @@ export function AppRegistration() {
            Step 1 & Step 2 visible here because user just registered and needs to verify ════ */
         <div className="space-y-5 animate-in fade-in duration-200">
           <div className="p-4 rounded-xl space-y-2"
-            style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.15)' }}>
+            style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(245,197,66,0.15)' }}>
             <h3 className="text-sm font-bold" style={{ color: 'var(--bd-accent-gold)' }}>
               Step 1: Add this meta tag to your &lt;head&gt;
             </h3>
@@ -653,7 +653,7 @@ export function AppRegistration() {
             </div>
           </div>
           <div className="p-4 rounded-xl space-y-2"
-            style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,197,66,0.15)' }}>
+            style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(245,197,66,0.15)' }}>
             <h3 className="text-sm font-bold" style={{ color: 'var(--bd-accent-gold)' }}>Step 2: Verify Configuration</h3>
             <button onClick={handleVerify} disabled={isVerifying}
               className="bd-btn-primary w-full py-2.5 rounded-xl flex justify-center items-center gap-2 text-sm">
@@ -670,7 +670,7 @@ export function AppRegistration() {
             <PlusCircle size={22} style={{ color: 'var(--bd-accent-gold)' }} />
           </div>
           <p className="text-sm font-bold" style={{ color: 'var(--bd-accent-gold)' }}>No projects yet</p>
-          <p className="text-xs" style={{ color: 'rgba(245,197,66,0.5)' }}>
+          <p className="text-xs" style={{ color: '#64748b' }}>
             Click "Register New App" above to get started.
           </p>
         </div>
