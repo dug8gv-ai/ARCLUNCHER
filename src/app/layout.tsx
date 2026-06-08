@@ -4,7 +4,13 @@ import "./globals.css";
 import { Web3Provider } from "@/components/Web3Provider";
 import { Toaster } from "react-hot-toast";
 import { WelcomeSplash } from "@/components/WelcomeSplash";
-import { RainBackground } from "@/components/RainBackground";
+import dynamic from "next/dynamic";
+
+// Dynamic import with SSR disabled — prevents hydration mismatch on canvas
+const RainBackground = dynamic(
+  () => import("@/components/RainBackground").then(m => ({ default: m.RainBackground })),
+  { ssr: false }
+);
 
 const inter = Inter({
   variable: "--font-inter",

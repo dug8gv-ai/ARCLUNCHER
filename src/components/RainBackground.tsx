@@ -11,8 +11,8 @@ interface Drop {
   width: number;
 }
 
-// 150 drops — dense enough to be clearly visible everywhere on screen
-const DROP_COUNT = 150;
+// 180 drops — dense, clearly visible across full viewport
+const DROP_COUNT = 180;
 
 function createDrop(w: number, h: number): Drop {
   return {
@@ -21,7 +21,7 @@ function createDrop(w: number, h: number): Drop {
     y:       Math.random() * h * 2 - h,
     length:  Math.random() * 22 + 12,          // 12–34px drop length
     speed:   Math.random() * 1.2 + 0.6,        // 0.6–1.8 px/frame — gentle fall
-    opacity: Math.random() * 0.35 + 0.12,      // 0.12–0.47 — clearly visible
+    opacity: 0.28,   // fixed rgba(59,130,246,0.28) — high visibility
     width:   Math.random() * 1.2 + 0.6,        // 0.6–1.8px stroke width
   };
 }
@@ -67,14 +67,14 @@ export function RainBackground() {
       ctx.clearRect(0, 0, w, h);
 
       dropsRef.current.forEach(drop => {
-        // Draw raindrop streak
+        // Draw raindrop streak with fixed rgba(59,130,246,0.28)
         const gradient = ctx.createLinearGradient(
           drop.x, drop.y,
           drop.x - 1, drop.y + drop.length
         );
-        gradient.addColorStop(0, `rgba(59, 130, 246, 0)`);
-        gradient.addColorStop(0.4, `rgba(59, 130, 246, ${drop.opacity * 0.7})`);
-        gradient.addColorStop(1, `rgba(59, 130, 246, ${drop.opacity})`);
+        gradient.addColorStop(0,   'rgba(59, 130, 246, 0)');
+        gradient.addColorStop(0.3, 'rgba(59, 130, 246, 0.14)');
+        gradient.addColorStop(1,   'rgba(59, 130, 246, 0.28)');
 
         ctx.beginPath();
         ctx.moveTo(drop.x, drop.y);
@@ -84,10 +84,10 @@ export function RainBackground() {
         ctx.lineCap     = 'round';
         ctx.stroke();
 
-        // Draw tiny splash dot at bottom of streak
+        // Splash dot
         ctx.beginPath();
         ctx.arc(drop.x - drop.width * 0.5, drop.y + drop.length, drop.width * 0.6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(59, 130, 246, ${drop.opacity * 0.5})`;
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.15)';
         ctx.fill();
 
         // Move drop downward
@@ -98,7 +98,7 @@ export function RainBackground() {
           drop.y      = -drop.length - Math.random() * 80;
           drop.x      = Math.random() * w;
           drop.speed  = Math.random() * 1.2 + 0.6;
-          drop.opacity = Math.random() * 0.35 + 0.12;
+          drop.opacity = 0.28;
           drop.length = Math.random() * 22 + 12;
           drop.width  = Math.random() * 1.2 + 0.6;
         }
