@@ -34,6 +34,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
   const { writeContractAsync } = useWriteContract();
 
   const [amount, setAmount] = useState('');
+  const [sliderPct, setSliderPct] = useState(0); // 0–100, drives slider position
   const [balance, setBalance] = useState('0');
   const [tokenBalance, setTokenBalance] = useState('0');
   const [isBuy, setIsBuy] = useState(true);
@@ -93,8 +94,33 @@ export function TradingPanel({ token }: TradingPanelProps) {
   const handleMax = () => {
     if (isBuy) {
       setAmount(balance);
+      setSliderPct(100);
     } else {
       setAmount(tokenBalance);
+      setSliderPct(100);
+    }
+  };
+
+  // Active balance depending on buy/sell mode
+  const activeBalance = isBuy ? Number(balance) : Number(tokenBalance);
+
+  // Set amount from a percentage click or slider drag
+  const applyPercent = (pct: number) => {
+    setSliderPct(pct);
+    if (activeBalance <= 0) return;
+    const val = ((pct / 100) * activeBalance);
+    setAmount(val > 0 ? val.toFixed(6) : '');
+  };
+
+  // When user types manually — sync slider back
+  const handleAmountChange = (val: string) => {
+    setAmount(val);
+    const num = Number(val);
+    if (activeBalance > 0 && num >= 0) {
+      const pct = Math.min(100, (num / activeBalance) * 100);
+      setSliderPct(Math.round(pct));
+    } else {
+      setSliderPct(0);
     }
   };
 
@@ -371,6 +397,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
       await fetchBalance();
       window.dispatchEvent(new Event('arc-balance-update'));
       setAmount('');
+      setSliderPct(0);
       setTimeout(() => setStatus('idle'), 2000);
 
     } catch (error: any) {
@@ -391,13 +418,13 @@ export function TradingPanel({ token }: TradingPanelProps) {
         </h3>
         <div className="flex bg-slate-100 rounded-xl p-1 text-xs items-center gap-0.5">
           <button 
-            onClick={() => setIsBuy(true)}
+            onClick={() => { setIsBuy(true); setAmount(''); setSliderPct(0); }}
             className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${isBuy ? 'bg-green-100 text-green-700 shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
           >
             BUY
           </button>
           <button 
-            onClick={() => setIsBuy(false)}
+            onClick={() => { setIsBuy(false); setAmount(''); setSliderPct(0); }}
             className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-bold ${!isBuy ? 'bg-red-100 text-red-700 shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
           >
             SELL
@@ -414,40 +441,130 @@ export function TradingPanel({ token }: TradingPanelProps) {
       </div>
 
       <div className="space-y-5">
-        <div className="bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4">
-          <div className="flex justify-between text-[11px] text-[var(--text-secondary)] font-bold mb-2.5">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3">
+          {/* Balance label + MAX button */}
+          <div className="flex justify-between text-[11px] text-slate-500 font-semibold">
             <span>{isBuy ? 'Amount in USDC' : `Amount in ${token.ticker}`}</span>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {isBuy ? (
-                <>
-                  <span className="flex items-center gap-1 font-medium"><Wallet size={11} className="text-[var(--text-secondary)]" /> {balance} USDC</span>
-                  <button 
-                    onClick={() => setAmount(balance)}
-                    className="bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] px-2 py-0.5 rounded-md border border-[var(--border-dim)] hover:bg-blue-600 hover:text-white transition-all text-[10px] font-black cursor-pointer"
-                  >
-                    MAX BUY
-                  </button>
-                </>
+                <span className="flex items-center gap-1">
+                  <Wallet size={11} /> {balance} USDC
+                </span>
               ) : (
-                <>
-                  <span className="flex items-center gap-1 font-medium"><TrendingUp size={11} className="text-[var(--text-secondary)]" /> {tokenBalance} {token.ticker}</span>
-                  <button 
-                    onClick={() => setAmount(tokenBalance)}
-                    className="bg-red-50 text-red-600 px-2 py-0.5 rounded-md border border-red-100 hover:bg-red-600 hover:text-white transition-all text-[10px] font-black cursor-pointer"
-                  >
-                    MAX SELL
-                  </button>
-                </>
+                <span className="flex items-center gap-1">
+                  <TrendingUp size={11} /> {tokenBalance} {token.ticker}
+                </span>
               )}
+              <button
+                onClick={() => applyPercent(100)}
+                className={`px-2 py-0.5 rounded-md border text-[10px] font-black cursor-pointer transition-all ${
+                  isBuy
+                    ? 'border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white'
+                    : 'border-red-200 text-red-600 hover:bg-red-600 hover:text-white'
+                }`}
+              >
+                {isBuy ? 'MAX BUY' : 'MAX SELL'}
+              </button>
             </div>
           </div>
-          <input 
-            type="number" 
+
+          {/* ── Percentage chip row ── */}
+          <div className="flex items-center justify-end gap-1.5">
+            {[15, 25, 50, 75].map(pct => (
+              <button
+                key={pct}
+                onClick={() => applyPercent(pct)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer select-none ${
+                  sliderPct === pct
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                    : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700'
+                }`}
+              >
+                {pct}%
+              </button>
+            ))}
+            <button
+              onClick={() => applyPercent(100)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer select-none ${
+                sliderPct === 100
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                  : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700'
+              }`}
+            >
+              MAX
+            </button>
+          </div>
+
+          {/* ── Amount input ── */}
+          <input
+            type="number"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={e => handleAmountChange(e.target.value)}
             placeholder="0.00"
-            className="w-full bg-transparent text-3xl font-bold font-mono text-[var(--text-primary)] outline-none placeholder:text-slate-300"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-2xl font-bold font-mono text-slate-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 transition-all"
           />
+
+          {/* ── Range slider ── */}
+          <div className="pt-1 space-y-1">
+            <style>{`
+              .arc-slider {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 100%;
+                height: 5px;
+                border-radius: 999px;
+                background: linear-gradient(
+                  to right,
+                  #3b82f6 0%,
+                  #3b82f6 ${sliderPct}%,
+                  #e2e8f0 ${sliderPct}%,
+                  #e2e8f0 100%
+                );
+                outline: none;
+                cursor: pointer;
+              }
+              .arc-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                background: #3b82f6;
+                border: 2px solid #ffffff;
+                box-shadow: 0 1px 4px rgba(59,130,246,0.4);
+                cursor: pointer;
+                transition: box-shadow 0.15s ease;
+              }
+              .arc-slider::-webkit-slider-thumb:hover {
+                box-shadow: 0 0 0 4px rgba(59,130,246,0.18);
+              }
+              .arc-slider::-moz-range-thumb {
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                background: #3b82f6;
+                border: 2px solid #ffffff;
+                box-shadow: 0 1px 4px rgba(59,130,246,0.4);
+                cursor: pointer;
+              }
+            `}</style>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={sliderPct}
+              onChange={e => applyPercent(Number(e.target.value))}
+              className="arc-slider"
+            />
+            {/* Tick labels */}
+            <div className="flex justify-between text-[10px] text-slate-400 font-medium px-0.5 select-none">
+              <span>0%</span>
+              <span>25%</span>
+              <span>50%</span>
+              <span>75%</span>
+              <span>100%</span>
+            </div>
+          </div>
         </div>
 
         <button 
@@ -482,20 +599,20 @@ export function TradingPanel({ token }: TradingPanelProps) {
               });
             }
           }}
-          className="w-full py-2.5 rounded-xl border border-[var(--border-dim)] text-[var(--text-secondary)] text-xs hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 text-xs hover:text-slate-700 hover:bg-slate-50 font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <Wallet size={14} className="text-[var(--text-secondary)]" />
           Add {token.ticker} to Wallet
         </button>
 
-        <div className="bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] rounded-xl p-4 text-xs text-[var(--text-secondary)] space-y-1.5 font-medium">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-500 space-y-1.5 font-medium">
           <p className="flex justify-between">
             <span>Price Impact</span>
-            <span className="text-[var(--text-primary)]">{'< 0.1%'}</span>
+            <span className="text-slate-700">{'< 0.1%'}</span>
           </p>
           <p className="flex justify-between">
             <span>Estimated {isBuy ? 'Received' : 'Output'}</span>
-            <span className="text-[var(--accent-cyan)] font-extrabold">{estimatedTokens} {isBuy ? token.ticker : 'USDC'}</span>
+            <span className="text-blue-600 font-extrabold">{estimatedTokens} {isBuy ? token.ticker : 'USDC'}</span>
           </p>
         </div>
       </div>

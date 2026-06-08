@@ -85,13 +85,14 @@ body > * {
 .card,
 .panel,
 .stat-box {
-  background: var(--bg-card);
+  background: rgba(255, 255, 255, 0.88);  /* semi-transparent so rain shows through */
   border: 1px solid rgba(226, 232, 240, 0.8);
   border-radius: 16px;
   box-shadow: var(--card-shadow);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(2px);
 }
 
 .card::before,
