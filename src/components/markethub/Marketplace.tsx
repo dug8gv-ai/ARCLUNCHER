@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAccount, useSendTransaction, useWriteContract, useChainId } from 'wagmi';
 import { parseUnits, parseEther, erc20Abi, isAddress } from 'viem';
-import { Loader2, ShoppingCart, ShieldCheck, MapPin, Search, Star, CreditCard, CheckCircle2, MessageSquare, Filter, Plus, Minus, Trash2 } from 'lucide-react';
+import { Loader2, ShoppingCart, ShieldCheck, MapPin, Search, Star, CreditCard, CheckCircle2, MessageSquare, Filter, Plus, Minus, Trash2, Store } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ARCSLOTS_TOKENS } from '@/lib/arcslots/arcslots.constants';
 
@@ -22,6 +22,7 @@ export function Marketplace() {
   const { writeContractAsync } = useWriteContract();
 
   const [products, setProducts] = useState<any[]>([]);
+  const [allStores, setAllStores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Search & Filter State
@@ -51,15 +52,12 @@ export function Marketplace() {
   const fetchGlobalProducts = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+
+      // Step 1: Fetch all products with vendor info
+      const { data: productsData, error: productsError } = await supabase
         .from('market_products')
         .select(`
           *,
-          vendor_profiles:vendor_wallet (
-            store_name,
-            roles,
-            logo_url
-          ),
           product_reviews (
             rating
           )
@@ -67,18 +65,48 @@ export function Marketplace() {
         .gt('quantity', 0)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
-      // Calculate average ratings
-      const enhancedData = (data || []).map(p => {
+      if (productsError) throw productsError;
+
+      // Step 2: Fetch all vendor profiles separately (avoid foreign key join issues)
+      const vendorWallets = [...new Set((productsData || []).map((p: any) => p.vendor_wallet))];
+      let vendorMap: Record<string, any> = {};
+
+      if (vendorWallets.length > 0) {
+        const { data: vendorData } = await supabase
+          .from('vendor_profiles')
+          .select('wallet, store_name, roles, logo_url, description, banner_url')
+          .in('wallet', vendorWallets);
+
+        (vendorData || []).forEach((v: any) => {
+          vendorMap[v.wallet] = v;
+        });
+      }
+
+      // Step 3: Also fetch ALL vendor stores (even if no products) for store discovery
+      const { data: allVendors } = await supabase
+        .from('vendor_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // Merge vendor data into products
+      const enhancedData = (productsData || []).map((p: any) => {
+        const vendor = vendorMap[p.vendor_wallet] || {};
         const revs = p.product_reviews || [];
-        const avgRating = revs.length > 0 ? (revs.reduce((sum: number, r: any) => sum + r.rating, 0) / revs.length).toFixed(1) : null;
-        return { ...p, avgRating, totalReviews: revs.length };
+        const avgRating = revs.length > 0
+          ? (revs.reduce((sum: number, r: any) => sum + r.rating, 0) / revs.length).toFixed(1)
+          : null;
+        return {
+          ...p,
+          vendor_profiles: vendor,
+          avgRating,
+          totalReviews: revs.length,
+        };
       });
-      
+
       setProducts(enhancedData);
+      setAllStores(allVendors || []);
     } catch (err) {
-      console.error(err);
+      console.error('fetchGlobalProducts error:', err);
     } finally {
       setLoading(false);
     }
@@ -311,10 +339,45 @@ export function Marketplace() {
         </div>
       </div>
 
+      {/* ── Vendor Stores Discovery (always visible) ── */}
+      {allStores.length > 0 && (
+        <div>
+          <h3 className="text-sm font-black text-slate-700 mb-3 flex items-center gap-2">
+            <Store size={16} className="text-blue-500" />
+            Registered Stores ({allStores.length})
+          </h3>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {allStores.map(store => (
+              <div
+                key={store.wallet}
+                className="flex-shrink-0 flex items-center gap-3 bg-white border border-slate-200 rounded-2xl p-3 min-w-[200px] hover:border-blue-300 hover:shadow-sm transition-all"
+              >
+                <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 border border-slate-100">
+                  {store.logo_url
+                    ? <img src={store.logo_url} alt={store.store_name} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full bg-blue-50 flex items-center justify-center text-blue-400 text-sm font-black">
+                        {store.store_name?.[0]?.toUpperCase() || '?'}
+                      </div>
+                  }
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-black text-slate-800 truncate">{store.store_name}</p>
+                  <p className="text-[10px] text-slate-400 truncate">{store.roles || 'General Store'}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.length === 0 ? (
-          <div className="col-span-full stat-box p-12 text-center text-[var(--text-secondary)]">No products match your criteria.</div>
+          <div className="col-span-full bg-white border border-slate-200 rounded-2xl p-12 text-center">
+            <ShoppingCart size={40} className="mx-auto mb-3 text-slate-300" />
+            <h3 className="text-base font-black text-slate-600 mb-1">No Products Listed Yet</h3>
+            <p className="text-sm text-slate-400">Stores are registered but haven't listed products. Go to <strong>Inventory</strong> tab to add your products.</p>
+          </div>
         ) : (
           filteredProducts.map(p => (
             <div key={p.id} className="stat-box rounded-[24px] overflow-hidden flex flex-col group hover:border-[var(--accent-cyan)] transition-colors">
