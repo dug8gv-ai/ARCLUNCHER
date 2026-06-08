@@ -4,13 +4,7 @@ import "./globals.css";
 import { Web3Provider } from "@/components/Web3Provider";
 import { Toaster } from "react-hot-toast";
 import { WelcomeSplash } from "@/components/WelcomeSplash";
-import dynamic from "next/dynamic";
-
-// Dynamic import with SSR disabled — prevents hydration mismatch on canvas
-const RainBackground = dynamic(
-  () => import("@/components/RainBackground").then(m => ({ default: m.RainBackground })),
-  { ssr: false }
-);
+import { RainBackgroundClient } from "@/components/RainBackgroundClient";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -46,8 +40,8 @@ export default function RootLayout({
         className={`${inter.variable} antialiased overflow-x-hidden`}
         style={{ position: "relative" }}
       >
-        {/* ── Ambient rain — light mode only, z-0, pointer-events:none ── */}
-        <RainBackground />
+        {/* ── Ambient rain — client-only, z-0, pointer-events:none ── */}
+        <RainBackgroundClient />
 
         <Web3Provider>
           <WelcomeSplash />
