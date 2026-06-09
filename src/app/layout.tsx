@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Orbitron, Rajdhani } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "@/components/Web3Provider";
 import { Toaster } from "react-hot-toast";
@@ -10,6 +10,20 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+});
+
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "600", "700", "900"],
+});
+
+const rajdhani = Rajdhani({
+  variable: "--font-rajdhani",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -28,7 +42,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",        // iPhone notch / Dynamic Island safe
-  themeColor: "#eef2f7",
+  themeColor: "#04061a",
 };
 
 export default function RootLayout({
@@ -37,7 +51,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="overflow-x-hidden">
       <body
-        className={`${inter.variable} antialiased overflow-x-hidden`}
+        className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} antialiased overflow-x-hidden`}
         style={{ position: "relative" }}
       >
         {/* ── Ambient rain — client-only, z-0, pointer-events:none ── */}
@@ -49,11 +63,14 @@ export default function RootLayout({
             position="top-center"
             toastOptions={{
               style: {
-                background: "#ffffff",
-                color: "#1e293b",
-                border: "1px solid rgba(226,232,240,0.7)",
-                borderRadius: "12px",
-                boxShadow: "0 2px 12px rgba(15,23,42,0.08)",
+                background: "rgba(8,14,44,0.95)",
+                color: "#e8eeff",
+                border: "1px solid rgba(41,121,255,0.25)",
+                borderRadius: "8px",
+                boxShadow: "0 0 24px rgba(41,121,255,0.2)",
+                backdropFilter: "blur(12px)",
+                fontFamily: "'Rajdhani', sans-serif",
+                letterSpacing: "0.03em",
               },
             }}
           />
