@@ -115,14 +115,31 @@ export function AppRegistration() {
     let cancelled = false;
     (async () => {
       try {
-        const { data, error } = await supabase
+        // 10-second timeout guard: on timeout, show blank form without reading localStorage
+        const fetchPromise = supabase
           .from('registered_apps')
           .select('*')
           .eq('developer_wallet', address)
           .order('created_at', { ascending: true });
 
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 10_000)
+        );
+
+        const result = await Promise.race([fetchPromise, timeoutPromise]);
+        const { data, error } = result as Awaited<typeof fetchPromise>;
+
         if (cancelled) return;
-        if (error) throw error;
+
+        if (error) {
+          // HTTP error from Supabase — show blank form, do NOT read localStorage
+          setProjects([]);
+          setActiveId(null);
+          setForm(EMPTY_FORM);
+          setShowRegForm(false);
+          setFetchError('Could not load projects. Please refresh.');
+          return;
+        }
 
         const raw   = (data ?? []) as RegisteredApp[];
         // Merge cached fields for fields that RLS might hide
@@ -139,11 +156,21 @@ export function AppRegistration() {
         });
         const deduped = dedupe(merged);
 
+        // Supabase is authoritative — overwrite any conflicting localStorage values
         setProjects(deduped);
         lsSave(address, deduped);
         pickBestProject(deduped, null);
-      } catch {
-        if (!cancelled) setFetchError('Could not load projects. Please refresh.');
+      } catch (err: unknown) {
+        if (cancelled) return;
+        // Timeout or unexpected error — show blank form, do NOT read localStorage
+        if ((err as Error)?.message === 'timeout') {
+          setProjects([]);
+          setActiveId(null);
+          setForm(EMPTY_FORM);
+          setShowRegForm(false);
+        } else {
+          setFetchError('Could not load projects. Please refresh.');
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -340,7 +367,7 @@ export function AppRegistration() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="bd-card p-6">
+    <div className="bd-card p-6 w-full max-w-full">
 
       {/* ══ HEADER: title + live count + action buttons ══ */}
       <div className="mb-5">
@@ -523,19 +550,21 @@ export function AppRegistration() {
             </div>
           </div>
 
-          {/* App info */}
-          <div className="pt-5">
-            <h3 className="text-base font-black text-white truncate">{form.appName}</h3>
-            <a
-              href={form.appUrl} target="_blank" rel="noreferrer"
-              className="text-xs flex items-center gap-1 mt-1 hover:underline truncate"
-              style={{ color: 'var(--bd-accent-gold)' }}
-            >
-              <Globe size={11} /> {form.appUrl}
-            </a>
-            {form.description && (
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-sm">{form.description}</p>
-            )}
+          {/* App info — responsive: stacked on mobile, row on md+ */}
+          <div className="flex flex-col md:flex-row gap-3 items-start md:items-center pt-5">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-black text-white truncate">{form.appName}</h3>
+              <a
+                href={form.appUrl} target="_blank" rel="noreferrer"
+                className="text-xs flex items-center gap-1 mt-1 hover:underline truncate"
+                style={{ color: 'var(--bd-accent-gold)' }}
+              >
+                <Globe size={11} /> {form.appUrl}
+              </a>
+              {form.description && (
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-sm">{form.description}</p>
+              )}
+            </div>
           </div>
 
           {/* Screenshots (view-only) */}

@@ -46,7 +46,7 @@ function saveCache(addr: string, s: StatsRecord) {
 // Medal component
 function RankBadge({ index }: { index: number }) {
   if (index === 0) return (
-    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', color: '#08080f', boxShadow: '0 2px 6px rgba(59,130,246,0.15)' }}>
+    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black" style={{ background: 'linear-gradient(135deg,#f5c542 0%,#e09f1e 100%)', color: '#0a0a0f', boxShadow: '0 2px 8px rgba(245,197,66,0.45)' }}>
       1
     </div>
   );
@@ -329,7 +329,7 @@ export function Leaderboard() {
                           }
                         </div>
                         <div>
-                          <h4 className="text-lg font-black text-white">{app.app_name}</h4>
+                          <h4 className="text-lg font-black text-white" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.app_name}</h4>
                           {app.description && <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-md">{app.description}</p>}
                         </div>
                       </div>

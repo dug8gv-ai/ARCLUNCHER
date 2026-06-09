@@ -38,9 +38,9 @@
   --card-shadow:    0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
   --card-shadow-md: 0 2px 8px rgba(15,23,42,0.07), 0 1px 3px rgba(15,23,42,0.05);
 
-  --bd-bg-primary:    #eef2f7;
-  --bd-accent-gold:   #3b82f6;
-  --bd-accent-purple: #8b5cf6;
+  --bd-bg-primary:    #0a0a0f;
+  --bd-accent-gold:   #f5c542;
+  --bd-accent-purple: #c084fc;
 }
 
 @theme inline {
@@ -225,7 +225,7 @@ textarea::placeholder { color: var(--text-muted); }
   50%       { background-position: 100% 50%; }
 }
 .stat-value {
-  background: linear-gradient(90deg, #2563eb, #3b82f6, #6366f1, #3b82f6);
+  background: linear-gradient(90deg, #f5c542, #c084fc, #f5c542, #c084fc);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -237,30 +237,30 @@ textarea::placeholder { color: var(--text-muted); }
 
 /* ── Builder dashboard cards ─────────────────── */
 .bd-card {
-  background: var(--bg-card);
-  border: 1px solid rgba(226,232,240,0.8);
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(245,197,66,0.15);
   border-radius: 1.25rem;
-  box-shadow: var(--card-shadow);
 }
 .bd-btn-primary {
-  background: #3b82f6;
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(59,130,246,0.25);
+  background: linear-gradient(135deg,#f5c542 0%,#e09f1e 100%);
+  color: #0a0a0f;
+  box-shadow: 0 0 18px rgba(245,197,66,0.4);
   font-weight: 700;
   border: none;
-  transition: background 0.15s, transform 0.1s;
+  transition: opacity 0.15s, transform 0.1s;
   cursor: pointer;
   touch-action: manipulation;
   min-height: 44px;
 }
-.bd-btn-primary:hover:not(:disabled) { background: #2563eb; }
+.bd-btn-primary:hover:not(:disabled) { opacity: 0.88; }
 .bd-btn-primary:active:not(:disabled) { transform: scale(0.98); }
 .bd-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .bd-input {
-  background: var(--bg-input);
-  border: 1px solid rgba(203,213,225,0.8);
-  color: var(--text-primary);
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(245,197,66,0.2);
+  color: #f8fafc;
   border-radius: 0.5rem;
   padding: 0.6rem 0.75rem;
   width: 100%;
@@ -269,15 +269,16 @@ textarea::placeholder { color: var(--text-muted); }
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .bd-input:focus {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.09);
-  background: #ffffff;
+  border-color: #f5c542;
+  box-shadow: 0 0 10px rgba(245,197,66,0.25);
+  background: rgba(0,0,0,0.55);
 }
+.bd-input::placeholder { color: rgba(248,250,252,0.35); }
 
 .bd-badge-verified {
-  background: rgba(34,197,94,0.1);
-  border: 1px solid rgba(34,197,94,0.3);
-  color: #16a34a;
+  background: rgba(245,197,66,0.15);
+  border: 1px solid rgba(245,197,66,0.4);
+  color: #f5c542;
 }
 
 .bd-skeleton {
