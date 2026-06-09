@@ -439,3 +439,77 @@ h1, h2, h3, .orbitron { font-family: 'Orbitron', sans-serif; letter-spacing: 0.0
   50%       { border-color: rgba(0,229,255,0.6); }
 }
 .border-glow-anim { animation: border-glow-anim 3s ease infinite; }
+
+/* ═══════════════════════════════════════════════════════
+   GREEN / RED COLOR FIXES — dark bg pe visible
+═══════════════════════════════════════════════════════ */
+
+/* GREEN — emerald/green classes dark bg fix */
+.text-emerald-600, .text-emerald-500, .text-emerald-400, .text-green-600, .text-green-500 {
+  color: #00e676 !important;
+}
+.text-emerald-400 { color: #69f0ae !important; }
+.bg-emerald-600, .bg-emerald-500 {
+  background-color: rgba(0,230,118,0.15) !important;
+  color: #00e676 !important;
+  border: 1px solid rgba(0,230,118,0.3) !important;
+}
+.bg-emerald-50, .bg-emerald-100 {
+  background-color: rgba(0,230,118,0.08) !important;
+}
+.border-emerald-100, .border-emerald-200, .border-emerald-400 {
+  border-color: rgba(0,230,118,0.25) !important;
+}
+.hover\:bg-emerald-600:hover, .hover\:bg-emerald-700:hover {
+  background-color: rgba(0,230,118,0.2) !important;
+}
+.bg-emerald-500\/10 { background-color: rgba(0,230,118,0.08) !important; }
+.text-emerald-600.shadow-emerald-500\/10 { box-shadow: 0 0 12px rgba(0,230,118,0.15) !important; }
+
+/* RED — rose/red classes dark bg fix */
+.text-rose-600, .text-rose-500, .text-red-600, .text-red-500 {
+  color: #ff1744 !important;
+}
+.text-rose-400, .text-red-400 { color: #ff6090 !important; }
+.bg-rose-600, .bg-red-600, .bg-red-500 {
+  background-color: rgba(255,23,68,0.15) !important;
+  color: #ff1744 !important;
+  border: 1px solid rgba(255,23,68,0.3) !important;
+}
+.bg-rose-50, .bg-red-50, .bg-rose-100, .bg-red-100 {
+  background-color: rgba(255,23,68,0.07) !important;
+}
+.border-rose-100, .border-red-200 {
+  border-color: rgba(255,23,68,0.2) !important;
+}
+.hover\:bg-red-50:hover, .hover\:bg-rose-50:hover {
+  background-color: rgba(255,23,68,0.1) !important;
+}
+.bg-rose-500\/10 { background-color: rgba(255,23,68,0.07) !important; }
+.text-rose-600.shadow-rose-500\/10 { box-shadow: 0 0 12px rgba(255,23,68,0.15) !important; }
+
+/* AMBER / YELLOW */
+.text-amber-600, .text-amber-500, .text-yellow-600 { color: #ffab40 !important; }
+.bg-amber-100, .bg-amber-50 { background-color: rgba(255,171,64,0.08) !important; }
+
+/* BUY button — green neon */
+.bg-emerald-500.hover\:bg-emerald-600,
+button.bg-emerald-600 {
+  background: linear-gradient(135deg, rgba(0,230,118,0.2), rgba(0,200,100,0.15)) !important;
+  color: #00e676 !important;
+  border: 1px solid rgba(0,230,118,0.4) !important;
+  box-shadow: 0 0 14px rgba(0,230,118,0.2) !important;
+}
+
+/* SELL button — red neon */
+button.bg-red-600, button.bg-red-500 {
+  background: linear-gradient(135deg, rgba(255,23,68,0.2), rgba(200,0,50,0.15)) !important;
+  color: #ff1744 !important;
+  border: 1px solid rgba(255,23,68,0.4) !important;
+  box-shadow: 0 0 14px rgba(255,23,68,0.2) !important;
+}
+
+/* TransactionHistory buy/sell text */
+.text-emerald-600.flex, .text-rose-600.flex {
+  font-weight: 700 !important;
+}

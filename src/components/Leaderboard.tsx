@@ -449,7 +449,15 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                         {token.holders} Holders
                       </span>
                     </div>
-                    <div className={`text-xs font-extrabold flex items-center justify-end gap-0.5 ${Number(token.priceChange) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <div
+                      className="text-xs font-extrabold flex items-center justify-end gap-0.5"
+                      style={{
+                        color: Number(token.priceChange) >= 0 ? '#00e676' : '#ff1744',
+                        textShadow: Number(token.priceChange) >= 0
+                          ? '0 0 8px rgba(0,230,118,0.6)'
+                          : '0 0 8px rgba(255,23,68,0.6)',
+                      }}
+                    >
                       {Number(token.priceChange) >= 0 ? '+' : ''}{token.priceChange}%
                       <ArrowUpRight size={10} className={Number(token.priceChange) >= 0 ? 'rotate-0' : 'rotate-90'} />
                     </div>

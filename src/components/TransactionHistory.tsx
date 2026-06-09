@@ -62,7 +62,7 @@ export function TransactionHistory({ tokenAddress }: { tokenAddress?: string }) 
               swaps.map((swap) => (
                 <tr key={swap.id} className="group hover:bg-slate-50 transition-colors">
                   <td className="py-3">
-                    <span className={`flex items-center gap-1 font-bold ${swap.is_buy ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <span className="flex items-center gap-1 font-bold" style={{ color: swap.is_buy ? '#00e676' : '#ff1744', textShadow: swap.is_buy ? '0 0 8px rgba(0,230,118,0.5)' : '0 0 8px rgba(255,23,68,0.5)' }}>
                       {swap.is_buy ? <ArrowUpRight size={14}/> : <ArrowDownLeft size={14}/>}
                       {swap.is_buy ? 'BUY' : 'SELL'}
                     </span>
