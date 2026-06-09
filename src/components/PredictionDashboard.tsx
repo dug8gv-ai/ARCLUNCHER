@@ -9,6 +9,8 @@ import { toast } from 'react-hot-toast';
 import { PREDICTION_MARKET_ADDRESS, predictionMarketAbi } from '@/lib/predictionMarketAbi';
 import { USDC_ADDRESS } from '@/lib/arcDefiAbi';
 import { supabase } from '@/lib/supabase';
+import { TaskCreatorWizard } from '@/components/TaskCreatorWizard';
+import { BinaryTradingWizard } from '@/components/BinaryTradingWizard';
 
 export function PredictionDashboard() {
   const { isConnected, address } = useAccount();
@@ -642,204 +644,17 @@ export function PredictionDashboard() {
           )}
         </div>
 
-        {/* Right Sidebar - Create Market */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="lg:col-span-1"
-          >
-          <div className="card rounded-[24px] p-6 shadow-sm sticky top-8">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                <Zap className="text-white" size={16} />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Create New Market</h3>
-                <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Open to everyone</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {/* Market Question */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
-                  <AlignLeft size={10} /> Market Question <span className="text-red-400">*</span>
-                </label>
-                <input 
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  type="text" 
-                  placeholder="e.g. Will ETH reach $4000?" 
-                  className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
-                  <AlignLeft size={10} /> Description <span className="text-slate-300 font-semibold">(optional)</span>
-                </label>
-                <textarea 
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Add more context for participants..." 
-                  rows={2}
-                  className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all resize-none"
-                />
-              </div>
-
-              {/* Category */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
-                  <Tag size={10} /> Category
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.value}
-                      onClick={() => setNewCategory(cat.value)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                        newCategory === cat.value 
-                          ? cat.color + ' ring-2 ring-offset-1 ring-blue-400 scale-105' 
-                          : 'bg-slate-50 text-[var(--text-secondary)] hover:bg-slate-100'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Image Upload */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
-                  <ImagePlus size={10} /> Cover Image <span className="text-slate-300 font-semibold">(optional)</span>
-                </label>
-                
-                <AnimatePresence mode="wait">
-                  {uploadPreview || newImageUrl ? (
-                    <motion.div 
-                      key="preview"
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="relative group"
-                    >
-                      <div className="w-full h-28 rounded-xl overflow-hidden border border-[var(--border-dim)] bg-slate-50">
-                        <img 
-                          src={uploadPreview || newImageUrl} 
-                          alt="Preview" 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <button 
-                        onClick={clearImage}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X size={12} />
-                      </button>
-                      {isUploading && (
-                        <div className="absolute inset-0 bg-[var(--bg-card)]/80 rounded-xl flex items-center justify-center">
-                          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                      )}
-                    </motion.div>
-                  ) : (
-                    <motion.div 
-                      key="dropzone"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onDrop={handleDrop}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`w-full h-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                        isDragging 
-                          ? 'border-blue-400 bg-[rgba(0,242,254,0.05)] scale-[1.02]' 
-                          : 'border-[var(--border-dim)] bg-slate-50/50 hover:border-blue-300 hover:bg-[rgba(0,242,254,0.05)]'
-                      }`}
-                    >
-                      <Upload size={18} className={isDragging ? 'text-[var(--accent-cyan)]' : 'text-slate-300'} />
-                      <p className="text-[10px] font-bold text-[var(--text-secondary)]">
-                        {isDragging ? 'Drop image here' : 'Drag & drop or click to upload'}
-                      </p>
-                      <p className="text-[9px] text-slate-300 font-semibold">PNG, JPG, GIF up to 5MB</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <input 
-                  ref={fileInputRef}
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleImageUpload(file);
-                  }}
-                />
-
-                {/* OR paste URL */}
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="flex-1 h-px bg-slate-100"></div>
-                  <span className="text-[9px] font-bold text-slate-300 uppercase">or paste url</span>
-                  <div className="flex-1 h-px bg-slate-100"></div>
-                </div>
-                <input 
-                  value={newImageUrl}
-                  onChange={(e) => { setNewImageUrl(e.target.value); setUploadPreview(null); }}
-                  type="text" 
-                  placeholder="https://example.com/image.png" 
-                  className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-3 py-2 text-[11px] font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
-                />
-              </div>
-
-              {/* Expiration Date */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1">
-                  <Clock size={10} /> Expiration Date <span className="text-red-400">*</span>
-                </label>
-                <input 
-                  value={newExpiration}
-                  onChange={(e) => setNewExpiration(e.target.value)}
-                  type="datetime-local" 
-                  className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-3 py-2.5 text-xs font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
-                />
-                {/* Quick duration buttons */}
-                <div className="flex gap-1.5">
-                  {[{label: '1H', hours: 1}, {label: '6H', hours: 6}, {label: '24H', hours: 24}, {label: '7D', hours: 168}, {label: '30D', hours: 720}].map((opt) => (
-                    <button
-                      key={opt.label}
-                      onClick={() => setQuickExpiration(opt.hours)}
-                      className="flex-1 py-1.5 text-[9px] font-black bg-slate-50 hover:bg-[rgba(0,242,254,0.05)] hover:text-[var(--accent-cyan)] text-[var(--text-secondary)] rounded-lg border border-[var(--border-dim)] hover:border-[var(--border-dim)] transition-all"
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Create Button */}
-              <motion.button 
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleCreateMarket}
-                disabled={!newTitle || !newExpiration || isUploading}
-                className="w-full mt-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white text-xs font-black py-3.5 rounded-xl transition-all shadow-lg shadow-slate-900/10 hover:shadow-slate-900/20 flex items-center justify-center gap-2"
-              >
-                <Zap size={14} />
-                {isUploading ? 'Uploading Image...' : 'Create Market'}
-              </motion.button>
-
-              {/* Info */}
-              <div className="bg-slate-50 text-[var(--text-secondary)] text-[10px] font-semibold p-2.5 rounded-xl text-center">
-                ⚡ Markets are deployed on-chain. A wallet signature is required.
-              </div>
-            </div>
+        {/* Right Sidebar — Task Creator Wizard */}
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="lg:col-span-1"
+        >
+          <div className="sticky top-8 space-y-4">
+            <BinaryTradingWizard onTaskCreated={() => { setTimeout(() => fetchMarkets(), 4000); }} />
           </div>
-          </motion.div>
+        </motion.div>
 
       </div>
     </motion.div>
