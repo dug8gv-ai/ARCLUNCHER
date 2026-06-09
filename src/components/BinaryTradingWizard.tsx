@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useReducer, useEffect, useRef, useCallback, useState } from 'react';
-import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
-import { parseUnits, erc20Abi } from 'viem';
+import { useAccount, useWriteContract, usePublicClient, useReadContract } from 'wagmi';
+import { parseUnits, formatUnits, erc20Abi } from 'viem';
 import { toast } from 'react-hot-toast';
 import {
   TrendingUp, TrendingDown, Clock, Zap, Link2,
   ChevronDown, ChevronUp, Coins, Activity, BarChart2,
-  CheckCircle2, Loader2, RefreshCw,
+  CheckCircle2, Loader2, RefreshCw, Trophy,
 } from 'lucide-react';
 import { PREDICTION_MARKET_ADDRESS, predictionMarketAbi } from '@/lib/predictionMarketAbi';
+import { BINARY_MARKET_ADDRESS, arcBinaryMarketAbi } from '@/lib/arcBinaryMarketAbi';
 import { supabase } from '@/lib/supabase';
 
 // ─── Arc Chain Testnet Asset Registry ─────────────────────────────────────────
@@ -17,7 +18,7 @@ const ARC_ASSETS = [
   {
     symbol:   'USDC'  as const,
     label:    'USDC',
-    address:  '0x0421250fDAb679469Cc2CE7b822CdFe98075B5C3' as `0x${string}`,
+    address:  '0x0421250FDaB679469Cc2cE7b822Cdfe98075B5C3' as `0x${string}`,
     decimals: 6,
     icon:     '💵',
     pill:     'bg-blue-600 text-white border-blue-600',
@@ -26,7 +27,7 @@ const ARC_ASSETS = [
   {
     symbol:   'EURC'  as const,
     label:    'EURC',
-    address:  '0x7a829f075d97f48A1100bE2390f7A667Bd3B43C0' as `0x${string}`,
+    address:  '0x7A829F075d97F48A1100bE2390f7A667Bd3B43c0' as `0x${string}`,
     decimals: 6,
     icon:     '💶',
     pill:     'bg-indigo-600 text-white border-indigo-600',
@@ -35,7 +36,7 @@ const ARC_ASSETS = [
   {
     symbol:   'crBTC' as const,
     label:    'crBTC',
-    address:  '0x3231F3bDE983570F7317CbC66b56D83431D58B9C' as `0x${string}`,
+    address:  '0x3231f3BDe983570F7317CbC66b56D83431D58b9c' as `0x${string}`,
     decimals: 8,
     icon:     '₿',
     pill:     'bg-orange-500 text-white border-orange-500',
@@ -62,11 +63,12 @@ interface PoolState {
   betAmount:       string;
   direction:       Direction;
   strikePrice:     number;
+  // Local copies synced from chain
   totalUpPool:     number;
   totalDownPool:   number;
-  secondsLeft:     number;      // 5-min countdown
+  secondsLeft:     number;
   roundActive:     boolean;
-  myBets:          { direction: Direction; amount: number; strikePrice: number; settled: boolean; won: boolean | null }[];
+  myBets:          { direction: Direction; amount: number; strikePrice: number; settled: boolean; won: boolean | null; claimed: boolean }[];
 }
 
 type PoolAction =
@@ -80,9 +82,11 @@ type PoolAction =
   | { type: 'SET_DIRECTION';      payload: Direction }
   | { type: 'SET_STRIKE';         payload: number }
   | { type: 'LOCK_BET';           payload: { direction: Direction; amount: number; strike: number } }
-  | { type: 'TICK';               payload: number }         // secondsLeft decrement
+  | { type: 'TICK';               payload: number }
   | { type: 'START_ROUND';        payload: { strike: number } }
-  | { type: 'SETTLE_ROUND';       payload: { finalPrice: number } }
+  | { type: 'SETTLE_ROUND';       payload: { finalPrice: number; winningSide: number } }
+  | { type: 'MARK_CLAIMED';       payload: { index: number } }
+  | { type: 'SYNC_ROUND';         payload: { totalUpPool: number; totalDownPool: number; secondsLeft: number; roundActive: boolean; strikePrice: number } }
   | { type: 'RESET_TASK' };
 
 const ROUND_SECONDS = 300; // 5 minutes
@@ -143,7 +147,7 @@ function poolReducer(state: PoolState, action: PoolAction): PoolState {
         ...state,
         totalUpPool:   state.totalUpPool   + upDelta,
         totalDownPool: state.totalDownPool + downDelta,
-        myBets: [...state.myBets, { direction, amount, strikePrice: strike, settled: false, won: null }],
+        myBets: [...state.myBets, { direction, amount, strikePrice: strike, settled: false, won: null, claimed: false }],
         betAmount: '',
         direction: null,
       };
@@ -153,15 +157,33 @@ function poolReducer(state: PoolState, action: PoolAction): PoolState {
     case 'TICK':
       return { ...state, secondsLeft: Math.max(0, action.payload) };
     case 'SETTLE_ROUND': {
-      const { finalPrice } = action.payload;
-      const priceWentUp = finalPrice >= state.strikePrice;
+      const { finalPrice, winningSide } = action.payload;
       const settledBets = state.myBets.map(b => {
         if (b.settled) return b;
-        const won = b.direction === 'UP' ? priceWentUp : !priceWentUp;
+        let won: boolean | null = null;
+        if (winningSide === 3) {
+          won = null; // tie/refund — neither win nor loss
+        } else {
+          const dirNum = b.direction === 'UP' ? 1 : 2;
+          won = dirNum === winningSide;
+        }
         return { ...b, settled: true, won };
       });
       return { ...state, roundActive: false, secondsLeft: ROUND_SECONDS, myBets: settledBets };
     }
+    case 'MARK_CLAIMED': {
+      const updated = state.myBets.map((b, i) => i === action.payload.index ? { ...b, claimed: true } : b);
+      return { ...state, myBets: updated };
+    }
+    case 'SYNC_ROUND':
+      return {
+        ...state,
+        totalUpPool:   action.payload.totalUpPool,
+        totalDownPool: action.payload.totalDownPool,
+        secondsLeft:   action.payload.secondsLeft,
+        roundActive:   action.payload.roundActive,
+        strikePrice:   action.payload.strikePrice > 0 ? action.payload.strikePrice : state.strikePrice,
+      };
     case 'RESET_TASK':
       return { ...state, taskTitle: '', resolutionType: 'Community Consensus', oracleEndpoint: '', expiryTimestamp: '' };
     default:
@@ -181,7 +203,7 @@ function quickExpiry(hours: number): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-// ─── Mock price ticker (replace with real Pyth/Chainlink feed) ───────────────
+// ─── Mock price ticker (for display only — bet recording is on-chain) ────────
 function useMockPrice(base = 67_500) {
   const [price, setPrice] = useState(base);
   useEffect(() => {
@@ -203,22 +225,88 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
   const publicClient             = usePublicClient();
   const { writeContractAsync }   = useWriteContract();
 
-  const [pool, dispatch]   = useReducer(poolReducer, INIT);
+  const [pool, dispatch]            = useReducer(poolReducer, INIT);
   const [submitting, setSubmitting] = useState(false);
+  const [claiming, setClaiming]     = useState<number | null>(null);
   const [prevPrice, setPrevPrice]   = useState(0);
 
   const livePrice = useMockPrice(67_500);
   const priceUp   = livePrice >= prevPrice;
   const timerRef  = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Update strike + prev price on tick
+  // ── On-chain: read nextRoundId ──────────────────────────────────────────────
+  const { data: nextRoundIdRaw, refetch: refetchNextRoundId } = useReadContract({
+    address:      BINARY_MARKET_ADDRESS,
+    abi:          arcBinaryMarketAbi,
+    functionName: 'nextRoundId',
+    query:        { refetchInterval: 10_000 },
+  });
+
+  // Derive current active round id: nextRoundId - 1 (null when no rounds yet)
+  const currentRoundId = nextRoundIdRaw !== undefined && nextRoundIdRaw > BigInt(0)
+    ? nextRoundIdRaw - BigInt(1)
+    : null;
+
+  // ── On-chain: read current round data ──────────────────────────────────────
+  const { data: roundData, refetch: refetchRound } = useReadContract({
+    address:      BINARY_MARKET_ADDRESS,
+    abi:          arcBinaryMarketAbi,
+    functionName: 'getRound',
+    args:         currentRoundId !== null ? [currentRoundId] : undefined,
+    query:        {
+      enabled:        currentRoundId !== null,
+      refetchInterval: 10_000,
+    },
+  });
+
+  // ── On-chain: read user's bets for current round ───────────────────────────
+  const { data: userBetsData, refetch: refetchUserBets } = useReadContract({
+    address:      BINARY_MARKET_ADDRESS,
+    abi:          arcBinaryMarketAbi,
+    functionName: 'getUserBets',
+    args:         currentRoundId !== null && address ? [currentRoundId, address] : undefined,
+    query:        {
+      enabled:         currentRoundId !== null && !!address,
+      refetchInterval: 10_000,
+    },
+  });
+
+  // ── Sync on-chain round state into local reducer ───────────────────────────
+  useEffect(() => {
+    if (!roundData) return;
+    const asset = getAsset(pool.assetSymbol);
+
+    const upPool   = parseFloat(formatUnits(roundData.totalUpPool,   asset.decimals));
+    const downPool = parseFloat(formatUnits(roundData.totalDownPool, asset.decimals));
+    // strikePrice from contract is price * 1e8; convert to USD float
+    const strike   = Number(roundData.strikePrice) / 1e8;
+
+    const now      = Math.floor(Date.now() / 1000);
+    const closeTs  = Number(roundData.closeTime);
+    const secsLeft = Math.max(0, closeTs - now);
+    const active   = !roundData.settled && closeTs > now;
+
+    dispatch({
+      type: 'SYNC_ROUND',
+      payload: { totalUpPool: upPool, totalDownPool: downPool, secondsLeft: secsLeft, roundActive: active, strikePrice: strike },
+    });
+
+    // If settled and we haven't dispatched settlement yet, do it
+    if (roundData.settled && pool.roundActive) {
+      const finalPrice = Number(roundData.finalPrice) / 1e8;
+      dispatch({ type: 'SETTLE_ROUND', payload: { finalPrice, winningSide: roundData.winningSide } });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roundData]);
+
+  // ── Update strike + prev price from mock feed when no active round ─────────
   useEffect(() => {
     if (!pool.roundActive) dispatch({ type: 'SET_STRIKE', payload: livePrice });
     setPrevPrice(livePrice);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [livePrice]);
 
-  // 5-minute countdown when round is active
+  // ── Countdown timer (fallback when not yet synced from chain) ───────────────
   useEffect(() => {
     if (pool.roundActive) {
       timerRef.current = setInterval(() => {
@@ -229,65 +317,103 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pool.roundActive]);
 
-  // Auto-settle when timer hits 0
+  // ── Auto-settle UI when local timer hits 0 (chain will be polled too) ──────
   useEffect(() => {
     if (pool.roundActive && pool.secondsLeft === 0) {
-      dispatch({ type: 'SETTLE_ROUND', payload: { finalPrice: livePrice } });
-      const upWon = livePrice >= pool.strikePrice;
-      toast[upWon ? 'success' : 'error'](
-        upWon ? '🟢 UP wins this round!' : '🔴 DOWN wins this round!'
-      );
+      refetchRound();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pool.secondsLeft, pool.roundActive]);
 
-  // ── Place binary bet ────────────────────────────────────────────────────────
+  // ── Place binary bet (real on-chain) ────────────────────────────────────────
   const handlePlaceBet = useCallback(async () => {
-    if (!isConnected || !address) { toast.error('Connect wallet first'); return; }
-    if (!pool.direction)          { toast.error('Choose UP or DOWN');     return; }
+    if (!isConnected || !address)  { toast.error('Connect wallet first'); return; }
+    if (!pool.direction)           { toast.error('Choose UP or DOWN');    return; }
     const amount = parseFloat(pool.betAmount);
-    if (!amount || amount <= 0)   { toast.error('Enter valid amount');    return; }
+    if (!amount || amount <= 0)    { toast.error('Enter valid amount');   return; }
+    if (currentRoundId === null)   { toast.error('No active round — wait for admin to open one'); return; }
+    if (!pool.roundActive)         { toast.error('Round is not open for bets'); return; }
 
     const asset = getAsset(pool.assetSymbol);
-
     setSubmitting(true);
     const tid = toast.loading(`Placing ${pool.direction} bet...`);
     try {
-      const amountWei = parseUnits(pool.betAmount, asset.decimals);
+      const amountWei   = parseUnits(pool.betAmount, asset.decimals);
+      const directionU8 = pool.direction === 'UP' ? 1 : 2;
 
-      // Approve token
+      // 1. Approve ArcBinaryMarket to spend tokens
       const approveTx = await writeContractAsync({
         address:      asset.address,
         abi:          erc20Abi,
         functionName: 'approve',
-        args:         [PREDICTION_MARKET_ADDRESS as `0x${string}`, amountWei],
+        args:         [BINARY_MARKET_ADDRESS as `0x${string}`, amountWei],
       });
       if (publicClient) await publicClient.waitForTransactionReceipt({ hash: approveTx });
 
-      // Log bet to Supabase
+      // 2. Place bet on-chain
+      const betTx = await writeContractAsync({
+        address:      BINARY_MARKET_ADDRESS as `0x${string}`,
+        abi:          arcBinaryMarketAbi,
+        functionName: 'placeBet',
+        args:         [currentRoundId, directionU8 as 1 | 2, amountWei],
+      });
+      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: betTx });
+
+      // 3. Log to Supabase
       await supabase.from('prediction_history').insert({
         wallet:      address.toLowerCase(),
         action_type: 'BINARY_BET',
         market_id:   null,
         details: {
+          roundId:        currentRoundId.toString(),
           direction:      pool.direction,
           amount:         amount,
           strikePrice:    pool.strikePrice,
           asset:          pool.assetSymbol,
           settlementAddr: pool.settlementAsset,
+          txHash:         betTx,
         },
       });
 
+      // 4. Update local state optimistically
       dispatch({ type: 'LOCK_BET', payload: { direction: pool.direction, amount, strike: pool.strikePrice } });
       if (!pool.roundActive) dispatch({ type: 'START_ROUND', payload: { strike: pool.strikePrice } });
 
-      toast.success(`${pool.direction} bet locked! Strike: $${pool.strikePrice.toLocaleString()}`, { id: tid });
+      toast.success(`${pool.direction} bet locked on-chain! Strike: $${pool.strikePrice.toLocaleString()}`, { id: tid });
+      refetchRound();
+      refetchUserBets();
     } catch (err: any) {
       toast.error(err.shortMessage || err.message || 'Bet failed', { id: tid });
     } finally {
       setSubmitting(false);
     }
-  }, [pool, isConnected, address, publicClient, writeContractAsync]);
+  }, [pool, isConnected, address, publicClient, writeContractAsync, currentRoundId, refetchRound, refetchUserBets]);
+
+  // ── Claim winnings ──────────────────────────────────────────────────────────
+  const handleClaimWinnings = useCallback(async (betIndex: number) => {
+    if (!isConnected || !address) { toast.error('Connect wallet first'); return; }
+    if (currentRoundId === null)  return;
+
+    setClaiming(betIndex);
+    const tid = toast.loading('Claiming winnings...');
+    try {
+      const claimTx = await writeContractAsync({
+        address:      BINARY_MARKET_ADDRESS as `0x${string}`,
+        abi:          arcBinaryMarketAbi,
+        functionName: 'claimWinnings',
+        args:         [currentRoundId],
+      });
+      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: claimTx });
+
+      dispatch({ type: 'MARK_CLAIMED', payload: { index: betIndex } });
+      toast.success('Winnings claimed!', { id: tid });
+      refetchUserBets();
+    } catch (err: any) {
+      toast.error(err.shortMessage || err.message || 'Claim failed', { id: tid });
+    } finally {
+      setClaiming(null);
+    }
+  }, [isConnected, address, publicClient, writeContractAsync, currentRoundId, refetchUserBets]);
 
   // ── Create parametric task ──────────────────────────────────────────────────
   const handleCreateTask = useCallback(async () => {
@@ -339,6 +465,10 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
   const downPct      = totalPool > 0 ? (pool.totalDownPool / totalPool) * 100 : 50;
   const currentAsset = getAsset(pool.assetSymbol);
   const timerPct     = (pool.secondsLeft / ROUND_SECONDS) * 100;
+
+  // Merge on-chain bets with local state for display
+  const onChainBets = userBetsData ?? [];
+  const hasSettledWin = roundData?.settled && onChainBets.some(b => b.direction === roundData.winningSide && !b.claimed);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -444,6 +574,18 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
               )}
             </div>
 
+            {/* Round status badge */}
+            {currentRoundId !== null && (
+              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 px-1">
+                <span className={`w-2 h-2 rounded-full ${pool.roundActive ? 'bg-emerald-400 animate-pulse' : 'bg-slate-300'}`} />
+                Round #{currentRoundId.toString()} — {pool.roundActive ? 'Open' : roundData?.settled ? 'Settled' : 'Closed'}
+                <span className="ml-auto font-mono text-slate-300 text-[9px]">{BINARY_MARKET_ADDRESS.slice(0, 10)}…</span>
+              </div>
+            )}
+            {currentRoundId === null && (
+              <p className="text-[10px] text-slate-400 text-center font-semibold px-1">Waiting for admin to open a round…</p>
+            )}
+
             {/* UP / DOWN buttons */}
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -509,7 +651,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
               </div>
               <button
                 onClick={handlePlaceBet}
-                disabled={submitting || !pool.direction || !pool.betAmount}
+                disabled={submitting || !pool.direction || !pool.betAmount || !pool.roundActive}
                 className={`px-4 py-3 rounded-xl font-black text-sm flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                   pool.direction === 'UP'
                     ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
@@ -523,14 +665,65 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
               </button>
             </div>
 
+            {/* Claim winnings banner */}
+            {hasSettledWin && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Trophy size={16} className="text-emerald-600" />
+                  <p className="text-xs font-black text-emerald-700">You won this round!</p>
+                </div>
+                <button
+                  onClick={() => handleClaimWinnings(0)}
+                  disabled={claiming !== null}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-black rounded-lg transition-all"
+                >
+                  {claiming !== null ? <Loader2 className="animate-spin" size={12} /> : <CheckCircle2 size={12} />}
+                  Claim
+                </button>
+              </div>
+            )}
+
             {/* Contract address */}
             <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Settlement Contract</p>
-              <p className="text-[10px] font-mono text-slate-600 break-all">{currentAsset.address}</p>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Binary Market Contract</p>
+              <p className="text-[10px] font-mono text-slate-600 break-all">{BINARY_MARKET_ADDRESS}</p>
             </div>
 
-            {/* My bets */}
-            {pool.myBets.length > 0 && (
+            {/* My bets (on-chain data) */}
+            {onChainBets.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">My Bets This Round (on-chain)</p>
+                {onChainBets.map((b, i) => {
+                  const dirLabel = b.direction === 1 ? 'UP' : 'DOWN';
+                  const amtNum   = parseFloat(formatUnits(b.amount, currentAsset.decimals));
+                  const settled  = roundData?.settled ?? false;
+                  const won      = settled && roundData
+                    ? (roundData.winningSide === 3 ? null : b.direction === roundData.winningSide)
+                    : null;
+                  return (
+                    <div key={i} className="flex items-center justify-between py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+                      <span className={b.direction === 1 ? 'text-emerald-600 font-black' : 'text-red-500 font-black'}>
+                        {b.direction === 1 ? '🟩 UP' : '🟥 DOWN'}
+                      </span>
+                      <span className="text-slate-600">{amtNum.toFixed(4)} {currentAsset.symbol}</span>
+                      {settled
+                        ? won === null
+                          ? <span className="text-slate-500 font-bold">↩ Refund</span>
+                          : won
+                          ? <span className="text-emerald-600 font-black">✓ WIN</span>
+                          : <span className="text-red-500 font-black">✗ LOSS</span>
+                        : <span className="text-amber-500 font-bold flex items-center gap-1">
+                            <RefreshCw size={10} className="animate-spin" /> Live
+                          </span>
+                      }
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Fallback: local optimistic bets when chain hasn't synced yet */}
+            {onChainBets.length === 0 && pool.myBets.length > 0 && (
               <div className="space-y-2">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">My Bets This Round</p>
                 {pool.myBets.map((b, i) => (
