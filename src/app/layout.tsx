@@ -1,30 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Orbitron, Rajdhani } from "next/font/google";
 import "./globals.css";
 import { Web3Provider } from "@/components/Web3Provider";
 import { Toaster } from "react-hot-toast";
 import { WelcomeSplash } from "@/components/WelcomeSplash";
 import { RainBackgroundClient } from "@/components/RainBackgroundClient";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const orbitron = Orbitron({
-  variable: "--font-orbitron",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["400", "600", "700", "900"],
-});
-
-const rajdhani = Rajdhani({
-  variable: "--font-rajdhani",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "ArcOmni Pro | Global Analytics Edition",
@@ -51,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="overflow-x-hidden">
       <body
-        className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} antialiased overflow-x-hidden`}
+        className="antialiased overflow-x-hidden"
         style={{ position: "relative" }}
       >
         {/* ── Ambient rain — client-only, z-0, pointer-events:none ── */}

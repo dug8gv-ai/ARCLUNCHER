@@ -3,7 +3,7 @@ export const ECOSYSTEM_EURC_ADDRESS = '0x7a829f075d97f48A1100bE2390f7A667Bd3B43C
 export const ECOSYSTEM_CRBTC_ADDRESS = '0x3231F3bDE983570F7317CbC66b56D83431D58B9C';
 
 // Fallback/Mock factory address for watching events until the real one is provided
-export const ECOSYSTEM_FACTORY_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const ECOSYSTEM_FACTORY_ADDRESS = '0xC3A4a3C1a30009D63F7FaCe3609eA9C5A0157c00';
 export const ECOSYSTEM_ROUTER_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 export const ecosystemFactoryAbi = [
@@ -13,10 +13,10 @@ export const ecosystemFactoryAbi = [
       { "indexed": true, "internalType": "address", "name": "tokenAddress", "type": "address" },
       { "indexed": false, "internalType": "string", "name": "name", "type": "string" },
       { "indexed": false, "internalType": "string", "name": "ticker", "type": "string" },
-      { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" },
-      { "indexed": false, "internalType": "uint256", "name": "initialSupply", "type": "uint256" }
+      { "indexed": false, "internalType": "uint256", "name": "supply", "type": "uint256" },
+      { "indexed": true, "internalType": "address", "name": "creator", "type": "address" }
     ],
-    "name": "TokenCreated",
+    "name": "TokenLaunched",
     "type": "event"
   }
 ] as const;

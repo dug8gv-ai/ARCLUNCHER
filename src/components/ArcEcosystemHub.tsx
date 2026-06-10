@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
-import { parseUnits, erc20Abi } from 'viem';
+import { parseUnits, erc20Abi, formatUnits } from 'viem';
 import { Activity, Globe, Zap, ArrowRightLeft, Loader2, TrendingUp, Search, ChevronDown, ExternalLink, Filter, Coins, Users, ArrowUpRight, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -51,6 +51,16 @@ type SwapTx = {
   token_address: string;
 };
 
+type MinedBlock = {
+  number: number;
+  hash: string;
+  timestamp: number;
+  txCount: number;
+  gasUsed: string;
+  gasLimit: string;
+  volume: number;
+};
+
 const ARCSCAN_API = 'https://testnet.arcscan.app/api/v2/tokens';
 const ARCSCAN_EXPLORER = 'https://testnet.arcscan.app';
 
@@ -63,6 +73,7 @@ export function ArcEcosystemHub() {
   const [allTokens, setAllTokens] = useState<UnifiedToken[]>([]);
   const [filteredTokens, setFilteredTokens] = useState<UnifiedToken[]>([]);
   const [swaps, setSwaps] = useState<SwapTx[]>([]);
+  const [minedBlocks, setMinedBlocks] = useState<MinedBlock[]>([]);
   const [totalCumulativeVolume, setTotalCumulativeVolume] = useState(0);
   const [selectedToken, setSelectedToken] = useState<any | null>(null);
   
@@ -263,54 +274,71 @@ export function ArcEcosystemHub() {
     setFilteredTokens(filtered);
   }, [allTokens, searchQuery, tokenTypeFilter]);
 
-  // ── Global Network Stream (ArcScan API - V1 txlist) ─────────────────────
+  // ── Live Mined Blocks on Arc Chain ──────────────────────────────────────
   useEffect(() => {
+    if (!publicClient) return;
+
     let isMounted = true;
-    let interval: NodeJS.Timeout;
+    let lastFetchedBlock = 0;
 
-    const fetchNetworkActivity = async () => {
+    const fetchMinedBlocks = async () => {
       try {
-        const url = `https://testnet.arcscan.app/api?module=account&action=txlist&address=${ARC_DEFI_ROUTER_ADDRESS}&sort=desc`;
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!isMounted || data.status !== '1') return;
+        const latestBlockNumber = Number(await publicClient.getBlockNumber());
+        if (latestBlockNumber === lastFetchedBlock) return;
+        
+        lastFetchedBlock = latestBlockNumber;
 
-        let cumulativeVolume = 0;
-        const formattedTxs: SwapTx[] = (data.result || []).map((tx: any) => {
-          // If value is 0, we can use gasUsed * gasPrice as a fallback fee proxy
-          const feeStr = tx.value !== '0' ? tx.value : (Number(tx.gasUsed) * Number(tx.gasPrice)).toString();
-          const feeVol = Number(feeStr) / 1e18;
-          cumulativeVolume += feeVol;
-          
-          const isApprove = tx.methodId === '0x095ea7b3'; // basic approve method hash
+        // Fetch last 5 blocks
+        const blockPromises = [];
+        for (let i = 0; i < 5; i++) {
+          const targetBlock = latestBlockNumber - i;
+          if (targetBlock >= 0) {
+            blockPromises.push(
+              publicClient.getBlock({
+                blockNumber: BigInt(targetBlock),
+                includeTransactions: true,
+              })
+            );
+          }
+        }
+
+        const rawBlocks = await Promise.all(blockPromises);
+        if (!isMounted) return;
+
+        let accumulatedVol = 0;
+        const formattedBlocks: MinedBlock[] = rawBlocks.map(b => {
+          const txs = (b.transactions || []) as any[];
+          // Sum native ARC value transacted
+          const totalValueWei = txs.reduce((sum, tx) => sum + BigInt(tx.value || 0), BigInt(0));
+          const totalValue = Number(totalValueWei) / 1e18;
+          accumulatedVol += totalValue;
 
           return {
-            hash: tx.hash,
-            isBuy: tx.isError === '0' && !isApprove,
-            ticker: isApprove ? 'APPROVE' : 'ROUTER TX',
-            amount: 0, // Hard to parse exact tokens without ABI decoding in txlist
-            volume: feeVol,
-            timestamp: Number(tx.timeStamp) * 1000,
-            token_address: tx.to
+            number: Number(b.number),
+            hash: b.hash || '',
+            timestamp: Number(b.timestamp) * 1000,
+            txCount: txs.length,
+            gasUsed: b.gasUsed.toString(),
+            gasLimit: b.gasLimit.toString(),
+            volume: totalValue,
           };
         });
 
-        setSwaps(formattedTxs.slice(0, 50));
-        setTotalCumulativeVolume(prev => prev + cumulativeVolume);
+        setMinedBlocks(formattedBlocks);
+        setTotalCumulativeVolume(prev => prev + accumulatedVol);
       } catch (err) {
-        console.error('Error fetching ArcScan transactions:', err);
+        console.error('Error fetching mined blocks:', err);
       }
     };
 
-    fetchNetworkActivity();
-    interval = setInterval(fetchNetworkActivity, 10000); // Poll every 10 seconds
+    fetchMinedBlocks();
+    const interval = setInterval(fetchMinedBlocks, 8000); // Polling every 8 seconds
 
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [publicClient]);
 
   // ── On-Chain Web3 Event Sync (getContractEvents & watchContractEvent) ──
   useEffect(() => {
@@ -326,7 +354,7 @@ export function ArcEcosystemHub() {
           publicClient.getContractEvents({
             address: ECOSYSTEM_FACTORY_ADDRESS as `0x${string}`,
             abi: ecosystemFactoryAbi,
-            eventName: 'TokenCreated',
+            eventName: 'TokenLaunched',
             fromBlock: BigInt(0),
           }),
           publicClient.getContractEvents({
@@ -338,18 +366,23 @@ export function ArcEcosystemHub() {
         ]);
 
         // Process Historical Tokens
-        const historicalTokens = pastTokens.map(log => ({
-          id: log.args.tokenAddress as string,
-          token_address: log.args.tokenAddress as string,
-          name: log.args.name || 'Unknown',
-          ticker: log.args.ticker || '???',
-          image_url: null,
-          holders: 0,
-          priceChange: '0.00',
-          type: 'ERC-20',
-          _source: 'arcomni' as const,
-          _holdersRaw: 0
-        }));
+        const historicalTokens = pastTokens.map(log => {
+          const supplyRaw = log.args.supply ? Number(log.args.supply) / 1e18 : 0;
+          return {
+            id: log.args.tokenAddress as string,
+            token_address: log.args.tokenAddress as string,
+            name: log.args.name || 'Unknown',
+            ticker: log.args.ticker || '???',
+            image_url: null,
+            holders: 0,
+            priceChange: '0.00',
+            type: 'ERC-20',
+            _source: 'arcomni' as const,
+            _holdersRaw: 0,
+            total_supply: supplyRaw.toString(),
+            decimals: '18'
+          };
+        });
 
         if (historicalTokens.length > 0) {
           setAllTokens(prev => [...historicalTokens, ...prev]);
@@ -359,20 +392,25 @@ export function ArcEcosystemHub() {
         unwatchTokens = publicClient.watchContractEvent({
           address: ECOSYSTEM_FACTORY_ADDRESS as `0x${string}`,
           abi: ecosystemFactoryAbi,
-          eventName: 'TokenCreated',
+          eventName: 'TokenLaunched',
           onLogs: (logs) => {
-            const liveTokens = logs.map(log => ({
-              id: log.args.tokenAddress as string,
-              token_address: log.args.tokenAddress as string,
-              name: log.args.name || 'New Token',
-              ticker: log.args.ticker || 'NEW',
-              image_url: null,
-              holders: 0,
-              priceChange: '0.00',
-              type: 'ERC-20',
-              _source: 'arcomni' as const,
-              _holdersRaw: 0
-            }));
+            const liveTokens = logs.map(log => {
+              const supplyRaw = log.args.supply ? Number(log.args.supply) / 1e18 : 0;
+              return {
+                id: log.args.tokenAddress as string,
+                token_address: log.args.tokenAddress as string,
+                name: log.args.name || 'New Token',
+                ticker: log.args.ticker || 'NEW',
+                image_url: null,
+                holders: 0,
+                priceChange: '0.00',
+                type: 'ERC-20',
+                _source: 'arcomni' as const,
+                _holdersRaw: 0,
+                total_supply: supplyRaw.toString(),
+                decimals: '18'
+              };
+            });
 
             setAllTokens(prev => {
               const existingIds = new Set(prev.map(p => p.token_address.toLowerCase()));
@@ -603,7 +641,7 @@ export function ArcEcosystemHub() {
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center font-bold text-xs text-indigo-700 border border-indigo-200 overflow-hidden flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-950/60 to-black flex items-center justify-center font-black text-xs text-[var(--accent-cyan)] border border-[var(--border-dim)] shadow-[0_0_10px_rgba(0,240,255,0.15)] overflow-hidden flex-shrink-0">
                             {token.image_url ? (
                               <img src={token.image_url} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -671,32 +709,39 @@ export function ArcEcosystemHub() {
           <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-white">
             <div className="p-4 border-b border-[var(--border-dim)] bg-slate-50/50 flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <Activity size={16} className="text-emerald-500" />
-                <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Global Network Stream</h3>
+                <Activity size={16} className="text-[var(--accent-cyan)]" />
+                <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Live Blocks Mined (Arc Chain)</h3>
               </div>
             </div>
             <div className="p-3 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar">
               <AnimatePresence>
-                {swaps.length === 0 ? (
+                {minedBlocks.length === 0 ? (
                   <div className="text-center py-8 text-[var(--text-secondary)] font-medium">
                     <Loader2 size={20} className="mx-auto mb-2 animate-spin text-slate-300" />
                     <p className="text-xs">Listening for live blocks...</p>
                   </div>
                 ) : (
-                  swaps.slice(0, 15).map((swap, idx) => (
-                    <motion.div key={swap.hash + idx} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-dim)] bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                  minedBlocks.map((block, idx) => (
+                    <motion.div key={block.number + '-' + idx} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-dim)] bg-slate-50/50 hover:bg-slate-50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${swap.isBuy ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600'}`}>
-                          {swap.isBuy ? 'CALL' : 'TX'}
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] bg-[rgba(0,240,255,0.1)] text-[var(--accent-cyan)] border border-[var(--accent-cyan)]/25">
+                          #{block.number.toString().slice(-4)}
                         </div>
                         <div>
                           <div className="font-bold text-xs text-[var(--text-primary)]">
-                            {swap.amount > 0 ? `${swap.amount.toLocaleString()} ARC ` : ''} <span className="font-black">{swap.ticker}</span>
+                            Block <span className="font-black">#{block.number}</span>
                           </div>
-                          <div className="text-[10px] text-[var(--text-secondary)]">{new Date(swap.timestamp).toLocaleTimeString()} • {truncateAddr(swap.hash)}</div>
+                          <div className="text-[10px] text-[var(--text-secondary)]">
+                            {block.txCount} txs • Gas: {Number(block.gasUsed).toLocaleString()}
+                          </div>
                         </div>
                       </div>
-                      <div className="font-black text-xs text-[var(--text-primary)]">Fee: {swap.volume.toFixed(6)}</div>
+                      <div className="text-right">
+                        <div className="font-black text-xs text-[var(--accent-cyan)]">
+                          {block.volume > 0 ? `${block.volume.toFixed(4)} ARC` : '0.00 ARC'}
+                        </div>
+                        <div className="text-[9px] text-[var(--text-secondary)]">Vol</div>
+                      </div>
                     </motion.div>
                   ))
                 )}

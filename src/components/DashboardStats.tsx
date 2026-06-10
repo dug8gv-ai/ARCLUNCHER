@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Coins, TrendingUp, Users, UserCheck, UserMinus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useAccount } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
 
 export function DashboardStats() {
   const { address } = useAccount();
+  const publicClient = usePublicClient();
+  const [supabaseVolume, setSupabaseVolume] = useState(0);
+  const [chainVolume, setChainVolume] = useState(0);
   const [stats, setStats] = useState({
     volume: "0",
     tokens: 0,
@@ -16,6 +19,72 @@ export function DashboardStats() {
     online: 0,
     offline: 0
   });
+
+  // Sync grand total volume to stats.volume whenever database or on-chain volumes change
+  useEffect(() => {
+    const grandTotal = (supabaseVolume + chainVolume).toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+    setStats(prev => ({ ...prev, volume: grandTotal }));
+  }, [supabaseVolume, chainVolume]);
+
+  // Live on-chain block transaction volume scanner
+  useEffect(() => {
+    if (!publicClient) return;
+
+    let isMounted = true;
+    let lastFetchedBlock = 0;
+
+    const scanBlocks = async () => {
+      try {
+        const latestBlockNumber = Number(await publicClient.getBlockNumber());
+        if (latestBlockNumber === lastFetchedBlock) return;
+
+        // If this is the initial scan, get the last 15 blocks. Otherwise, scan only new blocks.
+        const startBlock = lastFetchedBlock === 0 
+          ? Math.max(0, latestBlockNumber - 15) 
+          : lastFetchedBlock + 1;
+        
+        lastFetchedBlock = latestBlockNumber;
+
+        const blockPromises = [];
+        for (let i = startBlock; i <= latestBlockNumber; i++) {
+          blockPromises.push(
+            publicClient.getBlock({
+              blockNumber: BigInt(i),
+              includeTransactions: true,
+            })
+          );
+        }
+
+        const rawBlocks = await Promise.all(blockPromises);
+        if (!isMounted) return;
+
+        let newVolume = 0;
+        rawBlocks.forEach(b => {
+          const txs = (b.transactions || []) as any[];
+          // Sum native transacted value (value field in transactions)
+          const totalValueWei = txs.reduce((sum, tx) => sum + BigInt(tx.value || 0), BigInt(0));
+          newVolume += Number(totalValueWei) / 1e18;
+        });
+
+        if (newVolume > 0) {
+          setChainVolume(prev => prev + newVolume);
+        }
+      } catch (err) {
+        console.error('Error scanning blocks for volume:', err);
+      }
+    };
+
+    scanBlocks();
+    const interval = setInterval(scanBlocks, 8000); // Poll every 8 seconds
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [publicClient]);
 
   useEffect(() => {
     async function fetchStats() {
@@ -28,7 +97,8 @@ export function DashboardStats() {
         
         const totalSwapsVolume = swaps?.reduce((acc, s) => acc + Number(s.usdc_amount), 0) || 0;
         const initialLiquidity = (launches?.length || 0) * 3;
-        const grandTotal = (totalSwapsVolume + initialLiquidity).toLocaleString(undefined, { maximumFractionDigits: 2 });
+        const dbVolume = totalSwapsVolume + initialLiquidity;
+        setSupabaseVolume(dbVolume);
 
         // 3. Fetch total registered members from user_stats
         const { count: registeredCount } = await supabase.from('user_stats').select('*', { count: 'exact', head: true });
@@ -37,7 +107,6 @@ export function DashboardStats() {
 
         setStats(prev => ({
           ...prev,
-          volume: grandTotal,
           tokens: launches?.length || 0,
           newToday: dailyData || 0,
           registered: registeredCount || 0,
