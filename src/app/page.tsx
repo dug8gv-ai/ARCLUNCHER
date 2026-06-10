@@ -873,8 +873,8 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'launcher'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <Rocket size={16} className={currentView === 'launcher' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -888,8 +888,8 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'builder'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <Layers size={16} className={currentView === 'builder' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -903,8 +903,8 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'trade'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <TrendingUp size={16} className={currentView === 'trade' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -918,8 +918,8 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'guide'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <Info size={16} className={currentView === 'guide' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -933,8 +933,8 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'staking'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <TrendingUp size={16} className={currentView === 'staking' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -947,8 +947,8 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'social-pay'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <div className="relative flex items-center justify-center">
@@ -967,8 +967,8 @@ export default function Home() {
               onClick={() => setCurrentView('markethub')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'markethub'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <ShoppingCart size={16} className={currentView === 'markethub' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -982,8 +982,8 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'gigs'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <Briefcase size={16} className={currentView === 'gigs' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -995,8 +995,8 @@ export default function Home() {
               onClick={() => setCurrentView('prediction-market')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'prediction-market'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <PieChart size={16} className={currentView === 'prediction-market' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -1008,8 +1008,8 @@ export default function Home() {
               onClick={() => setCurrentView('slots')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'slots'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <Dices size={16} className={currentView === 'slots' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -1021,8 +1021,8 @@ export default function Home() {
               onClick={() => setCurrentView('leaderboard')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'leaderboard'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <Trophy size={16} className={currentView === 'leaderboard' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -1034,8 +1034,8 @@ export default function Home() {
               onClick={() => setCurrentView('affiliates')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'affiliates'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <Users size={16} className={currentView === 'affiliates' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
@@ -1060,8 +1060,8 @@ export default function Home() {
               }}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'earn'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <div className="flex items-center gap-3.5">
@@ -1081,8 +1081,8 @@ export default function Home() {
               }}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'wallet'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
-                  : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
+                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <div className="flex items-center gap-3.5">
