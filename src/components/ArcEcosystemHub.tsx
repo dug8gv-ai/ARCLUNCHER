@@ -338,13 +338,13 @@ export function ArcEcosystemHub() {
             address: ECOSYSTEM_FACTORY_ADDRESS as `0x${string}`,
             abi: ecosystemFactoryAbi,
             eventName: 'TokenCreated',
-            fromBlock: 0n,
+            fromBlock: BigInt(0),
           }),
           publicClient.getContractEvents({
             address: ECOSYSTEM_ROUTER_ADDRESS as `0x${string}`,
             abi: ecosystemRouterAbi,
             eventName: 'Swap',
-            fromBlock: 0n,
+            fromBlock: BigInt(0),
           })
         ]);
 
