@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5,7 +6,6 @@
    Deep navy · 3D grid · Neon cyan/purple · Heavy rain
 ════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 :root {
   --bg-main:        #04061a;

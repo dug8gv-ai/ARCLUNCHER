@@ -332,7 +332,9 @@ function AppList({ apps, stats }: { apps: AppRecord[]; stats: Record<string, App
                     <CheckCircle size={12} style={{ color: '#00e676' }} />
                   )}
                   {s?.warning && (
-                    <AlertTriangle size={12} style={{ color: 'var(--bd-accent-gold)' }} title="Last refresh failed" />
+                    <span title="Last refresh failed">
+                      <AlertTriangle size={12} style={{ color: 'var(--bd-accent-gold)' }} />
+                    </span>
                   )}
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'monospace', marginTop: 2 }}>
