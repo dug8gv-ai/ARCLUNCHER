@@ -227,9 +227,18 @@ export function ArcEcosystemHub() {
     fetchUnifiedTokens();
   }, [fetchUnifiedTokens]);
 
-  // Filter logic
+  // Filter logic (Deduplicate correctly)
   useEffect(() => {
-    let filtered = allTokens;
+    // 1. Strict deduplication by token address (case-insensitive)
+    const uniqueMap = new Map<string, UnifiedToken>();
+    allTokens.forEach(t => {
+      const addr = t.token_address.toLowerCase();
+      // Prefer ArcOmni source if duplicates exist
+      if (!uniqueMap.has(addr) || t._source === 'arcomni') {
+        uniqueMap.set(addr, t);
+      }
+    });
+    let filtered = Array.from(uniqueMap.values());
 
     if (tokenTypeFilter !== 'ALL') {
       filtered = filtered.filter(t => t.type === tokenTypeFilter);
@@ -363,30 +372,7 @@ export function ArcEcosystemHub() {
         }));
 
         if (historicalTokens.length > 0) {
-          setAllTokens(prev => {
-            const existingIds = new Set(prev.map(p => p.token_address.toLowerCase()));
-            const newTokens = historicalTokens.filter(t => !existingIds.has(t.token_address.toLowerCase()));
-            return [...newTokens, ...prev];
-          });
-        }
-
-        // Process Historical Swaps
-        const mappedPastSwaps = pastSwaps.map((log: any) => ({
-          hash: log.transactionHash || `tx_${Math.random()}`,
-          isBuy: log.args.isBuy,
-          ticker: 'ONCHAIN', // Fetching real ticker would require mapping tokenAddress
-          amount: Number(log.args.isBuy ? log.args.amountOut : log.args.amountIn) / 1e18,
-          volume: Number(log.args.isBuy ? log.args.amountIn : log.args.amountOut) / 1e6, // Assuming USDC 6 decimals
-          timestamp: Date.now(), // Block timestamp fetch omitted for speed
-          token_address: log.args.isBuy ? log.args.tokenOut : log.args.tokenIn
-        }));
-
-        if (mappedPastSwaps.length > 0) {
-          setSwaps(prev => {
-            const existingHashes = new Set(prev.map(s => s.hash));
-            const newSwaps = mappedPastSwaps.filter(s => !existingHashes.has(s.hash));
-            return [...newSwaps, ...prev].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
-          });
+          setAllTokens(prev => [...historicalTokens, ...prev]);
         }
 
         // 2. Seamlessly Chain Real-Time Subscriptions
@@ -414,29 +400,6 @@ export function ArcEcosystemHub() {
               return [...newUniques, ...prev];
             });
             toast.success(`New token deployed: ${liveTokens[0]?.ticker}`);
-          }
-        });
-
-        unwatchSwaps = publicClient.watchContractEvent({
-          address: ECOSYSTEM_ROUTER_ADDRESS as `0x${string}`,
-          abi: ecosystemRouterAbi,
-          eventName: 'Swap',
-          onLogs: (logs) => {
-            const liveSwaps = logs.map((log: any) => {
-              const volume = Number(log.args.isBuy ? log.args.amountIn : log.args.amountOut) / 1e6;
-              setTotalCumulativeVolume(prev => prev + volume);
-              return {
-                hash: log.transactionHash || `live_${Math.random()}`,
-                isBuy: log.args.isBuy,
-                ticker: 'ONCHAIN',
-                amount: Number(log.args.isBuy ? log.args.amountOut : log.args.amountIn) / 1e18,
-                volume: volume,
-                timestamp: Date.now(),
-                token_address: log.args.isBuy ? log.args.tokenOut : log.args.tokenIn
-              };
-            });
-
-            setSwaps(prev => [...liveSwaps, ...prev].slice(0, 50));
           }
         });
 
@@ -721,41 +684,8 @@ export function ArcEcosystemHub() {
 
         {/* ──── CENTER: Chart & Swap Stream (4 cols) ──── */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] bg-white overflow-hidden">
-            {selectedToken && selectedToken._isExternalToken ? (
-              <div className="p-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center font-bold text-slate-700 overflow-hidden">
-                    {selectedToken.image_url ? <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" /> : <Coins size={22} />}
-                  </div>
-                  <div>
-                    <h3 className="font-black text-lg text-[var(--text-primary)]">{selectedToken.name}</h3>
-                    <p className="text-xs font-mono text-[var(--text-secondary)]">{truncateAddr(selectedToken.token_address)}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                    <div className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Holders</div>
-                    <div className="text-lg font-black text-[var(--text-primary)]">{formatHolders(selectedToken.holders_count || '0')}</div>
-                  </div>
-                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                    <div className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Standard</div>
-                    <div className="text-lg font-black text-[var(--text-primary)]">{selectedToken.decimals ? 'ERC-20' : 'ERC-721'}</div>
-                  </div>
-                </div>
-
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs font-medium text-amber-700">
-                  🌐 This token was discovered on-chain. Chart data is exclusively available for ArcOmni deployed bonding curve tokens.
-                </div>
-
-                <a href={`${ARCSCAN_EXPLORER}/token/${selectedToken.token_address}`} target="_blank" rel="noopener noreferrer" className="w-full py-3 rounded-xl text-xs font-black text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--accent-cyan)] flex items-center justify-center gap-2 hover:bg-[rgba(0,242,254,0.1)] transition-all">
-                  <ExternalLink size={14} /> View Explorer Analytics
-                </a>
-              </div>
-            ) : (
-              <PriceChart selectedToken={selectedToken} />
-            )}
+          <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] bg-white overflow-hidden min-h-[400px]">
+            <PriceChart selectedToken={selectedToken} />
           </div>
 
           <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-white">
