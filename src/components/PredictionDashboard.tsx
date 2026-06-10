@@ -154,7 +154,7 @@ export function PredictionDashboard() {
     { value: 'politics', label: '🏛️ Politics', color: 'bg-red-100 text-red-700' },
     { value: 'tech', label: '💻 Tech', color: 'bg-cyan-100 text-cyan-700' },
     { value: 'entertainment', label: '🎬 Entertainment', color: 'bg-pink-100 text-pink-700' },
-    { value: 'other', label: '🔮 Other', color: 'bg-slate-100 text-[var(--text-primary)]' },
+    { value: 'other', label: '🔮 Other', color: 'bg-[rgba(8,14,44,0.8)] text-[var(--text-primary)]' },
   ];
 
   const handleImageUpload = async (file: File) => {
@@ -467,7 +467,7 @@ export function PredictionDashboard() {
                     className="card rounded-[24px] p-6 shadow-sm transition-all hover:shadow-md"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 border border-[var(--border-dim)] flex-shrink-0">
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] flex-shrink-0">
                         {market.imageUrl ? <img src={market.imageUrl} className="w-full h-full object-contain p-0.5" alt="" /> : <PieChart className="w-8 h-8 m-4 text-slate-300" />}
                       </div>
                       <div className="flex-1">
@@ -528,7 +528,7 @@ export function PredictionDashboard() {
                                 placeholder="Amount in USDC"
                                 value={betAmount}
                                 onChange={(e) => setBetAmount(e.target.value)}
-                                className="flex-1 bg-slate-50 border border-[var(--border-dim)] rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-blue-500"
+                                className="flex-1 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-blue-500"
                               />
                               <button 
                                 onClick={() => handlePlaceBet(market.id)}

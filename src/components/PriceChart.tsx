@@ -442,7 +442,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
 function MetricCard({ icon, label, value, color }: { icon: any, label: string, value: string, color: string }) {
   return (
-    <div className="bg-slate-50 border border-[var(--border-dim)] rounded-xl p-2.5 px-4 min-w-[100px] shadow-sm">
+    <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl p-2.5 px-4 min-w-[100px] shadow-sm">
       <div className="flex items-center gap-1.5 text-[9px] text-[var(--text-secondary)] font-black uppercase mb-1 tracking-wider">
         {icon} {label}
       </div>

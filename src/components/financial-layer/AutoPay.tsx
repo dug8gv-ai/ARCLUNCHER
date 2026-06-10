@@ -438,7 +438,7 @@ export default function AutoPay() {
                         placeholder="Search recipient username (e.g. Frianowzki)..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
+                        className="w-full pl-11 pr-4 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                       />
                       {searchLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-[var(--accent-cyan)] size-4" />}
                     </div>
@@ -478,7 +478,7 @@ export default function AutoPay() {
                       placeholder="Enter custom wallet address (0x...)"
                       value={customWallet}
                       onChange={(e) => setCustomWallet(e.target.value)}
-                      className="w-full px-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
+                      className="w-full px-4 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                     />
                   </div>
                 )}
@@ -518,7 +518,7 @@ export default function AutoPay() {
                     placeholder="0.00"
                     value={formAmount}
                     onChange={(e) => setFormAmount(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
+                    className="w-full px-4 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                   />
                 </div>
               </div>
@@ -556,12 +556,12 @@ export default function AutoPay() {
                     required
                     value={formDate}
                     onChange={(e) => setFormDate(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
+                    className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                   />
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 text-[10px] font-bold text-[var(--text-secondary)] leading-normal flex items-start gap-2.5">
+              <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 text-[10px] font-bold text-[var(--text-secondary)] leading-normal flex items-start gap-2.5">
                 <AlertCircle className="text-[var(--accent-cyan)] shrink-0 mt-0.5" size={15} />
                 <span>
                   By initiating this scheduler, you configure an automated client-side trigger. The payment engine will continuously check current system dates and execute the transfers instantly from your wallet balance when the scheduled time arrives.
@@ -570,7 +570,7 @@ export default function AutoPay() {
 
               <button
                 type="submit"
-                className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Plus size={16} /> Schedule Payroll Trigger
               </button>

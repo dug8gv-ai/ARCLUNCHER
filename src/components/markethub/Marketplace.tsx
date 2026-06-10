@@ -342,7 +342,7 @@ export function Marketplace() {
       {/* ── Vendor Stores Discovery (always visible) ── */}
       {allStores.length > 0 && (
         <div>
-          <h3 className="text-sm font-black text-slate-700 mb-3 flex items-center gap-2">
+          <h3 className="text-sm font-black text-[var(--text-secondary)] mb-3 flex items-center gap-2">
             <Store size={16} className="text-blue-500" />
             Registered Stores ({allStores.length})
           </h3>
@@ -361,7 +361,7 @@ export function Marketplace() {
                   }
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-black text-slate-800 truncate">{store.store_name}</p>
+                  <p className="text-xs font-black text-[var(--text-primary)] truncate">{store.store_name}</p>
                   <p className="text-[10px] text-slate-400 truncate">{store.roles || 'General Store'}</p>
                 </div>
               </div>

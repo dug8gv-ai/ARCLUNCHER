@@ -105,7 +105,7 @@ export default function ArcBridge() {
         </div>
         <button 
           onClick={fetchBalance}
-          className="p-3.5 hover:bg-slate-50 border border-[var(--border-dim)] rounded-2xl transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          className="p-3.5 hover:bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           title="Refresh Balance"
         >
           <RefreshCw size={14} />
@@ -124,7 +124,7 @@ export default function ArcBridge() {
           <form onSubmit={handleBridge} className="space-y-6">
             
             {/* SOURCE */}
-            <div className="bg-slate-50 rounded-2xl p-4.5 border border-[var(--border-dim)]">
+            <div className="bg-slate-50 rounded-2xl p-4 border border-[var(--border-dim)]">
               <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
                 <span>From Network</span>
                 <span className="text-indigo-600">Arc Testnet</span>
@@ -165,7 +165,7 @@ export default function ArcBridge() {
             </div>
 
             {/* DESTINATION */}
-            <div className="bg-indigo-50/50 rounded-2xl p-4.5 border border-indigo-100">
+            <div className="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100">
               <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
                 <span>To Network</span>
               </div>

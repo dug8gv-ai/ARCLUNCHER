@@ -477,7 +477,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer select-none ${
                   sliderPct === pct
                     ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700'
+                    : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-[var(--text-secondary)]'
                 }`}
               >
                 {pct}%
@@ -488,7 +488,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer select-none ${
                 sliderPct === 100
                   ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                  : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700'
+                  : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-[var(--text-secondary)]'
               }`}
             >
               MAX
@@ -501,7 +501,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
             value={amount}
             onChange={e => handleAmountChange(e.target.value)}
             placeholder="0.00"
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-2xl font-bold font-mono text-slate-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 transition-all"
+            className="w-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-2xl font-bold font-mono text-[var(--text-primary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300 transition-all"
           />
 
           {/* ── Range slider ── */}
@@ -599,16 +599,16 @@ export function TradingPanel({ token }: TradingPanelProps) {
               });
             }
           }}
-          className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 text-xs hover:text-slate-700 hover:bg-slate-50 font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 text-xs hover:text-[var(--text-secondary)] hover:bg-slate-50 font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <Wallet size={14} className="text-[var(--text-secondary)]" />
           Add {token.ticker} to Wallet
         </button>
 
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-500 space-y-1.5 font-medium">
+        <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl p-4 text-xs text-slate-500 space-y-1.5 font-medium">
           <p className="flex justify-between">
             <span>Price Impact</span>
-            <span className="text-slate-700">{'< 0.1%'}</span>
+            <span className="text-[var(--text-secondary)]">{'< 0.1%'}</span>
           </p>
           <p className="flex justify-between">
             <span>Estimated {isBuy ? 'Received' : 'Output'}</span>

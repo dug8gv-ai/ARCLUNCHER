@@ -30,7 +30,7 @@ const ARC_ASSETS = [
     address:  '0x7A829F075d97F48A1100bE2390f7A667Bd3B43c0' as `0x${string}`,
     decimals: 6,
     icon:     '💶',
-    pill:     'bg-indigo-600 text-white border-indigo-600',
+    pill:     'bg-[rgba(124,58,255,0.85)] text-white border-indigo-600',
     idle:     'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100',
   },
   {
@@ -480,7 +480,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
           <BarChart2 className="text-white" size={15} />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-black text-slate-800">Prediction Wizard</h3>
+          <h3 className="text-sm font-black text-[var(--text-primary)]">Prediction Wizard</h3>
           <p className="text-[10px] text-slate-400 font-medium">Arc Chain Testnet</p>
         </div>
         {/* Mode tabs */}
@@ -492,7 +492,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
               className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
                 pool.mode === m
                   ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
+                  : 'text-slate-500 hover:text-[var(--text-secondary)]'
               }`}
             >
               {m === 'binary' ? '⚡ 5-Min Trade' : '📋 Create Task'}
@@ -547,7 +547,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
               <div className="flex items-center justify-between px-4 py-2.5 bg-white border-t border-slate-100">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Strike</span>
-                  <span className="text-sm font-black text-slate-700">
+                  <span className="text-sm font-black text-[var(--text-secondary)]">
                     ${pool.strikePrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -643,7 +643,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
                   value={pool.betAmount}
                   onChange={e => dispatch({ type: 'SET_BET_AMOUNT', payload: e.target.value })}
                   placeholder={`Amount in ${currentAsset.symbol}`}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 text-sm font-bold text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300"
+                  className="w-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-3 text-sm font-bold text-[var(--text-secondary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
                   {currentAsset.symbol}
@@ -684,7 +684,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
             )}
 
             {/* Contract address */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+            <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Binary Market Contract</p>
               <p className="text-[10px] font-mono text-slate-600 break-all">{BINARY_MARKET_ADDRESS}</p>
             </div>
@@ -701,7 +701,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
                     ? (roundData.winningSide === 3 ? null : b.direction === roundData.winningSide)
                     : null;
                   return (
-                    <div key={i} className="flex items-center justify-between py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+                    <div key={i} className="flex items-center justify-between py-2 px-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold">
                       <span className={b.direction === 1 ? 'text-emerald-600 font-black' : 'text-red-500 font-black'}>
                         {b.direction === 1 ? '🟩 UP' : '🟥 DOWN'}
                       </span>
@@ -727,7 +727,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
               <div className="space-y-2">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">My Bets This Round</p>
                 {pool.myBets.map((b, i) => (
-                  <div key={i} className="flex items-center justify-between py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+                  <div key={i} className="flex items-center justify-between py-2 px-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold">
                     <span className={b.direction === 'UP' ? 'text-emerald-600 font-black' : 'text-red-500 font-black'}>
                       {b.direction === 'UP' ? '🟩 UP' : '🟥 DOWN'} @ ${b.strikePrice.toLocaleString()}
                     </span>
@@ -761,7 +761,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
                 value={pool.taskTitle}
                 onChange={e => dispatch({ type: 'SET_TASK_TITLE', payload: e.target.value })}
                 placeholder='"Will BTC hit $80k before Friday?"'
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 outline-none resize-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 transition-all"
+                className="w-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none resize-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300 transition-all"
               />
               <p className="text-[10px] text-slate-400 mt-1">{pool.taskTitle.length} chars — min 5</p>
             </div>
@@ -800,7 +800,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
                   value={pool.oracleEndpoint}
                   onChange={e => dispatch({ type: 'SET_ORACLE', payload: e.target.value })}
                   placeholder="0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 transition-all"
+                  className="w-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[var(--text-secondary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300 transition-all"
                 />
               </div>
             )}
@@ -814,7 +814,7 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
                 type="datetime-local"
                 value={pool.expiryTimestamp}
                 onChange={e => dispatch({ type: 'SET_EXPIRY', payload: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+                className="w-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-secondary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 transition-all"
               />
               <div className="flex gap-1.5 mt-2">
                 {[['1h',1],['6h',6],['24h',24],['7d',168]].map(([l, h]) => (
@@ -837,11 +837,11 @@ export function BinaryTradingWizard({ onTaskCreated }: BinaryTradingWizardProps)
             </div>
 
             {/* Settlement asset display */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+            <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
                 <Coins size={9} /> Settlement Asset Bound
               </p>
-              <p className="text-xs font-black text-slate-700 mb-0.5">{currentAsset.icon} {currentAsset.symbol}</p>
+              <p className="text-xs font-black text-[var(--text-secondary)] mb-0.5">{currentAsset.icon} {currentAsset.symbol}</p>
               <p className="text-[10px] font-mono text-slate-500 break-all">{currentAsset.address}</p>
             </div>
 

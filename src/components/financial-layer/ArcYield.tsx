@@ -264,7 +264,7 @@ export default function ArcYield() {
               Real on-chain staking — tokens are locked in the ArcDefiRouter contract for 1 week. Balances and lock state are read live from Arc Chain.
             </p>
           </div>
-          <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl px-4 py-3 text-right">
+          <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl px-4 py-3 text-right">
             <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)] font-black">Total Accrued Yield</p>
             <p className="text-xl font-black text-[var(--text-primary)] mt-2">{fmtYield(totalAccruedYield)}</p>
             <p className="text-[10px] text-[var(--text-secondary)] mt-1">Block: {currentBlock || 'syncing...'}</p>
@@ -307,7 +307,7 @@ export default function ArcYield() {
             </div>
 
             {/* Amount input */}
-            <div className="bg-slate-50 border border-[var(--border-dim)] rounded-[24px] p-4 space-y-3">
+            <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-[24px] p-4 space-y-3">
               <div className="flex justify-between items-center text-[10px] uppercase tracking-[0.2em] font-black text-[var(--text-secondary)]">
                 <span>Amount</span>
                 <button type="button" onClick={() => setAmountInput(balances[selectedAsset].toFixed(selectedMeta.decimals === 8 ? 8 : 2))} className="text-amber-700 hover:text-amber-800">Use max</button>
@@ -404,7 +404,7 @@ export default function ArcYield() {
                 <p className="text-[10px] uppercase tracking-[0.3em] font-extrabold text-[var(--text-secondary)]">Current Focus</p>
                 <h3 className="text-lg font-black text-[var(--text-primary)] mt-2">{selectedMeta.symbol} • {selectedPosition ? 'active stake' : 'ready to stake'}</h3>
               </div>
-              <div className="rounded-full bg-slate-50 border border-[var(--border-dim)] px-3 py-1 text-[10px] font-black text-[var(--text-primary)] flex items-center gap-2">
+              <div className="rounded-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] px-3 py-1 text-[10px] font-black text-[var(--text-primary)] flex items-center gap-2">
                 <ShieldCheck size={12} /> On-chain lock
               </div>
             </div>

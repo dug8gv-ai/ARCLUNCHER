@@ -299,7 +299,7 @@ export default function EscrowSystem() {
                     placeholder="e.g. Design & Build ARC Dashboard"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
                   />
                 </div>
                 
@@ -363,7 +363,7 @@ export default function EscrowSystem() {
                     placeholder="0x..."
                     value={otherParty}
                     onChange={(e) => setOtherParty(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -383,7 +383,7 @@ export default function EscrowSystem() {
 
                 <div className="space-y-3.5 max-h-[220px] overflow-y-auto pr-1">
                   {milestones.map((m, idx) => (
-                    <div key={idx} className="flex gap-4 items-center bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5">
+                    <div key={idx} className="flex gap-4 items-center bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4">
                       <span className="w-6 h-6 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] font-extrabold text-[10px] flex items-center justify-center shrink-0">
                         {idx + 1}
                       </span>
@@ -419,7 +419,7 @@ export default function EscrowSystem() {
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 text-[10.5px] font-bold text-[var(--text-secondary)] leading-normal flex items-start gap-3">
+              <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 text-[10.5px] font-bold text-[var(--text-secondary)] leading-normal flex items-start gap-3">
                 <AlertCircle className="text-[var(--accent-cyan)] shrink-0 mt-0.5" size={16} />
                 <span>
                   {formRole === 'client' 
@@ -464,7 +464,7 @@ export default function EscrowSystem() {
                       <button
                         key={a.id}
                         onClick={() => setSelectedAgreement(a)}
-                        className={`w-full text-left p-4.5 rounded-2xl border transition-all cursor-pointer flex justify-between items-center gap-4 ${
+                        className={`w-full text-left p-4 rounded-2xl border transition-all cursor-pointer flex justify-between items-center gap-4 ${
                           selectedAgreement?.id === a.id 
                             ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] shadow-sm' 
                             : 'border-[var(--border-dim)] bg-slate-50 hover:bg-slate-100/50'

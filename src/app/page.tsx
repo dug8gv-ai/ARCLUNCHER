@@ -871,7 +871,7 @@ export default function Home() {
               onClick={() => {
                 setCurrentView('launcher');
               }}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'launcher'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -886,7 +886,7 @@ export default function Home() {
               onClick={() => {
                 setCurrentView('builder');
               }}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'builder'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -901,7 +901,7 @@ export default function Home() {
               onClick={() => {
                 setCurrentView('trade');
               }}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'trade'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -916,7 +916,7 @@ export default function Home() {
               onClick={() => {
                 setCurrentView('guide');
               }}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'guide'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -931,7 +931,7 @@ export default function Home() {
               onClick={() => {
                 setCurrentView('staking');
               }}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'staking'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -945,7 +945,7 @@ export default function Home() {
               onClick={() => {
                 setCurrentView('social-pay');
               }}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'social-pay'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -965,7 +965,7 @@ export default function Home() {
             {/* Market Hub Tab */}
             <button 
               onClick={() => setCurrentView('markethub')}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'markethub'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -980,7 +980,7 @@ export default function Home() {
               onClick={() => {
                 setCurrentView('gigs');
               }}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'gigs'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -993,7 +993,7 @@ export default function Home() {
             {/* Prediction Market Tab */}
             <button 
               onClick={() => setCurrentView('prediction-market')}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'prediction-market'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -1006,7 +1006,7 @@ export default function Home() {
             {/* ArcSlots Tab */}
             <button 
               onClick={() => setCurrentView('slots')}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'slots'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -1019,7 +1019,7 @@ export default function Home() {
             {/* Dedicated Leaderboard Tab */}
             <button 
               onClick={() => setCurrentView('leaderboard')}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'leaderboard'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -1032,7 +1032,7 @@ export default function Home() {
             {/* Dedicated Affiliates Tab */}
             <button 
               onClick={() => setCurrentView('affiliates')}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'affiliates'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -1047,7 +1047,7 @@ export default function Home() {
               href="https://faucet.circle.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all text-[var(--text-secondary)] hover:bg-slate-50 hover:text-[var(--text-primary)] hover:scale-[1.01] border border-transparent"
+              className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all text-[var(--text-secondary)] hover:bg-slate-50 hover:text-[var(--text-primary)] hover:scale-[1.01] border border-transparent"
             >
               <Droplet size={16} className="text-[var(--text-secondary)]" />
               USDC Faucet
@@ -1058,7 +1058,7 @@ export default function Home() {
               onClick={() => {
                 setCurrentView('earn');
               }}
-              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'earn'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -1079,7 +1079,7 @@ export default function Home() {
               onClick={() => {
                 setCurrentView('wallet');
               }}
-              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'wallet'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -1098,7 +1098,7 @@ export default function Home() {
             <button 
               type="button"
               onClick={(e) => { e.stopPropagation(); setIsRulesOpen(true); setIsLockerOpen(false); }}
-              className="w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold text-[var(--text-secondary)] hover:bg-slate-50 transition-all hover:text-[var(--text-primary)] border border-transparent"
+              className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold text-[var(--text-secondary)] hover:bg-slate-50 transition-all hover:text-[var(--text-primary)] border border-transparent"
             >
               <HelpCircle size={16} className="text-[var(--text-secondary)]" />
               Airdrop Rules
@@ -1396,17 +1396,17 @@ export default function Home() {
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4 text-left pt-4">
-                  <div className="border border-[var(--border-dim)] p-4.5 bg-slate-50/50 rounded-2xl">
+                  <div className="border border-[var(--border-dim)] p-4 bg-slate-50/50 rounded-2xl">
                     <span className="text-lg block mb-1">🤝</span>
                     <h4 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider">Referral Bonanza</h4>
                     <p className="text-[10px] text-[var(--text-secondary)] mt-1 font-semibold leading-normal">Invite friends and earn 10% of all points they accumulate forever.</p>
                   </div>
-                  <div className="border border-[var(--border-dim)] p-4.5 bg-slate-50/50 rounded-2xl">
+                  <div className="border border-[var(--border-dim)] p-4 bg-slate-50/50 rounded-2xl">
                     <span className="text-lg block mb-1">🔥</span>
                     <h4 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider">Streaks Boost</h4>
                     <p className="text-[10px] text-[var(--text-secondary)] mt-1 font-semibold leading-normal">Keep check-in streaks to earn up to 2.5x multiplier on trading points.</p>
                   </div>
-                  <div className="border border-[var(--border-dim)] p-4.5 bg-slate-50/50 rounded-2xl">
+                  <div className="border border-[var(--border-dim)] p-4 bg-slate-50/50 rounded-2xl">
                     <span className="text-lg block mb-1">💎</span>
                     <h4 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider">Staking Rewards</h4>
                     <p className="text-[10px] text-[var(--text-secondary)] mt-1 font-semibold leading-normal">Stake ARCL points or locks to earn direct USDC gas rebates.</p>
@@ -1449,7 +1449,7 @@ export default function Home() {
               <p className="text-xs text-[var(--text-secondary)]">Every swap you execute generates points allocations instantly.</p>
             </div>
 
-            <div className="space-y-4 text-xs font-semibold text-[var(--text-primary)] bg-slate-50 border border-[var(--border-dim)] p-5 rounded-2xl">
+            <div className="space-y-4 text-xs font-semibold text-[var(--text-primary)] bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-5 rounded-2xl">
               <div className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</div>
                 <div>
@@ -1681,7 +1681,7 @@ export default function Home() {
                       value={lockAmount}
                       onChange={(e) => setLockAmount(e.target.value)}
                       placeholder="0.00"
-                      className="w-full bg-slate-900 border border-[var(--border-dim)] text-white placeholder-slate-650 rounded-2xl p-4.5 pr-20 text-sm font-extrabold outline-none focus:border-blue-500 focus:bg-slate-950"
+                      className="w-full bg-slate-900 border border-[var(--border-dim)] text-white placeholder-slate-650 rounded-2xl p-4 pr-20 text-sm font-extrabold outline-none focus:border-blue-500 focus:bg-slate-950"
                     />
                     <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
                       <button
@@ -1815,7 +1815,7 @@ export default function Home() {
             </div>
 
             {/* Details List */}
-            <div className="space-y-3 bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
+            <div className="space-y-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
               {premiumAlert.details.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-0.5">
                   <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">{item.label}</span>

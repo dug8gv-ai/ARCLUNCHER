@@ -155,7 +155,7 @@ export default function ArcStaking() {
               </div>
 
               {/* Amount Input */}
-              <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
+              <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
                 <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
                   <span>Amount to Stake</span>
                   <span className="cursor-pointer text-teal-600" onClick={() => setAmount(balances[selectedAsset.id as keyof typeof balances].toString())}>
@@ -263,7 +263,7 @@ export default function ArcStaking() {
             ) : (
               <div className="space-y-4">
                 {activeStakes.map(stake => (
-                  <div key={stake.id} className="bg-slate-800/60 border border-[var(--border-dim)] rounded-2xl p-4.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div key={stake.id} className="bg-slate-800/60 border border-[var(--border-dim)] rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-black text-white">{stake.amount} {stake.asset}</span>

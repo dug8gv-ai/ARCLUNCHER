@@ -312,7 +312,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
         <div className="flex bg-[rgba(6,8,20,0.6)] rounded-xl p-1 self-start sm:self-auto border border-[var(--border-dim)]">
           <button 
             onClick={() => setActiveTab('tokens')}
-            className={`px-4.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'tokens' ? 'bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
@@ -320,7 +320,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
           </button>
           <button 
             onClick={() => setActiveTab('earners')}
-            className={`px-4.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'earners' ? 'bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] shadow-sm border border-[var(--border-dim)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
@@ -352,7 +352,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                   onClick={() => onSelectToken?.(token)}
                   className="bg-[rgba(6,8,20,0.5)] hover:bg-[rgba(13,17,39,0.8)] border border-[var(--border-dim)] rounded-2xl p-4 hover:border-[var(--border-glow)] transition-all cursor-pointer group flex items-center justify-between"
                 >
-                  <div className="flex gap-4.5 items-center">
+                  <div className="flex gap-4 items-center">
                     {/* Token Logo */}
                     <div className="w-12 h-12 rounded-2xl overflow-hidden card shadow-inner flex-shrink-0 flex items-center justify-center">
                       {token.image_url ? (

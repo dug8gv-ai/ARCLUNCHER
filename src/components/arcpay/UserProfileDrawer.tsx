@@ -114,7 +114,7 @@ export function UserProfileDrawer() {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder="Search @username or 0x... wallet address"
-            className="w-full card rounded-2xl py-3.5 pl-12 pr-4 text-[var(--text-primary)] text-sm font-semibold focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-[var(--text-secondary)]"
+            className="w-full card rounded-2xl py-3.5 pl-12 pr-4 text-[var(--text-primary)] text-sm font-semibold focus:border-blue-400 focus:ring-2 focus:ring-blue-900 outline-none transition-all placeholder:text-[var(--text-secondary)]"
           />
         </div>
         <button

@@ -334,7 +334,7 @@ export default function YieldSavings() {
         {/* Action Panel */}
         <div className="md:col-span-5 card rounded-[32px] p-6 shadow-sm flex flex-col justify-between">
           <div className="space-y-4">
-            <div className="flex gap-2 p-1 bg-slate-50 border border-[var(--border-dim)] rounded-xl">
+            <div className="flex gap-2 p-1 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl">
               <button
                 type="button"
                 onClick={() => {
@@ -379,7 +379,7 @@ export default function YieldSavings() {
                     placeholder="0.00"
                     value={amountInput}
                     onChange={(e) => setAmountInput(e.target.value)}
-                    className="w-full pl-4 pr-16 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
+                    className="w-full pl-4 pr-16 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                   />
                   <button
                     type="button"
@@ -393,7 +393,7 @@ export default function YieldSavings() {
 
               <button
                 type="submit"
-                className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs tracking-wide uppercase transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {txType === 'deposit' ? <ArrowDown size={13} /> : <ArrowUp size={13} />}
                 {txType === 'deposit' ? 'Confirm Deposit' : 'Confirm Withdrawal'}
@@ -417,19 +417,19 @@ export default function YieldSavings() {
         <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-0.5">Estimated earnings projected based on your current vault balance. Actual gains accumulate dynamically every second.</p>
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div className="bg-slate-50 border border-[var(--border-dim)] p-4.5 rounded-2xl flex flex-col justify-between">
+          <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-4 rounded-2xl flex flex-col justify-between">
             <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Daily Est. Reward</span>
             <span className="text-base font-black text-[var(--text-primary)] font-mono mt-1.5">
               +{dailyEarnings.toFixed(4)} {activeTab}
             </span>
           </div>
-          <div className="bg-slate-50 border border-[var(--border-dim)] p-4.5 rounded-2xl flex flex-col justify-between">
+          <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-4 rounded-2xl flex flex-col justify-between">
             <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Monthly Est. Reward</span>
             <span className="text-base font-black text-[var(--text-primary)] font-mono mt-1.5">
               +{monthlyEarnings.toFixed(2)} {activeTab}
             </span>
           </div>
-          <div className="bg-slate-50 border border-[var(--border-dim)] p-4.5 rounded-2xl flex flex-col justify-between">
+          <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-4 rounded-2xl flex flex-col justify-between">
             <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Yearly Est. Reward</span>
             <span className="text-base font-black text-emerald-600 font-mono mt-1.5">
               +{yearlyEarnings.toFixed(2)} {activeTab}

@@ -112,7 +112,7 @@ export function AffiliatesView() {
               <div className="space-y-4">
                 {/* Header Profile Info */}
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-50 border border-[var(--border-dim)] shadow-sm flex-shrink-0">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] shadow-sm flex-shrink-0">
                     <img src={partner.avatar} alt={partner.name} className="w-full h-full object-contain p-0.5" />
                   </div>
                   <div className="min-w-0">
@@ -159,7 +159,7 @@ export function AffiliatesView() {
                       href={`https://x.com/${partner.twitter.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-8 h-8 rounded-xl bg-slate-50 border border-[var(--border-dim)] hover:bg-[rgba(0,242,254,0.05)] hover:text-[#1DA1F2] hover:border-[var(--border-dim)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                      className="w-8 h-8 rounded-xl bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] hover:bg-[rgba(0,242,254,0.05)] hover:text-[#1DA1F2] hover:border-[var(--border-dim)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                       title="Follow on X"
                     >
                       <XIcon />
@@ -167,7 +167,7 @@ export function AffiliatesView() {
                   )}
                   {partner.discord && (
                     <div
-                      className="w-8 h-8 rounded-xl bg-slate-50 border border-[var(--border-dim)] hover:bg-indigo-50 hover:text-[#5865F2] hover:border-indigo-200 flex items-center justify-center text-[var(--text-secondary)] transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-xl bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] hover:bg-indigo-50 hover:text-[#5865F2] hover:border-indigo-200 flex items-center justify-center text-[var(--text-secondary)] transition-colors cursor-pointer"
                       title={`Discord: ${partner.discord}`}
                       onClick={() => alert(`Discord Handle: ${partner.discord}`)}
                     >

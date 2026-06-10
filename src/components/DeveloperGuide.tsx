@@ -32,7 +32,7 @@ export function DeveloperGuide() {
           </div>
         </div>
 
-        <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 flex items-center justify-between">
           <code className="text-[var(--accent-cyan)] font-mono font-bold text-sm">{ARC_GLOBAL_VAULT_ADDRESS}</code>
           <button
             onClick={() => handleCopy(ARC_GLOBAL_VAULT_ADDRESS, 'address')}

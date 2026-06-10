@@ -161,7 +161,7 @@ export default function ArcGlobalDashboard() {
             {/* Arc Wallet Tab */}
             <button
               onClick={() => setCurrentTab('wallet')}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'wallet'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -174,7 +174,7 @@ export default function ArcGlobalDashboard() {
             {/* Social Pay Tab */}
             <button
               onClick={() => setCurrentTab('social-pay')}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'social-pay'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -187,7 +187,7 @@ export default function ArcGlobalDashboard() {
             {/* Leaderboard Tab */}
             <button
               onClick={() => setCurrentTab('leaderboard')}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'leaderboard'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -200,7 +200,7 @@ export default function ArcGlobalDashboard() {
             {/* Circle Bridge Tab */}
             <button
               onClick={() => setCurrentTab('bridge')}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'bridge'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -213,7 +213,7 @@ export default function ArcGlobalDashboard() {
             {/* Circle Developer Hub Tab */}
             <button
               onClick={() => setCurrentTab('circle-hub')}
-              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'circle-hub'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -231,7 +231,7 @@ export default function ArcGlobalDashboard() {
             {/* Staking Tab */}
             <button
               onClick={() => setCurrentTab('staking')}
-              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentTab === 'staking'
                   ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
@@ -304,7 +304,7 @@ export default function ArcGlobalDashboard() {
                 <div className="relative">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 bg-slate-50 border border-[var(--border-dim)] hover:bg-slate-100 text-[var(--text-primary)] px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold cursor-pointer"
+                    className="flex items-center gap-2 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] hover:bg-[rgba(8,14,44,0.8)] text-[var(--text-primary)] px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold cursor-pointer"
                   >
                     <div className="w-6 h-6 rounded-full overflow-hidden border border-[var(--border-dim)] bg-[var(--bg-card)]">
                       <img src={myProfile.avatar} alt="" className="w-full h-full object-contain p-0.5" />
@@ -390,7 +390,7 @@ export default function ArcGlobalDashboard() {
               <div className="space-y-8 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between card rounded-[28px] p-5 shadow-sm">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-50 border border-[var(--border-dim)] flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] flex items-center justify-center">
                       {selectedToken.image_url ? (
                         <img src={selectedToken.image_url} alt="" className="w-full h-full object-contain p-0.5" />
                       ) : (

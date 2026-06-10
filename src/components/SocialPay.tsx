@@ -550,7 +550,7 @@ export function SocialPay() {
               {selectedRecipient ? (
                 /* Selected Recipient Card */
                 <div className="flex items-center justify-between p-4 bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] rounded-2xl animate-in fade-in zoom-in-95 duration-200">
-                  <div className="flex items-center gap-4.5">
+                  <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl overflow-hidden border border-[var(--border-dim)] shadow-sm bg-[var(--bg-card)]">
                       <img src={selectedRecipient.avatar} alt="" className="w-full h-full object-contain p-0.5" />
                     </div>
@@ -656,7 +656,7 @@ export function SocialPay() {
                           });
                         }
                       }}
-                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:bg-[var(--bg-card)] focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all"
+                      className="w-full pl-11 pr-4 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:bg-[var(--bg-card)] focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all"
                     />
                   </div>
                 </div>
@@ -727,7 +727,7 @@ export function SocialPay() {
 
               {/* Dynamic asset inputs */}
               {selectedAssetType === 'LAUNCHED' && (
-                <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
                   <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Choose Launched Token</span>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[140px] overflow-y-auto pr-1">
                     {tokensList.length === 0 ? (
@@ -754,7 +754,7 @@ export function SocialPay() {
               )}
 
               {selectedAssetType === 'CUSTOM' && (
-                <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
                   <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Custom ERC-20 Address</span>
                   
                   <div className="space-y-3.5">
@@ -789,7 +789,7 @@ export function SocialPay() {
             </div>
 
             {/* Step 3: Input Amount */}
-            <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4.5">
+            <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4">
               <div className="flex justify-between text-[11px] text-[var(--text-secondary)] font-bold mb-2">
                 <span>Amount to Send</span>
                 <span className="text-[var(--accent-cyan)] font-extrabold">
@@ -804,7 +804,7 @@ export function SocialPay() {
                 value={sendAmount}
                 onChange={(e) => setSendAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full bg-transparent text-3xl font-extrabold font-mono text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-primary)', background: 'transparent', border: 'none', outline: 'none', width: '100%', fontFamily: 'Orbitron, sans-serif' }}
                 required
                 min="0.000000000000000001"
                 step="any"
@@ -815,7 +815,27 @@ export function SocialPay() {
             <button
               type="submit"
               disabled={txStatus === 'sending'}
-              className="w-full py-4.5 bg-gradient-to-r from-[#7c3aff] to-[#2979ff] hover:opacity-90 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                width: '100%',
+                padding: '16px',
+                background: 'linear-gradient(135deg, #7c3aff, #2979ff)',
+                color: '#ffffff',
+                borderRadius: 16,
+                fontFamily: 'Orbitron, sans-serif',
+                fontWeight: 900,
+                fontSize: 13,
+                letterSpacing: 2,
+                textTransform: 'uppercase',
+                border: 'none',
+                cursor: txStatus === 'sending' ? 'not-allowed' : 'pointer',
+                opacity: txStatus === 'sending' ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                boxShadow: '0 0 24px rgba(124,58,255,0.45)',
+                transition: 'all 0.15s',
+              }}
             >
               {txStatus === 'sending' ? (
                 <>
@@ -920,7 +940,7 @@ export function SocialPay() {
       {/* Custom Global Alert Dialog */}
       {alertInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
-          <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-4.5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+          <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-4 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${
                 alertInfo.type === 'success'
