@@ -789,14 +789,22 @@ export function SocialPay() {
             </div>
 
             {/* Step 3: Input Amount */}
-            <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4">
-              <div className="flex justify-between text-[11px] text-[var(--text-secondary)] font-bold mb-2">
-                <span>Amount to Send</span>
-                <span className="text-[var(--accent-cyan)] font-extrabold">
+            <div style={{
+              background: 'rgba(6,10,38,0.95)',
+              border: '1px solid rgba(0,229,255,0.25)',
+              borderRadius: 16,
+              padding: '16px',
+              boxShadow: '0 0 20px rgba(0,229,255,0.05)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'Orbitron, sans-serif', letterSpacing: 2, textTransform: 'uppercase' }}>
+                  Amount to Send
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--accent-cyan)', fontWeight: 700, fontFamily: 'Orbitron, sans-serif' }}>
                   {selectedAssetType === 'USDC' && 'USDC'}
                   {selectedAssetType === 'LAUNCHED' && (selectedMemeToken?.ticker || 'TOKEN')}
                   {selectedAssetType === 'CUSTOM' && (customTokenSymbol || 'ERC20')}
-                  {selectedAssetType === 'NATIVE' && 'Native Chain Coin'}
+                  {selectedAssetType === 'NATIVE' && 'ARC'}
                 </span>
               </div>
               <input
@@ -804,7 +812,21 @@ export function SocialPay() {
                 value={sendAmount}
                 onChange={(e) => setSendAmount(e.target.value)}
                 placeholder="0.00"
-                style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-primary)', background: 'transparent', border: 'none', outline: 'none', width: '100%', fontFamily: 'Orbitron, sans-serif' }}
+                style={{
+                  fontSize: '32px',
+                  fontWeight: 900,
+                  color: 'var(--text-primary)',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  width: '100%',
+                  fontFamily: 'Orbitron, sans-serif',
+                  minHeight: 'unset',
+                  padding: '4px 0',
+                  display: 'block',
+                  lineHeight: 1.2,
+                }}
+                className="amount-input-override"
                 required
                 min="0.000000000000000001"
                 step="any"

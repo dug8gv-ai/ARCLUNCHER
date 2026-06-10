@@ -611,3 +611,29 @@ button.bg-red-600, button.bg-red-500 {
 [data-theme="light"] [class*="text-black"] { color: #e8f4ff !important; }
 [data-theme="light"] [class*="text-gray-600"],
 [data-theme="light"] [class*="text-slate-400"] { color: #7ab0e8 !important; }
+
+/* ── Amount input override ── */
+.amount-input-override,
+.amount-input-override:focus {
+  font-size: 32px !important;
+  font-weight: 900 !important;
+  font-family: 'Orbitron', sans-serif !important;
+  color: var(--text-primary) !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  min-height: unset !important;
+  padding: 4px 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+.amount-input-override::placeholder {
+  color: var(--text-muted) !important;
+  font-size: 32px !important;
+  font-family: 'Orbitron', sans-serif !important;
+}
+/* Hide number input spinners */
+.amount-input-override::-webkit-outer-spin-button,
+.amount-input-override::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.amount-input-override[type=number] { -moz-appearance: textfield; }
