@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, TrendingUp, Users, Copy, Trash2, Award, ArrowUpRight, DollarSign, Info } from 'lucide-react';
+import { Trophy, TrendingUp, Users, Copy, Trash2, Award, ArrowUpRight, DollarSign, Info, Globe, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAccount } from 'wagmi';
 
@@ -60,10 +60,10 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
     });
   };
 
-  // Fetch Live Tokens (Markets)
+  // Fetch ALL tokens: ArcOmni (Supabase) + ALL on-chain (ArcScan API)
   const fetchTokens = async () => {
     try {
-      // 1. Fetch Tokens (Defensive check for is_pinned column existence)
+      // ── 1. Fetch ArcOmni tokens from Supabase ──
       let tokensData: any[] | null = null;
       let error: any = null;
 
@@ -73,31 +73,32 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
           .select('*')
           .order('is_pinned', { ascending: false })
           .order('created_at', { ascending: false })
-          .limit(20);
+          .limit(50);
         
         if (res.error) throw res.error;
         tokensData = res.data;
       } catch (fallbackErr: any) {
-        // Fallback to default sorting if is_pinned column doesn't exist in user's Supabase yet
         const res = await supabase
           .from('token_launches')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(20);
+          .limit(50);
         tokensData = res.data;
         error = res.error;
       }
 
       if (error) throw error;
 
-      // 2. Fetch Swaps for all these tokens to calculate metrics
+      // Enrich ArcOmni tokens with swap metrics
       const tokenAddresses = tokensData?.map(t => t.token_address) || [];
       const { data: allSwaps } = await supabase
         .from('token_swaps')
         .select('token_address, user_address, usdc_amount, token_amount')
         .in('token_address', tokenAddresses);
 
-      const enrichedTokens = (tokensData || []).map(token => {
+      const arcOmniMap = new Map<string, boolean>();
+      const enrichedArcOmni = (tokensData || []).map(token => {
+        arcOmniMap.set(token.token_address.toLowerCase(), true);
         const tokenSwaps = allSwaps?.filter(s => s.token_address === token.token_address) || [];
         const holders = new Set(tokenSwaps.map(s => s.user_address)).size;
         
@@ -111,11 +112,44 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
         return {
           ...token,
           holders,
-          priceChange: isNaN(priceChange) ? "0.00" : priceChange.toFixed(2)
+          priceChange: isNaN(priceChange) ? "0.00" : priceChange.toFixed(2),
+          _source: 'arcomni' as const
         };
       });
 
-      setTokens(enrichedTokens);
+      // ── 2. Fetch ALL on-chain tokens from ArcScan API ──
+      let arcScanTokens: any[] = [];
+      try {
+        const arcRes = await fetch('https://testnet.arcscan.app/api/v2/tokens');
+        if (arcRes.ok) {
+          const arcData = await arcRes.json();
+          const items = arcData.items || [];
+          
+          // Only include ERC-20 tokens that are NOT already in ArcOmni
+          arcScanTokens = items
+            .filter((t: any) => t.type === 'ERC-20' && !arcOmniMap.has(t.address_hash.toLowerCase()))
+            .map((t: any) => ({
+              id: t.address_hash,
+              token_address: t.address_hash,
+              name: t.name || 'Unknown Token',
+              ticker: t.symbol || '???',
+              image_url: t.icon_url || null,
+              holders: Number(t.holders_count || 0),
+              priceChange: '0.00',
+              created_at: null,
+              is_pinned: false,
+              badge_type: null,
+              _source: 'arcscan' as const,
+              _holdersRaw: t.holders_count
+            }));
+        }
+      } catch (arcErr) {
+        console.error('ArcScan API fetch failed:', arcErr);
+      }
+
+      // ── 3. Merge: ArcOmni first (pinned priority), then ArcScan by holders ──
+      const merged = [...enrichedArcOmni, ...arcScanTokens];
+      setTokens(merged);
     } catch (e) {
       console.error("Error fetching tokens:", e);
     }
@@ -201,7 +235,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
     }
   };
 
-  // Main initial loader & Realtime Subscriptions
+  // Main initial loader & Realtime Subscriptions + ArcScan Polling
   useEffect(() => {
     setLoading(true);
     
@@ -212,7 +246,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
 
     loadAllData();
 
-    // Listeners for realtime sync
+    // Listeners for realtime sync (ArcOmni Supabase)
     const tokenChannel = supabase.channel('leaderboard_launches')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'token_launches' }, fetchTokens)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'token_swaps' }, async () => {
@@ -222,8 +256,14 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_stats' }, fetchEarners)
       .subscribe();
 
+    // Poll ArcScan every 30s to pick up new on-chain deployments quickly
+    const arcScanPoll = setInterval(() => {
+      fetchTokens();
+    }, 30000);
+
     return () => {
       supabase.removeChannel(tokenChannel);
+      clearInterval(arcScanPoll);
     };
   }, []);
 
@@ -338,17 +378,17 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
             <p className="text-xs font-semibold">Syncing real-time database...</p>
           </div>
         ) : activeTab === 'tokens' ? (
-          /* LIVE TOKENS (MARKETS) LIST */
+          /* LIVE TOKENS (MARKETS) LIST — ArcOmni + ArcScan merged */
           <div className="space-y-3">
             {tokens.length === 0 ? (
-              <p className="text-center text-[var(--text-secondary)] py-12 text-xs font-medium">No tokens launched yet.</p>
+              <p className="text-center text-[var(--text-secondary)] py-12 text-xs font-medium">No tokens found on Arc Chain Testnet.</p>
             ) : (
               tokens.map((token, i) => (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.05, 0.4) }}
-                  key={token.id} 
+                  key={token.id || token.token_address} 
                   onClick={() => onSelectToken?.(token)}
                   className="bg-[rgba(6,8,20,0.5)] hover:bg-[rgba(13,17,39,0.8)] border border-[var(--border-dim)] rounded-2xl p-4 hover:border-[var(--border-glow)] transition-all cursor-pointer group flex items-center justify-between"
                 >
@@ -372,6 +412,16 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                         <span className="text-[10px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] px-1.5 py-0.5 rounded font-black uppercase border border-[var(--border-dim)]">
                           {token.ticker}
                         </span>
+                        {/* Source Badge: ArcOmni vs On-Chain */}
+                        {token._source === 'arcomni' ? (
+                          <span className="text-[7px] bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider border border-blue-400/20">
+                            ArcOmni
+                          </span>
+                        ) : token._source === 'arcscan' ? (
+                          <span className="text-[7px] bg-slate-600 text-slate-200 px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider border border-slate-500/20">
+                            🌐 On-Chain
+                          </span>
+                        ) : null}
                         {token.badge_type === 'official' && (
                           <span className="text-[8px] btn-primary text-white px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-blue-400/20">
                             👑 Official
@@ -397,9 +447,21 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                         >
                           <Copy size={10} />
                         </button>
+                        {/* ArcScan Link for external tokens */}
+                        {token._source === 'arcscan' && (
+                          <a
+                            href={`https://testnet.arcscan.app/token/${token.token_address}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-1 hover:bg-slate-200 rounded transition-colors text-[var(--text-secondary)] hover:text-[var(--accent-cyan)]"
+                          >
+                            <ExternalLink size={10} />
+                          </a>
+                        )}
 
-                        {/* Admin Action Buttons */}
-                        {isAdmin && (
+                        {/* Admin Action Buttons (only for ArcOmni tokens) */}
+                        {isAdmin && token._source === 'arcomni' && (
                           <div className="flex items-center gap-1 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] p-0.5 rounded-lg ml-2">
                             {/* Pin Toggle */}
                             <button
@@ -446,21 +508,30 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                     <div className="flex items-center gap-1.5 justify-end mb-0.5">
                       <Users size={13} className="text-[var(--accent-cyan)]" />
                       <span className="text-xs font-bold text-[var(--text-primary)]">
-                        {token.holders} Holders
+                        {typeof token.holders === 'number' && token.holders >= 1000 
+                          ? (token.holders / 1000).toFixed(1) + 'K'
+                          : token.holders
+                        } Holders
                       </span>
                     </div>
-                    <div
-                      className="text-xs font-extrabold flex items-center justify-end gap-0.5"
-                      style={{
-                        color: Number(token.priceChange) >= 0 ? '#00e676' : '#ff1744',
-                        textShadow: Number(token.priceChange) >= 0
-                          ? '0 0 8px rgba(0,230,118,0.6)'
-                          : '0 0 8px rgba(255,23,68,0.6)',
-                      }}
-                    >
-                      {Number(token.priceChange) >= 0 ? '+' : ''}{token.priceChange}%
-                      <ArrowUpRight size={10} className={Number(token.priceChange) >= 0 ? 'rotate-0' : 'rotate-90'} />
-                    </div>
+                    {token._source === 'arcomni' ? (
+                      <div
+                        className="text-xs font-extrabold flex items-center justify-end gap-0.5"
+                        style={{
+                          color: Number(token.priceChange) >= 0 ? '#00e676' : '#ff1744',
+                          textShadow: Number(token.priceChange) >= 0
+                            ? '0 0 8px rgba(0,230,118,0.6)'
+                            : '0 0 8px rgba(255,23,68,0.6)',
+                        }}
+                      >
+                        {Number(token.priceChange) >= 0 ? '+' : ''}{token.priceChange}%
+                        <ArrowUpRight size={10} className={Number(token.priceChange) >= 0 ? 'rotate-0' : 'rotate-90'} />
+                      </div>
+                    ) : (
+                      <div className="text-[10px] font-bold text-slate-500 flex items-center justify-end gap-0.5">
+                        <Globe size={10} /> On-Chain
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))
