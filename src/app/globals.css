@@ -237,22 +237,25 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3) !import
 }
 
 /* ── Text Visibility Overrides ── */
-/* Removing old light theme rules that hid text */
-[class*="text-black"],
-[class*="text-gray-900"], [class*="text-gray-800"],
-[class*="text-slate-900"], [class*="text-slate-800"] { 
-  color: #ffffff !important; 
+/* Scoped rules to ensure visibility without breaking components */
+.card [class*="text-gray-9"], .stat-box [class*="text-gray-9"], .panel [class*="text-gray-9"],
+.card [class*="text-slate-9"], .stat-box [class*="text-slate-9"], .panel [class*="text-slate-9"],
+.card [class*="text-black"], .stat-box [class*="text-black"], .panel [class*="text-black"] {
+  color: #ffffff !important;
   text-shadow: 0 0 5px rgba(255,255,255,0.2);
 }
-[class*="text-gray-600"], [class*="text-gray-500"],
-[class*="text-slate-600"], [class*="text-slate-500"] { 
-  color: var(--text-secondary) !important; 
+
+.card [class*="text-gray-6"], .stat-box [class*="text-gray-6"], .panel [class*="text-gray-6"],
+.card [class*="text-slate-6"], .stat-box [class*="text-slate-6"], .panel [class*="text-slate-6"] {
+  color: var(--text-secondary) !important;
 }
-[class*="bg-white"], [class*="bg-gray-50"], [class*="bg-slate-50"] { 
-  background-color: transparent !important; 
+
+/* Ensure inputs are always visible */
+input, select, textarea {
+  color: #ffffff !important;
 }
-[class*="bg-gray-100"], [class*="bg-slate-100"] { 
-  background-color: rgba(255,255,255,0.05) !important; 
+input::placeholder, textarea::placeholder {
+  color: rgba(255,255,255,0.4) !important;
 }
 
 /* ── Utility ───────────────────────────────── */
