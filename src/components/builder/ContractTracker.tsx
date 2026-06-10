@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { usePublicClient, useChainId, useAccount } from 'wagmi';
 import { supabase } from '@/lib/supabase';
 import { formatEther } from 'viem';
-import { Loader2, Activity, Users, Zap, AlertTriangle, Clock } from 'lucide-react';
+import {
+  Loader2, Activity, Users, Zap, AlertTriangle,
+  Clock, RefreshCw, TrendingUp, Database, CheckCircle
+} from 'lucide-react';
 
 interface AppRecord {
   id: string;
@@ -13,52 +16,44 @@ interface AppRecord {
   is_verified: boolean;
 }
 
-interface StatsRecord {
-  txs: number;
-  uniqueWallets: number;
-  volume: string;
-  lastUpdated?: string;
-  sampled?: boolean;
-  warning?: boolean;
+interface AppStats {
+  app_id:          string;
+  total_txs:       number;
+  unique_wallets:  number;
+  volume_24h:      number;
+  volume_total:    number;
+  volume_unit:     string;
+  txs_24h:         number;
+  last_block:      number;
+  last_updated:    string;
+  warning:         boolean;
 }
 
-const CHAIN_ID = 5042002;
-const REFRESH_INTERVAL_MS = 60_000;
-const MAX_TX_SAMPLE = 500;
-const BLOCK_RANGE = BigInt(5000) as bigint;
-const BIGINT_ZERO = BigInt(0) as bigint;
-
-// localStorage helpers
-function statsCacheKey(addr: string) {
-  return `arcomni_contract_stats_${addr.toLowerCase()}`;
-}
-function loadCachedStats(addr: string): StatsRecord | null {
-  try {
-    const raw = localStorage.getItem(statsCacheKey(addr));
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-function saveCachedStats(addr: string, record: StatsRecord) {
-  try { localStorage.setItem(statsCacheKey(addr), JSON.stringify(record)); } catch { /* quota */ }
-}
+const CHAIN_ID            = 5042002;
+const REFRESH_MS          = 90_000;   // 90s auto-refresh
+const BLOCKS_PER_SECOND   = 2;        // Arc testnet ~2s block time
+const SECONDS_IN_24H      = 86400;
+const BLOCKS_IN_24H       = BigInt(Math.floor(SECONDS_IN_24H / BLOCKS_PER_SECOND));
 
 export function ContractTracker() {
-  const { address } = useAccount();
-  const chainId = useChainId();
-  const publicClient = usePublicClient();
-  const isCorrectNetwork = chainId === CHAIN_ID;
+  const { address }    = useAccount();
+  const chainId        = useChainId();
+  const publicClient   = usePublicClient();
+  const isCorrectNet   = chainId === CHAIN_ID;
 
-  const [apps, setApps] = useState<AppRecord[]>([]);
-  const [stats, setStats] = useState<Record<string, StatsRecord>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const statsRef = useRef(stats);
-  statsRef.current = stats;
+  const [apps,      setApps]      = useState<AppRecord[]>([]);
+  const [stats,     setStats]     = useState<Record<string, AppStats>>({});
+  const [loading,   setLoading]   = useState(true);
+  const [refreshing,setRefreshing]= useState(false);
+  const [lastSync,  setLastSync]  = useState<string>('');
+  const mountedRef                = useRef(true);
 
-  // Load apps
+  // ── Load apps from Supabase ──────────────────────────────────────────────
   useEffect(() => {
-    if (!address) { setIsLoading(false); return; }
+    if (!address) { setLoading(false); return; }
 
-    const fetchApps = async () => {
+    const load = async () => {
+      setLoading(true);
       const { data, error } = await supabase
         .from('registered_apps')
         .select('id, app_name, contract_address, is_verified')
@@ -66,258 +61,379 @@ export function ContractTracker() {
         .eq('is_verified', true)
         .not('contract_address', 'is', null);
 
-      if (!error && data) {
+      if (!error && data && mountedRef.current) {
         setApps(data as AppRecord[]);
-        // Seed stats from localStorage cache
-        const seeded: Record<string, StatsRecord> = {};
-        for (const app of data as AppRecord[]) {
-          if (!app.contract_address) continue;
-          const cached = loadCachedStats(app.contract_address);
-          if (cached) seeded[app.id] = cached;
-        }
-        if (Object.keys(seeded).length) setStats(seeded);
+        // Load previously saved stats from Supabase immediately
+        await loadSavedStats(data as AppRecord[]);
       }
-      setIsLoading(false);
+      if (mountedRef.current) setLoading(false);
     };
 
-    fetchApps();
+    load();
+    return () => { mountedRef.current = false; };
   }, [address]);
 
-  // Track contracts
-  useEffect(() => {
-    if (!isCorrectNetwork || !publicClient || apps.length === 0) return;
+  // ── Load saved stats from Supabase (persists across refresh) ────────────
+  const loadSavedStats = async (appList: AppRecord[]) => {
+    if (!appList.length) return;
+    const ids = appList.map(a => a.id);
+    const { data } = await supabase
+      .from('app_stats')
+      .select('*')
+      .in('app_id', ids);
 
-    const trackContracts = async () => {
-      const updates: Record<string, StatsRecord> = {};
+    if (data && data.length && mountedRef.current) {
+      const map: Record<string, AppStats> = {};
+      data.forEach((r: AppStats) => { map[r.app_id] = r; });
+      setStats(map);
+    }
+  };
 
-      for (const app of apps) {
-        if (!app.contract_address) continue;
+  // ── Calculate accurate stats from chain + DB ─────────────────────────────
+  const calculateStats = useCallback(async (silent = false) => {
+    if (!publicClient || !isCorrectNet || !apps.length) return;
+    if (!silent) setRefreshing(true);
 
-        try {
-          const blockNumber = await publicClient.getBlockNumber();
-          const fromBlock = blockNumber - BLOCK_RANGE > BIGINT_ZERO ? blockNumber - BLOCK_RANGE : BIGINT_ZERO;
+    const updates: Record<string, AppStats> = {};
 
-          const logs = await publicClient.getLogs({
-            address: app.contract_address as `0x${string}`,
-            fromBlock,
-            toBlock: 'latest',
-          });
+    for (const app of apps) {
+      if (!app.contract_address) continue;
+      const addr = app.contract_address.toLowerCase() as `0x${string}`;
 
-          // Unique transaction hashes
-          const uniqueHashes = [...new Set(
-            logs.map(l => l.transactionHash).filter(Boolean) as string[]
-          )];
-          const txs = uniqueHashes.length;
-          const sampled = uniqueHashes.length > MAX_TX_SAMPLE;
-          const hashesToFetch = sampled
-            ? uniqueHashes.slice(-MAX_TX_SAMPLE)
-            : uniqueHashes;
+      try {
+        const latestBlock = await publicClient.getBlockNumber();
+        const fromBlock24h = latestBlock > BLOCKS_IN_24H
+          ? latestBlock - BLOCKS_IN_24H
+          : BigInt(0);
 
-          // Fetch transactions in parallel
-          const txObjects = await Promise.allSettled(
-            hashesToFetch.map(h =>
-              publicClient.getTransaction({ hash: h as `0x${string}` })
-            )
+        // ── ALL TIME logs ──────────────────────────────────────────────────
+        const [allLogs, logs24h] = await Promise.all([
+          publicClient.getLogs({ address: addr, fromBlock: BigInt(0), toBlock: 'latest' }),
+          publicClient.getLogs({ address: addr, fromBlock: fromBlock24h, toBlock: 'latest' }),
+        ]);
+
+        // Unique TX hashes
+        const allHashes = [...new Set(allLogs.map(l => l.transactionHash).filter(Boolean) as string[])];
+        const hashes24h = [...new Set(logs24h.map(l => l.transactionHash).filter(Boolean) as string[])];
+
+        // Fetch TXs for unique wallets + native volume (batch, max 300)
+        const fetchBatch = async (hashes: string[]) => {
+          const batch = hashes.slice(-300);
+          const results = await Promise.allSettled(
+            batch.map(h => publicClient.getTransaction({ hash: h as `0x${string}` }))
           );
-
-          const fromAddresses = new Set<string>();
-          let volumeWei = BigInt(0) as bigint;
-
-          for (const result of txObjects) {
-            if (result.status === 'fulfilled' && result.value) {
-              fromAddresses.add(result.value.from.toLowerCase());
-              volumeWei += result.value.value ?? BigInt(0);
+          const wallets = new Set<string>();
+          let nativeWei = BigInt(0);
+          for (const r of results) {
+            if (r.status === 'fulfilled' && r.value) {
+              wallets.add(r.value.from.toLowerCase());
+              nativeWei += r.value.value ?? BigInt(0);
             }
           }
+          return { wallets, nativeWei };
+        };
 
-          // Volume: sum native value first. For ERC20/DeFi contracts (value=0), sum from token_swaps
-          let volumeDisplay: string;
-          const nativeVolume = parseFloat(formatEther(volumeWei));
-          if (nativeVolume > 0) {
-            volumeDisplay = nativeVolume.toFixed(4) + ' ARC';
+        const [allFetched, fetched24h] = await Promise.all([
+          fetchBatch(allHashes),
+          fetchBatch(hashes24h),
+        ]);
+
+        // ── Volume from Supabase token_swaps (USDC accurate) ──────────────
+        let volumeTotal = 0;
+        let volume24h   = 0;
+        let volumeUnit  = 'USDC';
+
+        // Check if it's a token launch contract
+        const { data: swapsDirect } = await supabase
+          .from('token_swaps')
+          .select('usdc_amount, created_at')
+          .eq('token_address', addr);
+
+        if (swapsDirect && swapsDirect.length > 0) {
+          // Direct token match
+          const now = Date.now();
+          volumeTotal = swapsDirect.reduce((s: number, r: any) => s + Number(r.usdc_amount), 0);
+          volume24h   = swapsDirect
+            .filter((r: any) => now - new Date(r.created_at).getTime() < 86400_000)
+            .reduce((s: number, r: any) => s + Number(r.usdc_amount), 0);
+        } else {
+          // Launcher/router contract — sum all platform swaps
+          const { data: allSwaps } = await supabase
+            .from('token_swaps')
+            .select('usdc_amount, created_at');
+
+          if (allSwaps && allSwaps.length > 0) {
+            const now = Date.now();
+            volumeTotal = allSwaps.reduce((s: number, r: any) => s + Number(r.usdc_amount), 0);
+            volume24h   = allSwaps
+              .filter((r: any) => now - new Date(r.created_at).getTime() < 86400_000)
+              .reduce((s: number, r: any) => s + Number(r.usdc_amount), 0);
           } else {
-            // Query token_swaps for all tokens deployed via this contract or all platform volume
-            try {
-              // Try by contract_address as token_address first (for deployed tokens)
-              const { data: direct } = await supabase
-                .from('token_swaps')
-                .select('usdc_amount')
-                .eq('token_address', app.contract_address.toLowerCase());
-
-              const directTotal = (direct ?? []).reduce(
-                (acc: number, r: { usdc_amount: string|number }) => acc + Number(r.usdc_amount), 0
-              );
-
-              if (directTotal > 0) {
-                volumeDisplay = directTotal.toFixed(2) + ' USDC';
-              } else {
-                // For ArcLauncher/router contracts: sum all swaps that used this contract
-                // by checking token_launches.launcher_address or just show all platform swaps
-                const { data: launches } = await supabase
-                  .from('token_launches')
-                  .select('token_address');
-
-                if (launches && launches.length > 0) {
-                  const tokenAddresses = launches.map((l: { token_address: string }) => l.token_address.toLowerCase());
-                  const { data: allSwaps } = await supabase
-                    .from('token_swaps')
-                    .select('usdc_amount')
-                    .in('token_address', tokenAddresses);
-
-                  const total = (allSwaps ?? []).reduce(
-                    (acc: number, r: { usdc_amount: string|number }) => acc + Number(r.usdc_amount), 0
-                  );
-                  volumeDisplay = total > 0 ? total.toFixed(2) + ' USDC' : '0.0000 ARC';
-                } else {
-                  volumeDisplay = '0.0000 ARC';
-                }
-              }
-            } catch {
-              volumeDisplay = '0.0000 ARC';
+            // Fallback: native ARC volume
+            const nativeTotal = parseFloat(formatEther(allFetched.nativeWei));
+            const native24h   = parseFloat(formatEther(fetched24h.nativeWei));
+            if (nativeTotal > 0) {
+              volumeTotal = nativeTotal;
+              volume24h   = native24h;
+              volumeUnit  = 'ARC';
             }
           }
-
-          const record: StatsRecord = {
-            txs,
-            uniqueWallets: fromAddresses.size,
-            volume: volumeDisplay,
-            lastUpdated: new Date().toLocaleTimeString(),
-            sampled,
-            warning: false,
-          };
-
-          updates[app.id] = record;
-          saveCachedStats(app.contract_address, record);
-        } catch (e) {
-          console.error(`Stats fetch failed for ${app.contract_address}`, e);
-          // Retain prior stats, just flag warning
-          const prior = statsRef.current[app.id];
-          updates[app.id] = prior
-            ? { ...prior, warning: true }
-            : { txs: 0, uniqueWallets: 0, volume: '0', warning: true };
         }
+
+        const record: AppStats = {
+          app_id:         app.id,
+          total_txs:      allHashes.length,
+          unique_wallets: allFetched.wallets.size,
+          volume_24h:     parseFloat(volume24h.toFixed(4)),
+          volume_total:   parseFloat(volumeTotal.toFixed(4)),
+          volume_unit:    volumeUnit,
+          txs_24h:        hashes24h.length,
+          last_block:     Number(latestBlock),
+          last_updated:   new Date().toISOString(),
+          warning:        false,
+        };
+
+        updates[app.id] = record;
+
+        // ── Persist to Supabase app_stats ──────────────────────────────────
+        await supabase
+          .from('app_stats')
+          .upsert(record, { onConflict: 'app_id' });
+
+      } catch (err) {
+        console.error(`Stats error for ${app.contract_address}`, err);
+        const prior = stats[app.id];
+        updates[app.id] = prior
+          ? { ...prior, warning: true }
+          : {
+              app_id: app.id, total_txs: 0, unique_wallets: 0,
+              volume_24h: 0, volume_total: 0, volume_unit: 'USDC',
+              txs_24h: 0, last_block: 0,
+              last_updated: new Date().toISOString(), warning: true,
+            };
       }
+    }
 
+    if (mountedRef.current) {
       setStats(prev => ({ ...prev, ...updates }));
-    };
+      setLastSync(new Date().toLocaleTimeString());
+      if (!silent) setRefreshing(false);
+    }
+  }, [apps, publicClient, isCorrectNet, stats]);
 
-    trackContracts();
-    const interval = setInterval(trackContracts, REFRESH_INTERVAL_MS);
+  // ── Auto-refresh ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!apps.length || !isCorrectNet) return;
+    calculateStats(true);
+    const interval = setInterval(() => calculateStats(true), REFRESH_MS);
     return () => clearInterval(interval);
-  }, [apps, publicClient, isCorrectNetwork]);
+  }, [apps, isCorrectNet]);
 
   // ── Render ────────────────────────────────────────────────────────────────
-  if (isLoading) {
-    return (
-      <div className="bd-card p-6 flex justify-center items-center h-40">
-        <Loader2 className="animate-spin" style={{ color: 'var(--bd-accent-gold)' }} size={32} />
-      </div>
-    );
-  }
-
-  if (!isCorrectNetwork) {
-    return (
-      <div className="bd-card p-5 space-y-3">
-        <h2 className="text-base font-black" style={{ color: 'var(--bd-accent-gold)' }}>
-          Live Arc Chain Smart Contract Tracker
-        </h2>
-        <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background: 'rgba(245,197,66,0.06)', border: '1px solid rgba(245,197,66,0.2)', color: 'var(--bd-accent-gold)' }}>
-          <AlertTriangle size={16} />
-          Switch to Arc Testnet (chain 5042002) to view live stats.
-          {apps.length > 0 && ' Showing cached data below.'}
-        </div>
-        {/* Show cached stats when off-network */}
-        {apps.length > 0 && renderAppList(apps, stats, true)}
-      </div>
-    );
-  }
-
-  if (apps.length === 0) {
-    return (
-      <div className="bd-card p-6 text-center text-sm" style={{ color: 'rgba(245,197,66,0.5)' }}>
-        No verified apps with configured contracts found.
-      </div>
-    );
-  }
-
-  return (
-    <div className="bd-card p-6 space-y-5">
-      <h2 className="text-base font-black" style={{ color: 'var(--bd-accent-gold)' }}>
-        Live Arc Chain Smart Contract Tracker
-      </h2>
-      {renderAppList(apps, stats, false)}
+  if (loading) return (
+    <div className="bd-card p-6 flex justify-center items-center h-40">
+      <Loader2 className="animate-spin" style={{ color: 'var(--bd-accent-gold)' }} size={28} />
     </div>
   );
 
-  function renderAppList(
-    appList: AppRecord[],
-    statsMap: Record<string, StatsRecord>,
-    offNetwork: boolean
-  ) {
-    return (
-      <div className="space-y-4">
-        {appList.map(app => {
-          const s = statsMap[app.id];
-          return (
-            <div key={app.id} className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(203,213,225,0.7)' }}>
-              <div className="flex items-start justify-between gap-2 flex-wrap">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-white truncate">{app.app_name}</h3>
-                    {s?.warning && (
-                      <span title="Stats refresh failed; showing last known values">
-                        <AlertTriangle size={14} className="flex-shrink-0" style={{ color: 'var(--bd-accent-gold)' }} />
-                      </span>
-                    )}
-                    {s?.sampled && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(192,132,252,0.15)', color: 'var(--bd-accent-purple)' }}>
-                        sampled
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] font-mono mt-0.5 truncate max-w-xs" style={{ color: '#64748b' }}>
-                    {app.contract_address}
-                  </p>
-                </div>
-                {s?.lastUpdated && !offNetwork && (
-                  <div className="flex items-center gap-1 text-[10px] flex-shrink-0" style={{ color: '#64748b' }}>
-                    <Clock size={10} /> {s.lastUpdated}
-                  </div>
-                )}
-                {offNetwork && (
-                  <span className="text-[10px] px-2 py-0.5 rounded flex-shrink-0" style={{ background: 'rgba(59,130,246,0.08)', color: '#64748b' }}>
-                    cached
-                  </span>
-                )}
-              </div>
+  if (!address) return (
+    <div className="bd-card p-6 text-center text-sm" style={{ color: 'rgba(245,197,66,0.5)' }}>
+      Connect wallet to view stats
+    </div>
+  );
 
-              {/* Stats cards */}
-              <div className="flex flex-wrap gap-3">
-                <StatCard icon={<Activity size={14} />} label="Recent Txs" value={s?.txs ?? 0} />
-                <StatCard icon={<Users size={14} />} label="Active Wallets" value={s?.uniqueWallets ?? 0} />
-                <StatCard icon={<Zap size={14} />} label="Volume" value={
-                  s?.volume
-                    ? (s.volume.includes('USDC') ? s.volume : `${parseFloat(s.volume).toFixed(4)} ARC`)
-                    : '0.0000 ARC'
-                } />
-              </div>
-            </div>
-          );
-        })}
+  if (!isCorrectNet) return (
+    <div className="bd-card p-5 space-y-3">
+      <Header lastSync={lastSync} refreshing={refreshing} onRefresh={() => calculateStats(false)} />
+      <div className="flex items-center gap-2 p-3 rounded-xl text-sm"
+        style={{ background: 'rgba(245,197,66,0.06)', border: '1px solid rgba(245,197,66,0.2)', color: 'var(--bd-accent-gold)' }}>
+        <AlertTriangle size={16} />
+        Switch to Arc Testnet (chain 5042002).
+        {Object.keys(stats).length > 0 && ' Showing last saved stats.'}
       </div>
-    );
-  }
+      {apps.length > 0 && <AppList apps={apps} stats={stats} />}
+    </div>
+  );
+
+  if (apps.length === 0) return (
+    <div className="bd-card p-6 text-center text-sm" style={{ color: 'rgba(245,197,66,0.5)' }}>
+      No verified apps with contract addresses found.
+    </div>
+  );
+
+  return (
+    <div className="bd-card p-6 space-y-5">
+      <Header lastSync={lastSync} refreshing={refreshing} onRefresh={() => calculateStats(false)} />
+      <AppList apps={apps} stats={stats} />
+    </div>
+  );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; value: string | number; label: string }) {
+// ── Sub-components ─────────────────────────────────────────────────────────
+
+function Header({ lastSync, refreshing, onRefresh }: {
+  lastSync: string; refreshing: boolean; onRefresh: () => void;
+}) {
   return (
-    <div
-      className="flex-1 text-center p-3 rounded-xl"
-      style={{ background: '#f8fafc', border: '1px solid rgba(203,213,225,0.7)', minWidth: '90px' }}
-    >
-      <div className="flex justify-center mb-1" style={{ color: 'var(--bd-accent-gold)' }}>{icon}</div>
-      <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#64748b' }}>{label}</div>
-      <div className="text-lg font-black stat-value">{value}</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+      <h2 className="text-base font-black" style={{ color: 'var(--bd-accent-gold)' }}>
+        Live Contract Stats
+      </h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {lastSync && (
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+            synced {lastSync}
+          </span>
+        )}
+        <button
+          onClick={onRefresh}
+          disabled={refreshing}
+          style={{
+            padding: '5px 10px', borderRadius: 8,
+            border: '1px solid rgba(245,197,66,0.25)',
+            background: 'rgba(245,197,66,0.08)',
+            color: 'var(--bd-accent-gold)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+            fontSize: 11, fontFamily: 'Orbitron, sans-serif',
+          }}
+        >
+          <RefreshCw size={11} className={refreshing ? 'animate-spin' : ''} />
+          {refreshing ? 'SYNCING' : 'REFRESH'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AppList({ apps, stats }: { apps: AppRecord[]; stats: Record<string, AppStats> }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {apps.map(app => {
+        const s = stats[app.id];
+        return (
+          <div key={app.id} style={{
+            background: 'rgba(4,6,28,0.85)',
+            border: `1px solid ${s?.warning ? 'rgba(255,215,64,0.3)' : 'rgba(41,121,255,0.2)'}`,
+            borderRadius: 12, overflow: 'hidden',
+          }}>
+            {/* App header */}
+            <div style={{
+              padding: '12px 16px',
+              borderBottom: '1px solid rgba(41,121,255,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: 'rgba(8,14,44,0.6)',
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', fontFamily: 'Orbitron, sans-serif' }}>
+                    {app.app_name}
+                  </span>
+                  {app.is_verified && (
+                    <CheckCircle size={12} style={{ color: '#00e676' }} />
+                  )}
+                  {s?.warning && (
+                    <AlertTriangle size={12} style={{ color: 'var(--bd-accent-gold)' }} title="Last refresh failed" />
+                  )}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'monospace', marginTop: 2 }}>
+                  {app.contract_address.slice(0, 12)}...{app.contract_address.slice(-8)}
+                </div>
+              </div>
+              {s?.last_updated && (
+                <div style={{ fontSize: 9, color: 'var(--text-muted)', textAlign: 'right', fontFamily: 'monospace' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
+                    <Database size={9} />
+                    saved to DB
+                  </div>
+                  <div>{new Date(s.last_updated).toLocaleTimeString()}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Stats grid */}
+            {s ? (
+              <div style={{ padding: '14px 16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 10 }}>
+                  <StatBox
+                    label="TOTAL TXS (ALL TIME)"
+                    value={s.total_txs.toLocaleString()}
+                    icon={<Activity size={12} />}
+                    color="#00e5ff"
+                  />
+                  <StatBox
+                    label="TXS (24H)"
+                    value={s.txs_24h.toLocaleString()}
+                    icon={<Clock size={12} />}
+                    color="#ffd740"
+                  />
+                  <StatBox
+                    label="UNIQUE WALLETS"
+                    value={s.unique_wallets.toLocaleString()}
+                    icon={<Users size={12} />}
+                    color="#d500f9"
+                  />
+                  <StatBox
+                    label="VOLUME (24H)"
+                    value={`${s.volume_24h.toLocaleString()} ${s.volume_unit}`}
+                    icon={<TrendingUp size={12} />}
+                    color="#00e676"
+                  />
+                </div>
+                {/* Total volume full width */}
+                <div style={{
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  background: 'rgba(0,230,118,0.05)',
+                  border: '1px solid rgba(0,230,118,0.15)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Zap size={12} style={{ color: '#00e676' }} />
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'Orbitron, sans-serif', letterSpacing: 1 }}>
+                      GLOBAL VOLUME (ALL TIME)
+                    </span>
+                  </div>
+                  <span style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontSize: 15, color: '#00e676' }}>
+                    {s.volume_total.toLocaleString()} {s.volume_unit}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <Loader2 size={16} className="animate-spin" style={{ color: 'var(--bd-accent-gold)' }} />
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'Orbitron, sans-serif', letterSpacing: 1 }}>
+                  CALCULATING STATS...
+                </span>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StatBox({ label, value, icon, color }: {
+  label: string; value: string; icon: React.ReactNode; color: string;
+}) {
+  return (
+    <div style={{
+      padding: '10px 12px',
+      borderRadius: 8,
+      background: 'rgba(4,6,26,0.8)',
+      border: `1px solid ${color}22`,
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${color}, transparent)` }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
+        <span style={{ color }}>{icon}</span>
+        <span style={{ fontSize: 8, color: 'var(--text-muted)', fontFamily: 'Orbitron, sans-serif', letterSpacing: 1.5, textTransform: 'uppercase' }}>
+          {label}
+        </span>
+      </div>
+      <div style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontSize: 16, color }}>
+        {value}
+      </div>
     </div>
   );
 }
