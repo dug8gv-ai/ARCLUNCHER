@@ -332,7 +332,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       const realCurrentPrice = currentUSDC / currentTokens;
       const latestPrice = Math.max(INITIAL_PRICE, realCurrentPrice);
 
-      const totalVolume = swapsWithSpotPrice.reduce((acc, s) => acc + s.usdc_amount, 0);
+      const totalVolume = swapsWithSpotPrice.reduce((acc: number, s: any) => acc + s.usdc_amount, 0);
       
       // Real API Holders
       const uniqueHolders = holdersList.length > 0 ? holdersList.length : new Set(transfers.map((tx: any) => tx.to)).size || 1;
