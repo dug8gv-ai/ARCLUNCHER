@@ -277,7 +277,7 @@ export function Header() {
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-3 justify-end w-full md:w-auto">
           {/* Network status */}
-          <div className="hidden lg:flex items-center gap-2 text-xs px-3 py-1.5 rounded-full font-medium" style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid var(--border-dim)', color: 'var(--text-secondary)' }}>
+          <div className="hidden lg:flex items-center gap-2 text-xs px-3 py-1.5 rounded-full font-medium" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-dim)', color: 'var(--text-secondary)' }}>
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             Arc Testnet Active
           </div>
@@ -292,7 +292,7 @@ export function Header() {
 
           {/* Balances */}
           {isConnected && (
-            <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-full text-xs font-semibold" style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}>
+            <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-full text-xs font-semibold" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}>
               <div className="flex items-center gap-1">
                 <span style={{ color: 'var(--accent-gold)' }}>◈</span>
                 <span className="text-[10px] font-bold uppercase" style={{ color: 'var(--text-secondary)' }}>USDC:</span>
@@ -313,7 +313,7 @@ export function Header() {
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer"
-                style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}
+                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}
                 onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(245,197,66,0.45)')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-dim)')}
               >
@@ -332,7 +332,7 @@ export function Header() {
                   exit={{ opacity: 0, y: -8, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
                   className="absolute right-0 mt-2.5 w-48 rounded-2xl shadow-2xl py-2 z-50 text-xs font-medium"
-                  style={{ background: '#f8fafc', border: '1px solid rgba(203,213,225,0.7)', color: 'var(--text-primary)' }}
+                  style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}
                 >
                   <button
                     onClick={() => { setIsDropdownOpen(false); setIsModalOpen(true); }}

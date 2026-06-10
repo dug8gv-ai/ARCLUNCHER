@@ -442,7 +442,7 @@ export function AppRegistration() {
           <button
             onClick={() => setSelectorOpen(v => !v)}
             className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold"
-            style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(203,213,225,0.7)', color: '#1e293b' }}
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-dim)', color: 'var(--text-primary)' }}
           >
             <span className="truncate">{activeProject?.app_name ?? 'Select project…'}</span>
             <ChevronDown size={14} className="flex-shrink-0 ml-2" style={{ color: 'var(--bd-accent-gold)' }} />
@@ -450,14 +450,14 @@ export function AppRegistration() {
           {selectorOpen && (
             <div
               className="absolute z-20 left-0 right-0 mt-1 rounded-xl overflow-hidden shadow-2xl"
-              style={{ background: '#f8fafc', border: '1px solid rgba(203,213,225,0.7)' }}
+              style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-dim)' }}
             >
               {projects.map(p => (
                 <button
                   key={p.id}
                   onClick={() => switchProject(p.id)}
                   className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-white/5"
-                  style={{ color: p.id === activeId ? 'var(--bd-accent-gold)' : '#1e293b' }}
+                  style={{ color: p.id === activeId ? 'var(--bd-accent-gold)' : 'var(--text-primary)' }}
                 >
                   {p.is_verified && <CheckCircle size={12} style={{ color: 'var(--bd-accent-gold)' }} />}
                   <span className="truncate">{p.app_name}</span>
@@ -536,7 +536,7 @@ export function AppRegistration() {
             }
             <div className="absolute -bottom-6 left-5">
               <div className="w-14 h-14 rounded-xl overflow-hidden shadow-lg"
-                style={{ background: '#f8fafc', border: '2px solid rgba(245,197,66,0.4)' }}>
+                style={{ background: 'rgba(10, 0, 20, 0.8)', border: '2px solid rgba(245,197,66,0.4)' }}>
                 {form.logoUrl
                   ? <img src={form.logoUrl} className="w-full h-full object-cover" alt="Logo" />
                   : <div className="w-full h-full flex items-center justify-center text-base font-black" style={{ color: 'var(--bd-accent-gold)' }}>
@@ -585,7 +585,7 @@ export function AppRegistration() {
           {/* Edit form — shown when isEditing toggled from header button */}
           {isEditing && (
             <div className="space-y-4 p-4 rounded-2xl animate-in fade-in duration-150"
-              style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(245,197,66,0.15)' }}>
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-dim)' }}>
               <div>
                 <label className="block text-xs font-bold mb-1" style={{ color: 'var(--bd-accent-gold)' }}>App Name</label>
                 <input className="bd-input" type="text" value={form.appName}
@@ -666,7 +666,7 @@ export function AppRegistration() {
            Step 1 & Step 2 visible here because user just registered and needs to verify ════ */
         <div className="space-y-5 animate-in fade-in duration-200">
           <div className="p-4 rounded-xl space-y-2"
-            style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(245,197,66,0.15)' }}>
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-dim)' }}>
             <h3 className="text-sm font-bold" style={{ color: 'var(--bd-accent-gold)' }}>
               Step 1: Add this meta tag to your &lt;head&gt;
             </h3>
@@ -682,7 +682,7 @@ export function AppRegistration() {
             </div>
           </div>
           <div className="p-4 rounded-xl space-y-2"
-            style={{ background: 'rgba(248,250,252,0.95)', border: '1px solid rgba(245,197,66,0.15)' }}>
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-dim)' }}>
             <h3 className="text-sm font-bold" style={{ color: 'var(--bd-accent-gold)' }}>Step 2: Verify Configuration</h3>
             <button onClick={handleVerify} disabled={isVerifying}
               className="bd-btn-primary w-full py-2.5 rounded-xl flex justify-center items-center gap-2 text-sm">

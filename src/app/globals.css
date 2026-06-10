@@ -41,6 +41,11 @@
   /* ── Shadows (3D effects) ── */
   --card-shadow:    0 8px 32px rgba(139, 92, 246, 0.2), inset 0 1px 1px rgba(255,255,255,0.1);
   --card-shadow-md: 0 16px 48px rgba(0, 240, 255, 0.2), inset 0 1px 2px rgba(255,255,255,0.2);
+
+  /* ── Builder Dashboard custom variables ── */
+  --bd-bg-primary:     #05000f;
+  --bd-accent-gold:    #f5c542;
+  --bd-accent-purple:  #c084fc;
 }
 
 @theme inline {
@@ -258,6 +263,37 @@ input::placeholder, textarea::placeholder {
   color: rgba(255,255,255,0.4) !important;
 }
 
+/* ── Dark Mode Overrides for Tailwind Light BG Classes ── */
+.bg-slate-50, .bg-gray-50 {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--border-dim) !important;
+}
+
+.bg-slate-100, .bg-gray-100 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid var(--border-dim) !important;
+}
+
+.bg-white {
+  background-color: rgba(10, 0, 20, 0.7) !important;
+  border: 1px solid var(--border-dim) !important;
+}
+
+.bg-amber-50 {
+  background-color: rgba(245, 197, 66, 0.15) !important;
+  border-color: rgba(245, 197, 66, 0.45) !important;
+}
+
+.bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.bg-rose-50 {
+  background-color: rgba(244, 63, 94, 0.1) !important;
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+
 /* ── Utility ───────────────────────────────── */
 .chart-bg   { background: var(--bg-card); border: 1px solid var(--border-dim); border-radius: 16px; backdrop-filter: blur(12px); }
 .slot-panel { background: rgba(5,0,15,0.9); border: 1px solid var(--border-glow); box-shadow: inset 0 0 40px rgba(0,240,255,0.15); }
@@ -291,4 +327,85 @@ input::placeholder, textarea::placeholder {
 /* Force Dark Theme Behavior */
 [data-theme="light"], :root {
   color-scheme: dark;
+}
+
+/* ── Builder dashboard ─────────────────────── */
+.bd-card {
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-dim) !important;
+  border-radius: 1.25rem;
+  box-shadow: var(--card-shadow);
+  color: #ffffff;
+}
+.bd-btn-primary {
+  background: linear-gradient(135deg, var(--bd-accent-gold), #B8922A) !important;
+  color: #05000f !important;
+  box-shadow: 0 2px 8px rgba(245,197,66,0.3);
+  font-weight: 700;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s;
+  cursor: pointer;
+  min-height: 44px;
+  border-radius: 10px;
+}
+.bd-btn-primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+.bd-btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.bd-btn-primary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.bd-input {
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border-dim) !important;
+  color: #ffffff !important;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  width: 100%;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.bd-input:focus {
+  border-color: var(--bd-accent-gold) !important;
+  box-shadow: 0 0 0 3px rgba(245,197,66,0.1) !important;
+}
+.bd-input::placeholder {
+  color: var(--text-muted) !important;
+}
+.bd-badge-verified {
+  background: rgba(245,197,66,0.08) !important;
+  border: 1px solid rgba(245,197,66,0.2) !important;
+  color: var(--bd-accent-gold) !important;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.bd-skeleton {
+  background: rgba(255,255,255,0.04) !important;
+  border-radius: 6px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.65; }
+}
+.bd-img-scroll {
+  overflow-x: auto;
+  display: flex;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+}
+.bd-img-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+.bd-img-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-dim);
+  border-radius: 2px;
 }

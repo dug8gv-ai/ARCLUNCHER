@@ -234,8 +234,8 @@ export function Leaderboard() {
                 key={app.id}
                 className="rounded-xl overflow-hidden transition-all"
                 style={{
-                  background: '#ffffff',
-                  border: '1px solid rgba(226,232,240,0.8)',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-dim)',
                   boxShadow: isExpanded ? 'none' : 'none',
                 }}
               >
@@ -336,11 +336,11 @@ export function Leaderboard() {
 
                       {/* Stat cards — Rank, Volume, Wallets/Txs */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="rounded-xl p-3 text-center" style={{ background: '#f8fafc', border: '1px solid rgba(226,232,240,0.7)' }}>
+                        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-dim)' }}>
                           <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>Rank</div>
                           <div className="text-2xl font-black stat-value">#{index + 1}</div>
                         </div>
-                        <div className="rounded-xl p-3 text-center" style={{ background: '#f8fafc', border: '1px solid rgba(226,232,240,0.7)' }}>
+                        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-dim)' }}>
                           <div className="flex items-center justify-center gap-1 mb-1">
                             <Zap size={10} style={{ color: '#94a3b8' }} />
                             <span className="text-[10px] uppercase tracking-widest" style={{ color: '#94a3b8' }}>Live Volume</span>
@@ -353,7 +353,7 @@ export function Leaderboard() {
                             })()}
                           </div>
                         </div>
-                        <div className="rounded-xl p-3 text-center" style={{ background: '#f8fafc', border: '1px solid rgba(226,232,240,0.7)' }}>
+                        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-dim)' }}>
                           <div className="flex items-center justify-center gap-2 mb-1">
                             <Users size={10} style={{ color: '#94a3b8' }} />
                             <span className="text-[10px] uppercase tracking-widest" style={{ color: '#94a3b8' }}>Wallets</span>
