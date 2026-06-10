@@ -861,7 +861,7 @@ export default function Home() {
             </div>
             <div>
               <span className="text-sm font-black tracking-wide text-[var(--text-primary)] block">ARCOMNI</span>
-              <span className="text-[9px] block font-extrabold text-[var(--accent-cyan)] tracking-widest mt-[-2px] uppercase">PRO</span>
+              <span className="text-[9px] block font-extrabold text-[var(--accent-gold)] tracking-widest mt-[-2px] uppercase">PRO</span>
             </div>
           </div>
 
@@ -874,11 +874,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'launcher'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <Rocket size={16} className={currentView === 'launcher' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <Rocket size={16} className={currentView === 'launcher' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Launcher
             </button>
 
@@ -889,11 +889,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'builder'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <Layers size={16} className={currentView === 'builder' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <Layers size={16} className={currentView === 'builder' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Builder
             </button>
 
@@ -904,11 +904,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'trade'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <TrendingUp size={16} className={currentView === 'trade' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <TrendingUp size={16} className={currentView === 'trade' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Trade
             </button>
 
@@ -919,11 +919,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'guide'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <Info size={16} className={currentView === 'guide' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <Info size={16} className={currentView === 'guide' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               User Guide
             </button>
 
@@ -934,11 +934,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'staking'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <TrendingUp size={16} className={currentView === 'staking' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <TrendingUp size={16} className={currentView === 'staking' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Staking & Yield
             </button>
 
@@ -948,12 +948,12 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'social-pay'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <div className="relative flex items-center justify-center">
-                <Send size={16} className={currentView === 'social-pay' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+                <Send size={16} className={currentView === 'social-pay' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
                 {unreadChatCount > 0 && (
                   <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
                     {unreadChatCount > 9 ? '9+' : unreadChatCount}
@@ -968,11 +968,11 @@ export default function Home() {
               onClick={() => setCurrentView('markethub')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'markethub'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <ShoppingCart size={16} className={currentView === 'markethub' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <ShoppingCart size={16} className={currentView === 'markethub' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Market Hub
             </button>
 
@@ -983,11 +983,11 @@ export default function Home() {
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'gigs'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <Briefcase size={16} className={currentView === 'gigs' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <Briefcase size={16} className={currentView === 'gigs' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Arc Gigs
             </button>
 
@@ -996,11 +996,11 @@ export default function Home() {
               onClick={() => setCurrentView('prediction-market')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'prediction-market'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <PieChart size={16} className={currentView === 'prediction-market' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <PieChart size={16} className={currentView === 'prediction-market' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Predictions
             </button>
 
@@ -1009,11 +1009,11 @@ export default function Home() {
               onClick={() => setCurrentView('arc-ecosystem')}
               className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'arc-ecosystem'
-                  ? 'text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
+                  ? 'text-[var(--accent-gold)] bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] shadow-sm shadow-blue-500/5'
                   : 'text-[var(--text-secondary)] hover:bg-slate-50 border border-transparent hover:text-[var(--text-primary)]'
               }`}
             >
-              <Activity size={16} className={currentView === 'arc-ecosystem' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <Activity size={16} className={currentView === 'arc-ecosystem' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Arc Ecosystem
             </button>
 
@@ -1022,11 +1022,11 @@ export default function Home() {
               onClick={() => setCurrentView('slots')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'slots'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <Dices size={16} className={currentView === 'slots' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <Dices size={16} className={currentView === 'slots' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               ArcSlots
             </button>
 
@@ -1035,11 +1035,11 @@ export default function Home() {
               onClick={() => setCurrentView('leaderboard')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'leaderboard'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <Trophy size={16} className={currentView === 'leaderboard' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <Trophy size={16} className={currentView === 'leaderboard' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Leaderboard
             </button>
 
@@ -1048,11 +1048,11 @@ export default function Home() {
               onClick={() => setCurrentView('affiliates')}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'affiliates'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
-              <Users size={16} className={currentView === 'affiliates' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+              <Users size={16} className={currentView === 'affiliates' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
               Affiliates
             </button>
 
@@ -1074,16 +1074,16 @@ export default function Home() {
               }}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'earn'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <div className="flex items-center gap-3.5">
-                <Coins size={16} className={currentView === 'earn' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+                <Coins size={16} className={currentView === 'earn' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
                 <span>Earn Points</span>
               </div>
               {/* Glowing Pill badge */}
-              <span className="text-[9px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-[var(--border-dim)] animate-pulse">
+              <span className="text-[9px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-[var(--border-dim)] animate-pulse">
                 Soon
               </span>
             </button>
@@ -1095,12 +1095,12 @@ export default function Home() {
               }}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all hover:scale-[1.01] ${
                 currentView === 'wallet'
-                  ? 'text-white bg-[rgba(92,58,255,0.25)] border border-[rgba(92,58,255,0.4)] shadow-sm shadow-purple-500/10'
-                  : 'text-[var(--text-secondary)] hover:bg-[rgba(26,111,255,0.08)] border border-transparent hover:text-[var(--text-bright)]'
+                  ? 'text-white bg-[rgba(212,167,44,0.2)] border-l-[3px] border-l-[var(--accent-gold)] shadow-sm shadow-orange-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[rgba(212,167,44,0.1)] border border-transparent hover:text-[var(--text-bright)]'
               }`}
             >
               <div className="flex items-center gap-3.5">
-                <Coins size={16} className={currentView === 'wallet' ? 'text-[var(--accent-cyan)]' : 'text-[var(--text-secondary)]'} />
+                <Coins size={16} className={currentView === 'wallet' ? 'text-[var(--accent-gold)]' : 'text-[var(--text-secondary)]'} />
                 <span>Global Wallet</span>
               </div>
               <span className="text-[9px] bg-[rgba(0,242,254,0.05)]0 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-600 animate-pulse">
@@ -1125,7 +1125,7 @@ export default function Home() {
           <div className="card p-5 space-y-3 select-none">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider">Your Wallet</span>
-              <span className="text-[9px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border border-[var(--border-dim)]">
+              <span className="text-[9px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border border-[var(--border-dim)]">
                 Arc Chain Assets
               </span>
             </div>
@@ -1173,8 +1173,8 @@ export default function Home() {
           className="card p-5 space-y-3.5 cursor-pointer group text-left"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider group-hover:text-[var(--accent-cyan)] transition-colors">Staking & Yield</span>
-            <span className="bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] border border-[var(--border-dim)] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+            <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider group-hover:text-[var(--accent-gold)] transition-colors">Staking & Yield</span>
+            <span className="bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] border border-[var(--border-dim)] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
               Live
             </span>
           </div>
@@ -1264,8 +1264,8 @@ export default function Home() {
                   {/* Right Column - Recent Token Releases List */}
                   <div className="lg:col-span-2 space-y-8">
                     <div className="h-[600px] flex flex-col">
-                      <div className="p-4 bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] rounded-3xl mb-4 text-xs font-bold text-[var(--accent-cyan)] flex items-center gap-2">
-                        <Info size={14} className="text-[var(--accent-cyan)]" />
+                      <div className="p-4 bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] rounded-3xl mb-4 text-xs font-bold text-[var(--accent-gold)] flex items-center gap-2">
+                        <Info size={14} className="text-[var(--accent-gold)]" />
                         Click any token on the markets list below to open its dedicated Trade desk & Price Charts!
                       </div>
                       <div className="flex-1 min-h-0">
@@ -1295,7 +1295,7 @@ export default function Home() {
                         <div>
                           <h3 className="font-extrabold text-[var(--text-primary)] text-base flex items-center gap-1.5">
                             {selectedToken.name}
-                            <span className="text-xs bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] border border-[var(--border-dim)] px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
+                            <span className="text-xs bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] border border-[var(--border-dim)] px-2 py-0.5 rounded font-black uppercase">{selectedToken.ticker}</span>
                           </h3>
                           <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">{selectedToken.token_address}</p>
                         </div>
@@ -1323,7 +1323,7 @@ export default function Home() {
                   /* Market Selector if no token is currently selected */
                   <div className="stat-box rounded-[32px] p-8 space-y-6 animate-in fade-in duration-200">
                     <div className="text-center max-w-md mx-auto space-y-2 py-4">
-                      <TrendingUp className="mx-auto text-[var(--accent-cyan)]" size={32} />
+                      <TrendingUp className="mx-auto text-[var(--accent-gold)]" size={32} />
                       <h2 className="text-xl font-black text-[var(--text-primary)]">Meme Markets Trading Desk</h2>
                       <p className="text-xs text-[var(--text-secondary)] font-semibold leading-relaxed">
                         Select an active token from the live markets index below to open live charts, view transactions history, and place trades instantly.
@@ -1401,13 +1401,13 @@ export default function Home() {
               <div className="animate-in fade-in duration-200 space-y-8">
                 <DiscreteTasks onPointsEarned={(points) => { console.log(`Earned ${points}`); }} />
                 <div className="card rounded-[32px] p-8 shadow-sm text-center max-w-xl mx-auto space-y-6 py-12">
-                  <div className="w-16 h-16 rounded-3xl bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] text-[var(--accent-cyan)] flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto animate-bounce">
+                  <div className="w-16 h-16 rounded-3xl bg-[rgba(0,242,254,0.05)] border border-[var(--border-dim)] text-[var(--accent-gold)] flex items-center justify-center shadow-lg shadow-blue-500/5 mx-auto animate-bounce">
                   <Coins size={32} />
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center justify-center gap-2">
                     Earn Points Program
-                    <span className="text-[10px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-[var(--border-dim)] animate-pulse">Soon</span>
+                    <span className="text-[10px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-[var(--border-dim)] animate-pulse">Soon</span>
                   </h2>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold leading-relaxed">
                     Earn yields, multiply your ARCL points allocations, and unlock VIP privileges. The referral and points-staking protocol is launching soon on Arc Chain.
@@ -1463,14 +1463,14 @@ export default function Home() {
             </button>
 
             <div className="text-center space-y-1.5">
-              <Award className="text-[var(--accent-cyan)] mx-auto" size={32} />
+              <Award className="text-[var(--accent-gold)] mx-auto" size={32} />
               <h2 className="text-xl font-black text-[var(--text-primary)]">Airdrop points mechanics</h2>
               <p className="text-xs text-[var(--text-secondary)]">Every swap you execute generates points allocations instantly.</p>
             </div>
 
             <div className="space-y-4 text-xs font-semibold text-[var(--text-primary)] bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-5 rounded-2xl">
               <div className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</div>
+                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</div>
                 <div>
                   <p className="text-[var(--text-primary)] font-extrabold text-sm mb-0.5">High-Frequency Swaps</p>
                   <p className="text-[var(--text-secondary)] text-xs font-medium leading-relaxed">Each trade on active tokens counts toward volume. Whether you buy or sell, you accumulate trading weight.</p>
@@ -1478,7 +1478,7 @@ export default function Home() {
               </div>
 
               <div className="flex items-start gap-3 border-t border-[var(--border-dim)] pt-3">
-                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</div>
+                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</div>
                 <div>
                   <p className="text-[var(--text-primary)] font-extrabold text-sm mb-0.5">10 USDC = 1 ARCL Point</p>
                   <p className="text-[var(--text-secondary)] text-xs font-medium leading-relaxed">Points are computed in real-time on database insertion: total USD volume traded divided by 10. These accumulate forever.</p>
@@ -1486,7 +1486,7 @@ export default function Home() {
               </div>
 
               <div className="flex items-start gap-3 border-t border-[var(--border-dim)] pt-3">
-                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</div>
+                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</div>
                 <div>
                   <p className="text-[var(--text-primary)] font-extrabold text-sm mb-0.5">Claim Rewards Later</p>
                   <p className="text-[var(--text-secondary)] text-xs font-medium leading-relaxed">Points determine your share of the upcoming ARCL Airdrop pool. The higher you rank on the earners list, the larger your payout!</p>
@@ -1494,7 +1494,7 @@ export default function Home() {
               </div>
 
               <div className="flex items-start gap-3 border-t border-[var(--border-dim)] pt-3">
-                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">4</div>
+                <div className="w-5 h-5 rounded-full bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] flex items-center justify-center text-[10px] font-bold flex-shrink-0">4</div>
                 <div>
                   <p className="text-[var(--text-primary)] font-extrabold text-sm mb-0.5">⭐ Partner Affiliate Badge</p>
                   <p className="text-[var(--text-secondary)] text-xs font-medium leading-relaxed">Get the exclusive Partner Affiliate badge by either: (1) Launching a token whose price successfully touches $1.00 USDC, OR (2) Completing 30 consecutive days of Daily Check-ins!</p>
@@ -1817,7 +1817,7 @@ export default function Home() {
                   ? 'bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10' 
                   : premiumAlert.type === 'error'
                   ? 'bg-rose-500/10 text-rose-600 shadow-rose-500/10'
-                  : 'bg-blue-600/10 text-[var(--accent-cyan)] shadow-blue-500/10'
+                  : 'bg-blue-600/10 text-[var(--accent-gold)] shadow-blue-500/10'
               }`}>
                 {premiumAlert.type === 'success' ? (
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
