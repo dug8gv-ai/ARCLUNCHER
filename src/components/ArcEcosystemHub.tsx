@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
 import { parseUnits, erc20Abi } from 'viem';
-import { Activity, Globe, Zap, ArrowRightLeft, Loader2, TrendingUp, Search, ChevronDown, ExternalLink, Filter, Coins, ImageIcon } from 'lucide-react';
+import { Activity, Globe, Zap, ArrowRightLeft, Loader2, TrendingUp, Search, ChevronDown, ExternalLink, Filter, Coins, Users, ArrowUpRight, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
@@ -16,20 +16,25 @@ import {
 
 import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi } from '@/lib/arcDefiAbi';
 
-// Import existing components
+// Import components
 import { PriceChart } from '@/components/PriceChart';
-import { Leaderboard } from '@/components/Leaderboard';
 
-// ── ArcScan Types ──────────────────────────────────────────────────────
-type ArcScanToken = {
-  address_hash: string;
-  name: string | null;
-  symbol: string | null;
-  decimals: string | null;
-  total_supply: string | null;
-  holders_count: string;
-  icon_url: string | null;
-  type: string; // ERC-20, ERC-721
+// ── Types ──────────────────────────────────────────────────────────────
+type UnifiedToken = {
+  id: string;
+  token_address: string;
+  name: string;
+  ticker: string;
+  image_url: string | null;
+  holders: number | string;
+  priceChange: string;
+  type: string;
+  _source: 'arcomni' | 'arcscan';
+  _holdersRaw: number;
+  decimals?: string;
+  total_supply?: string;
+  is_pinned?: boolean;
+  badge_type?: string;
 };
 
 type SwapTx = {
@@ -51,11 +56,12 @@ export function ArcEcosystemHub() {
   const { writeContractAsync } = useWriteContract();
 
   // ── State ────────────────────────────────────────────────────────────
-  const [allTokens, setAllTokens] = useState<ArcScanToken[]>([]);
-  const [filteredTokens, setFilteredTokens] = useState<ArcScanToken[]>([]);
+  const [allTokens, setAllTokens] = useState<UnifiedToken[]>([]);
+  const [filteredTokens, setFilteredTokens] = useState<UnifiedToken[]>([]);
   const [swaps, setSwaps] = useState<SwapTx[]>([]);
   const [totalCumulativeVolume, setTotalCumulativeVolume] = useState(0);
   const [selectedToken, setSelectedToken] = useState<any | null>(null);
+  
   const [isLoadingTokens, setIsLoadingTokens] = useState(true);
   const [hasMoreTokens, setHasMoreTokens] = useState(false);
   const [nextPageParams, setNextPageParams] = useState<any>(null);
@@ -71,42 +77,141 @@ export function ArcEcosystemHub() {
   const [isSwapping, setIsSwapping] = useState(false);
   const [swapDirection, setSwapDirection] = useState<'BUY' | 'SELL'>('BUY');
 
-  // ── Fetch ALL tokens from ArcScan API ────────────────────────────────
-  const fetchTokensFromArcScan = useCallback(async (pageParams?: any) => {
+  // ── Fetch Unified Tokens (ArcOmni Supabase + ArcScan API) ────────────
+  const fetchUnifiedTokens = useCallback(async (loadMoreParams?: any) => {
     try {
-      if (!pageParams) setIsLoadingTokens(true);
+      if (!loadMoreParams) setIsLoadingTokens(true);
       else setIsLoadingMore(true);
 
-      let url = ARCSCAN_API;
-      if (pageParams) {
-        const params = new URLSearchParams();
-        if (pageParams.contract_address_hash) params.set('contract_address_hash', pageParams.contract_address_hash);
-        if (pageParams.holders_count !== undefined) params.set('holders_count', String(pageParams.holders_count));
-        if (pageParams.items_count !== undefined) params.set('items_count', String(pageParams.items_count));
-        if (pageParams.name) params.set('name', pageParams.name);
-        if (pageParams.fiat_value !== undefined && pageParams.fiat_value !== null) params.set('fiat_value', String(pageParams.fiat_value));
-        if (pageParams.market_cap !== undefined && pageParams.market_cap !== null) params.set('market_cap', String(pageParams.market_cap));
-        if (pageParams.is_name_null !== undefined) params.set('is_name_null', String(pageParams.is_name_null));
-        url = `${ARCSCAN_API}?${params.toString()}`;
+      // 1. Fetch ArcOmni Tokens from Supabase
+      let arcOmniTokens: any[] = [];
+      let arcOmniMap = new Map<string, boolean>();
+      
+      // Only fetch Supabase tokens on initial load (not on pagination)
+      if (!loadMoreParams) {
+        let dbTokensData: any[] | null = null;
+        try {
+          const res = await supabase
+            .from('token_launches')
+            .select('*')
+            .order('is_pinned', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(100);
+          dbTokensData = res.data;
+        } catch (fallbackErr) {
+          const res = await supabase.from('token_launches').select('*').order('created_at', { ascending: false }).limit(100);
+          dbTokensData = res.data;
+        }
+
+        // Fetch swaps for metrics
+        const addresses = dbTokensData?.map(t => t.token_address) || [];
+        const { data: allSwaps } = await supabase
+          .from('token_swaps')
+          .select('token_address, user_address, usdc_amount, token_amount')
+          .in('token_address', addresses);
+
+        arcOmniTokens = (dbTokensData || []).map(token => {
+          arcOmniMap.set(token.token_address.toLowerCase(), true);
+          const tSwaps = allSwaps?.filter(s => s.token_address === token.token_address) || [];
+          const holdersCount = new Set(tSwaps.map(s => s.user_address)).size;
+          
+          let pChange = 0;
+          if (tSwaps.length >= 2) {
+            const initialPrice = Number(tSwaps[0].usdc_amount / tSwaps[0].token_amount);
+            const latestPrice = Number(tSwaps[tSwaps.length - 1].usdc_amount / tSwaps[tSwaps.length - 1].token_amount);
+            pChange = ((latestPrice - initialPrice) / (initialPrice || 1)) * 100;
+          }
+
+          return {
+            id: token.id,
+            token_address: token.token_address,
+            name: token.name,
+            ticker: token.ticker,
+            image_url: token.image_url,
+            holders: holdersCount,
+            priceChange: isNaN(pChange) ? "0.00" : pChange.toFixed(2),
+            type: 'ERC-20',
+            _source: 'arcomni',
+            _holdersRaw: holdersCount,
+            is_pinned: token.is_pinned,
+            badge_type: token.badge_type,
+            decimals: '18',
+          } as UnifiedToken;
+        });
       }
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`ArcScan API error: ${res.status}`);
-      const data = await res.json();
+      // 2. Fetch ArcScan API Tokens (Pagination handling)
+      let arcScanTokens: UnifiedToken[] = [];
+      let nextParams = loadMoreParams;
+      let pagesFetched = 0;
+      
+      // Auto-fetch up to 4 pages (200 tokens) if it's the initial load to solve the 50 token limit problem
+      const pagesToFetch = loadMoreParams ? 1 : 4; 
 
-      const tokens: ArcScanToken[] = data.items || [];
+      while (pagesFetched < pagesToFetch) {
+        let url = ARCSCAN_API;
+        if (nextParams) {
+          const params = new URLSearchParams();
+          if (nextParams.contract_address_hash) params.set('contract_address_hash', nextParams.contract_address_hash);
+          if (nextParams.holders_count !== undefined) params.set('holders_count', String(nextParams.holders_count));
+          if (nextParams.items_count !== undefined) params.set('items_count', String(nextParams.items_count));
+          if (nextParams.name) params.set('name', nextParams.name);
+          url = `${ARCSCAN_API}?${params.toString()}`;
+        }
 
-      if (pageParams) {
-        setAllTokens(prev => [...prev, ...tokens]);
+        const res = await fetch(url);
+        if (!res.ok) break;
+        
+        const data = await res.json();
+        const items = data.items || [];
+        
+        const mapped = items
+          .filter((t: any) => {
+            // If it's initial load, filter against ArcOmni. If pagination, we filter against existing allTokens in state.
+            const isAlreadyArcOmni = arcOmniMap.has(t.address_hash.toLowerCase());
+            return !isAlreadyArcOmni;
+          })
+          .map((t: any) => ({
+            id: t.address_hash,
+            token_address: t.address_hash,
+            name: t.name || 'Unknown Token',
+            ticker: t.symbol || '???',
+            image_url: t.icon_url,
+            holders: Number(t.holders_count || 0),
+            priceChange: '0.00',
+            type: t.type,
+            _source: 'arcscan',
+            _holdersRaw: Number(t.holders_count || 0),
+            decimals: t.decimals,
+            total_supply: t.total_supply
+          } as UnifiedToken));
+        
+        arcScanTokens = [...arcScanTokens, ...mapped];
+        nextParams = data.next_page_params;
+        pagesFetched++;
+        
+        if (!nextParams) break;
+      }
+
+      setNextPageParams(nextParams || null);
+      setHasMoreTokens(!!nextParams);
+
+      if (loadMoreParams) {
+        // Append to existing
+        setAllTokens(prev => {
+          // ensure no duplicates
+          const existingIds = new Set(prev.map(p => p.token_address.toLowerCase()));
+          const newUnique = arcScanTokens.filter(a => !existingIds.has(a.token_address.toLowerCase()));
+          return [...prev, ...newUnique];
+        });
       } else {
-        setAllTokens(tokens);
+        // Replace all
+        setAllTokens([...arcOmniTokens, ...arcScanTokens]);
       }
 
-      setNextPageParams(data.next_page_params || null);
-      setHasMoreTokens(!!data.next_page_params);
     } catch (err) {
-      console.error('Error fetching tokens from ArcScan:', err);
-      toast.error('Failed to fetch tokens from ArcScan');
+      console.error('Error fetching unified tokens:', err);
+      toast.error('Failed to load tokens');
     } finally {
       setIsLoadingTokens(false);
       setIsLoadingMore(false);
@@ -115,10 +220,10 @@ export function ArcEcosystemHub() {
 
   // Initial fetch
   useEffect(() => {
-    fetchTokensFromArcScan();
-  }, [fetchTokensFromArcScan]);
+    fetchUnifiedTokens();
+  }, [fetchUnifiedTokens]);
 
-  // Filter tokens when search/type changes
+  // Filter logic
   useEffect(() => {
     let filtered = allTokens;
 
@@ -130,15 +235,22 @@ export function ArcEcosystemHub() {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter(t => 
         (t.name || '').toLowerCase().includes(q) ||
-        (t.symbol || '').toLowerCase().includes(q) ||
-        t.address_hash.toLowerCase().includes(q)
+        (t.ticker || '').toLowerCase().includes(q) ||
+        t.token_address.toLowerCase().includes(q)
       );
     }
+
+    // Sort: ArcOmni pinned first, then by holders
+    filtered.sort((a, b) => {
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+      return b._holdersRaw - a._holdersRaw;
+    });
 
     setFilteredTokens(filtered);
   }, [allTokens, searchQuery, tokenTypeFilter]);
 
-  // ── Supabase Realtime for Global Swap Stream ─────────────────────────
+  // ── Global Swap Stream ───────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
 
@@ -207,38 +319,35 @@ export function ArcEcosystemHub() {
     };
   }, []);
 
-  // ── Token Selection Handler ──────────────────────────────────────────
-  // When user clicks on an ArcScan token, we check if it exists in our
-  // Supabase DB (for chart data). If yes, we load PriceChart with it.
-  const handleSelectArcScanToken = async (token: ArcScanToken) => {
-    // Build a compatible object for PriceChart
-    const { data: dbToken } = await supabase
-      .from('token_launches')
-      .select('*')
-      .eq('token_address', token.address_hash)
-      .single();
-
-    if (dbToken) {
-      // Token exists in our DB — full chart + trading available
-      setSelectedToken(dbToken);
-      toast.success(`Loaded ${dbToken.ticker} — Chart & Trading ready`);
+  // ── Handlers ─────────────────────────────────────────────────────────
+  const handleSelectToken = async (token: UnifiedToken) => {
+    if (token._source === 'arcomni') {
+      // Re-fetch full DB object for PriceChart
+      const { data: dbToken } = await supabase
+        .from('token_launches')
+        .select('*')
+        .eq('token_address', token.token_address)
+        .single();
+      
+      if (dbToken) {
+        setSelectedToken(dbToken);
+        toast.success(`Loaded ${dbToken.ticker}`);
+      }
     } else {
-      // Token is on-chain but not in our DB — show info only
       setSelectedToken({
-        token_address: token.address_hash,
-        name: token.name || 'Unknown Token',
-        ticker: token.symbol || '???',
-        image_url: token.icon_url,
+        token_address: token.token_address,
+        name: token.name,
+        ticker: token.ticker,
+        image_url: token.image_url,
         decimals: token.decimals,
-        holders_count: token.holders_count,
+        holders_count: token.holders,
         total_supply: token.total_supply,
-        _isExternalToken: true // flag to indicate this is an external token
+        _isExternalToken: true
       });
-      toast(`${token.symbol || 'Token'} loaded — External token (view only)`, { icon: '🌐' });
+      toast(`${token.ticker} loaded — External token`, { icon: '🌐' });
     }
   };
 
-  // ── Swap Execution ───────────────────────────────────────────────────
   const handleSwapExecute = async () => {
     if (!isConnected) return toast.error("Please connect your wallet");
     if (!selectedToken) return toast.error("Select a token first");
@@ -289,26 +398,6 @@ export function ArcEcosystemHub() {
       };
 
       await supabase.from('token_swaps').insert(swapData);
-
-      const pointsEarned = swapData.usdc_amount / 10;
-      const { data: existingStats } = await supabase
-        .from('user_stats')
-        .select('*')
-        .eq('wallet', address?.toLowerCase());
-
-      if (existingStats && existingStats.length > 0) {
-        await supabase.from('user_stats').update({
-          total_volume: Number(existingStats[0].total_volume || 0) + swapData.usdc_amount,
-          points: Number(existingStats[0].points || 0) + pointsEarned
-        }).eq('wallet', address?.toLowerCase());
-      } else {
-        await supabase.from('user_stats').insert({
-          wallet: address?.toLowerCase(),
-          total_volume: swapData.usdc_amount,
-          points: pointsEarned
-        });
-      }
-
       toast.success("Swap Executed Successfully!", { id: 'swap-toast' });
       setSwapAmount('');
     } catch (e: any) {
@@ -319,17 +408,14 @@ export function ArcEcosystemHub() {
     }
   };
 
-  // ── Format helpers ───────────────────────────────────────────────────
-  const formatHolders = (count: string) => {
+  const formatHolders = (count: string | number) => {
     const n = Number(count);
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
     if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
     return n.toString();
   };
-
   const truncateAddr = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
-  // ── RENDER ───────────────────────────────────────────────────────────
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -337,7 +423,7 @@ export function ArcEcosystemHub() {
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* ═══ Header Banner ═══ */}
+      {/* ═══ Header ═══ */}
       <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden border border-[var(--border-dim)] bg-white">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-blue-50 to-transparent rounded-full -mr-20 -mt-20 blur-3xl" />
         
@@ -350,7 +436,7 @@ export function ArcEcosystemHub() {
               <h2 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">Arc Ecosystem Hub</h2>
               <p className="text-sm text-[var(--text-secondary)] font-medium flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                All Tokens Deployed on Arc Chain Testnet
+                Unified Token Terminal
               </p>
             </div>
           </div>
@@ -358,7 +444,7 @@ export function ArcEcosystemHub() {
 
         <div className="relative z-10 flex gap-4 flex-wrap">
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm min-w-[160px]">
-            <p className="text-[10px] font-black uppercase text-[var(--text-secondary)] tracking-widest mb-1">Total Tokens</p>
+            <p className="text-[10px] font-black uppercase text-[var(--text-secondary)] tracking-widest mb-1">Tokens Indexed</p>
             <span className="text-2xl font-black text-[var(--text-primary)]">{allTokens.length}+</span>
           </div>
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm min-w-[200px]">
@@ -371,35 +457,31 @@ export function ArcEcosystemHub() {
         </div>
       </div>
 
-      {/* ═══ Main 3-Column Layout ═══ */}
+      {/* ═══ 3-Column Layout ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* ──── LEFT: All On-Chain Tokens (5 cols) ──── */}
+        {/* ──── LEFT: Unified On-Chain Explorer (5 cols) ──── */}
         <div className="lg:col-span-5 space-y-4">
-          
-          {/* Search & Filter Bar */}
           <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] bg-white p-4 space-y-3">
             <div className="flex items-center gap-2">
               <Zap size={18} className="text-amber-500" />
-              <h3 className="font-extrabold text-[var(--text-primary)] text-lg flex-1">On-Chain Token Explorer</h3>
+              <h3 className="font-extrabold text-[var(--text-primary)] text-lg flex-1">Global Token Explorer</h3>
               <div className="text-[10px] font-bold px-2 py-1 bg-emerald-100 text-emerald-700 rounded uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> ArcScan Live
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live
               </div>
             </div>
 
-            {/* Search Input */}
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search by name, symbol, or address..."
+                placeholder="Search ArcOmni & External tokens..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:border-[var(--accent-cyan)] transition-colors"
               />
             </div>
 
-            {/* Type Filter */}
             <div className="flex gap-2">
               {(['ALL', 'ERC-20', 'ERC-721'] as const).map(type => (
                 <button
@@ -417,72 +499,74 @@ export function ArcEcosystemHub() {
             </div>
           </div>
 
-          {/* Token List */}
           <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] bg-white overflow-hidden">
-            <div className="max-h-[680px] overflow-y-auto custom-scrollbar">
+            <div className="max-h-[700px] overflow-y-auto custom-scrollbar">
               {isLoadingTokens ? (
                 <div className="flex flex-col items-center justify-center py-20 text-[var(--text-secondary)] gap-2">
                   <Loader2 size={28} className="animate-spin text-[var(--accent-cyan)]" />
-                  <p className="text-xs font-semibold">Fetching tokens from ArcScan...</p>
+                  <p className="text-xs font-semibold">Indexing Arc Chain...</p>
                 </div>
               ) : filteredTokens.length === 0 ? (
                 <div className="text-center py-16 text-[var(--text-secondary)]">
                   <Search size={32} className="mx-auto mb-3 text-slate-300" />
                   <p className="text-sm font-bold">No tokens found</p>
-                  <p className="text-xs font-medium mt-1">Try a different search or filter</p>
                 </div>
               ) : (
                 <AnimatePresence>
                   {filteredTokens.map((token, idx) => {
-                    const isSelected = selectedToken?.token_address === token.address_hash;
+                    const isSelected = selectedToken?.token_address === token.token_address;
                     return (
                       <motion.div
-                        key={token.address_hash}
+                        key={token.id}
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: Math.min(idx * 0.02, 0.3) }}
-                        onClick={() => handleSelectArcScanToken(token)}
+                        onClick={() => handleSelectToken(token)}
                         className={`flex items-center justify-between px-5 py-4 border-b border-[var(--border-dim)] hover:bg-slate-50 transition-colors cursor-pointer group ${
                           isSelected ? 'bg-blue-50/60 border-l-4 border-l-[var(--accent-cyan)]' : ''
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          {/* Icon */}
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center font-bold text-xs text-indigo-700 border border-indigo-200 overflow-hidden flex-shrink-0">
-                            {token.icon_url ? (
-                              <img src={token.icon_url} alt="" className="w-full h-full object-cover" />
+                            {token.image_url ? (
+                              <img src={token.image_url} alt="" className="w-full h-full object-cover" />
                             ) : (
-                              (token.symbol || '??').substring(0, 2).toUpperCase()
+                              (token.ticker || '??').substring(0, 2).toUpperCase()
                             )}
                           </div>
                           
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-extrabold text-sm text-[var(--text-primary)] truncate">{token.name || 'Unknown'}</span>
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-[var(--text-secondary)] tracking-wider">{token.symbol || '???'}</span>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                                token.type === 'ERC-20' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700'
-                              }`}>{token.type}</span>
+                            <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                              {token.is_pinned && <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black">📌 Pinned</span>}
+                              <span className="font-extrabold text-sm text-[var(--text-primary)] truncate">{token.name}</span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-[var(--text-secondary)]">{token.ticker}</span>
+                              
+                              {token._source === 'arcomni' ? (
+                                <span className="text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider">ArcOmni</span>
+                              ) : (
+                                <span className="text-[8px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-0.5"><Globe size={8}/> On-Chain</span>
+                              )}
+                              {token.type === 'ERC-721' && <span className="text-[8px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-black">ERC-721</span>}
                             </div>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[10px] font-mono text-[var(--text-secondary)]">{truncateAddr(token.address_hash)}</span>
-                              <a
-                                href={`${ARCSCAN_EXPLORER}/token/${token.address_hash}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] transition-colors"
-                              >
-                                <ExternalLink size={10} />
-                              </a>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono text-[var(--text-secondary)]">{truncateAddr(token.token_address)}</span>
+                              <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(token.token_address); toast.success("Copied!"); }} className="text-[var(--text-secondary)] hover:text-[var(--accent-cyan)]"><Copy size={10} /></button>
+                              {token._source === 'arcscan' && (
+                                <a href={`${ARCSCAN_EXPLORER}/token/${token.token_address}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[var(--text-secondary)] hover:text-[var(--accent-cyan)]"><ExternalLink size={10} /></a>
+                              )}
                             </div>
                           </div>
                         </div>
 
-                        {/* Holders */}
                         <div className="text-right flex-shrink-0">
-                          <div className="text-xs font-black text-[var(--text-primary)]">{formatHolders(token.holders_count)}</div>
-                          <div className="text-[10px] font-bold text-[var(--text-secondary)]">holders</div>
+                          <div className="flex items-center gap-1 justify-end mb-0.5">
+                            <Users size={12} className="text-[var(--accent-cyan)]" />
+                            <span className="text-xs font-black text-[var(--text-primary)]">{formatHolders(token.holders)}</span>
+                          </div>
+                          {token._source === 'arcomni' && (
+                            <div className="text-[10px] font-extrabold flex items-center justify-end gap-0.5" style={{ color: Number(token.priceChange) >= 0 ? '#10b981' : '#f43f5e' }}>
+                              {Number(token.priceChange) >= 0 ? '+' : ''}{token.priceChange}% <ArrowUpRight size={10} className={Number(token.priceChange) >= 0 ? 'rotate-0' : 'rotate-90'} />
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     );
@@ -490,19 +574,10 @@ export function ArcEcosystemHub() {
                 </AnimatePresence>
               )}
 
-              {/* Load More */}
               {hasMoreTokens && !isLoadingTokens && (
                 <div className="p-4 text-center">
-                  <button
-                    onClick={() => fetchTokensFromArcScan(nextPageParams)}
-                    disabled={isLoadingMore}
-                    className="px-6 py-2.5 rounded-xl text-xs font-black text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--accent-cyan)] hover:bg-[rgba(0,242,254,0.1)] transition-all flex items-center gap-2 mx-auto"
-                  >
-                    {isLoadingMore ? (
-                      <><Loader2 size={14} className="animate-spin" /> Loading...</>
-                    ) : (
-                      <><ChevronDown size={14} /> Load More Tokens</>
-                    )}
+                  <button onClick={() => fetchUnifiedTokens(nextPageParams)} disabled={isLoadingMore} className="px-6 py-2.5 rounded-xl text-xs font-black text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--accent-cyan)] hover:bg-[rgba(0,242,254,0.1)] transition-all flex items-center gap-2 mx-auto">
+                    {isLoadingMore ? <><Loader2 size={14} className="animate-spin" /> Loading...</> : <><ChevronDown size={14} /> Load More From ArcScan</>}
                   </button>
                 </div>
               )}
@@ -510,20 +585,14 @@ export function ArcEcosystemHub() {
           </div>
         </div>
 
-        {/* ──── CENTER: Chart + Swap Stream (4 cols) ──── */}
+        {/* ──── CENTER: Chart & Swap Stream (4 cols) ──── */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Price Chart */}
           <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] bg-white overflow-hidden">
             {selectedToken && selectedToken._isExternalToken ? (
-              // External token info panel (no chart data available)
               <div className="p-6 space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center font-bold text-indigo-700 border border-indigo-200 overflow-hidden">
-                    {selectedToken.image_url ? (
-                      <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Coins size={22} />
-                    )}
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center font-bold text-slate-700 overflow-hidden">
+                    {selectedToken.image_url ? <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" /> : <Coins size={22} />}
                   </div>
                   <div>
                     <h3 className="font-black text-lg text-[var(--text-primary)]">{selectedToken.name}</h3>
@@ -537,22 +606,17 @@ export function ArcEcosystemHub() {
                     <div className="text-lg font-black text-[var(--text-primary)]">{formatHolders(selectedToken.holders_count || '0')}</div>
                   </div>
                   <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                    <div className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Type</div>
+                    <div className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Standard</div>
                     <div className="text-lg font-black text-[var(--text-primary)]">{selectedToken.decimals ? 'ERC-20' : 'ERC-721'}</div>
                   </div>
                 </div>
 
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs font-medium text-amber-700">
-                  🌐 This token was deployed on Arc Chain Testnet via an external platform. Chart data is only available for tokens launched through ArcOmni.
+                  🌐 This token was discovered on-chain. Chart data is exclusively available for ArcOmni deployed bonding curve tokens.
                 </div>
 
-                <a
-                  href={`${ARCSCAN_EXPLORER}/token/${selectedToken.token_address}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3 rounded-xl text-xs font-black text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--accent-cyan)] flex items-center justify-center gap-2 hover:bg-[rgba(0,242,254,0.1)] transition-all"
-                >
-                  <ExternalLink size={14} /> View on ArcScan
+                <a href={`${ARCSCAN_EXPLORER}/token/${selectedToken.token_address}`} target="_blank" rel="noopener noreferrer" className="w-full py-3 rounded-xl text-xs font-black text-[var(--accent-cyan)] bg-[rgba(0,242,254,0.05)] border border-[var(--accent-cyan)] flex items-center justify-center gap-2 hover:bg-[rgba(0,242,254,0.1)] transition-all">
+                  <ExternalLink size={14} /> View Explorer Analytics
                 </a>
               </div>
             ) : (
@@ -560,7 +624,6 @@ export function ArcEcosystemHub() {
             )}
           </div>
 
-          {/* Global Swap Stream */}
           <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-white">
             <div className="p-4 border-b border-[var(--border-dim)] bg-slate-50/50 flex justify-between items-center">
               <div className="flex items-center gap-2">
@@ -577,12 +640,7 @@ export function ArcEcosystemHub() {
                   </div>
                 ) : (
                   swaps.slice(0, 15).map((swap, idx) => (
-                    <motion.div
-                      key={swap.hash + idx}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-dim)] bg-slate-50/50 hover:bg-slate-50 transition-colors"
-                    >
+                    <motion.div key={swap.hash + idx} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-dim)] bg-slate-50/50 hover:bg-slate-50 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${swap.isBuy ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
                           {swap.isBuy ? 'BUY' : 'SELL'}
@@ -603,11 +661,10 @@ export function ArcEcosystemHub() {
           </div>
         </div>
 
-        {/* ──── RIGHT: Fast Routing + Leaderboard (3 cols) ──── */}
+        {/* ──── RIGHT: Fast Routing Panel (3 cols) ──── */}
         <div className="lg:col-span-3">
           <div className="sticky top-8 space-y-6">
             
-            {/* Fast Routing Panel */}
             <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-white p-5 relative">
               <h3 className="font-extrabold text-[var(--text-primary)] text-base mb-5 flex items-center gap-2">
                 <ArrowRightLeft size={16} className="text-[var(--accent-cyan)]" /> Fast Routing
@@ -626,14 +683,9 @@ export function ArcEcosystemHub() {
                 </div>
               ) : (
                 <div className="space-y-5">
-                  {/* Token Info */}
                   <div className="flex items-center gap-3 p-3 rounded-2xl bg-blue-50/50 border border-blue-100">
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center font-bold text-xs text-indigo-700 overflow-hidden">
-                      {selectedToken.image_url ? (
-                        <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        selectedToken.ticker.substring(0, 2)
-                      )}
+                      {selectedToken.image_url ? <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" /> : selectedToken.ticker.substring(0, 2)}
                     </div>
                     <div>
                       <div className="font-black text-sm text-[var(--text-primary)]">{selectedToken.name} <span className="text-[10px] text-[var(--text-secondary)]">{selectedToken.ticker}</span></div>
@@ -641,13 +693,11 @@ export function ArcEcosystemHub() {
                     </div>
                   </div>
 
-                  {/* BUY/SELL Toggle */}
                   <div className="flex bg-slate-100 p-1 rounded-xl">
                     <button onClick={() => setSwapDirection('BUY')} className={`flex-1 py-2 rounded-lg text-xs font-black transition-all ${swapDirection === 'BUY' ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100' : 'text-[var(--text-secondary)]'}`}>BUY</button>
                     <button onClick={() => setSwapDirection('SELL')} className={`flex-1 py-2 rounded-lg text-xs font-black transition-all ${swapDirection === 'SELL' ? 'bg-white text-rose-600 shadow-sm border border-rose-100' : 'text-[var(--text-secondary)]'}`}>SELL</button>
                   </div>
 
-                  {/* Anchor */}
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Pay With</label>
                     <div className="grid grid-cols-3 gap-1.5">
@@ -657,7 +707,6 @@ export function ArcEcosystemHub() {
                     </div>
                   </div>
 
-                  {/* Amount */}
                   <div className="relative">
                     <input type="number" value={swapAmount} onChange={(e) => setSwapAmount(e.target.value)} placeholder="0.0" className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-4 py-3 text-base font-bold outline-none focus:border-[var(--accent-cyan)] transition-colors pr-16" />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[var(--text-secondary)] bg-white px-2 py-0.5 rounded-lg border border-slate-200">
@@ -665,7 +714,6 @@ export function ArcEcosystemHub() {
                     </div>
                   </div>
 
-                  {/* Execute */}
                   <button 
                     onClick={handleSwapExecute}
                     disabled={isSwapping || !swapAmount || Number(swapAmount) <= 0}
@@ -683,12 +731,21 @@ export function ArcEcosystemHub() {
               )}
             </div>
 
-            {/* Leaderboard */}
-            <div className="max-h-[400px] overflow-hidden rounded-[24px]">
-              <Leaderboard onSelectToken={(token) => {
-                setSelectedToken(token);
-                toast.success(`Selected ${token.ticker}`);
-              }} />
+            <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-white relative">
+              <div className="absolute top-0 right-0 p-4 opacity-10"><Globe size={60} /></div>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Network Connectivity</h4>
+              <div className="space-y-3 relative z-10">
+                <div>
+                  <div className="text-[9px] text-slate-400 font-bold">Arc Defi Router</div>
+                  <div className="font-mono text-xs text-blue-300 mt-0.5 break-all">{ARC_DEFI_ROUTER_ADDRESS}</div>
+                </div>
+                <div>
+                  <div className="text-[9px] text-slate-400 font-bold">Latency</div>
+                  <div className="font-black text-emerald-400 text-sm flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 12ms (Optimal)
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
