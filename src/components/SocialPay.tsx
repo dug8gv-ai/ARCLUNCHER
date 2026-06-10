@@ -515,7 +515,7 @@ export function SocialPay() {
               </div>
             </div>
 
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+            <div className="flex items-center bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-1 rounded-xl">
               <button
                 onClick={() => setActiveTab('pay')}
                 className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${
@@ -544,7 +544,7 @@ export function SocialPay() {
                 </div>
               ) : history.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-40 text-center space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-2">
+                  <div className="w-12 h-12 rounded-full bg-[rgba(6,10,38,0.9)] flex items-center justify-center mb-2">
                     <History size={20} className="text-slate-300" />
                   </div>
                   <p className="text-sm font-bold text-[var(--text-secondary)]">No transactions yet</p>
@@ -553,9 +553,9 @@ export function SocialPay() {
               ) : (
                 <div className="space-y-3">
                   {history.map(tx => (
-                    <div key={tx.id} className="flex items-center justify-between p-4 border border-[var(--border-dim)] rounded-2xl bg-slate-50 hover:bg-slate-100/50 transition-all">
+                    <div key={tx.id} className="flex items-center justify-between p-4 border border-[var(--border-dim)] rounded-2xl bg-[rgba(6,10,38,0.7)] hover:bg-[rgba(8,16,50,0.9)] transition-all">
                       <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0 ${tx.isSent ? 'bg-slate-800' : 'bg-emerald-500'}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0 ${tx.isSent ? 'bg-[rgba(41,121,255,0.2)] border border-[var(--border-dim)]' : 'bg-emerald-500'}`}>
                           {tx.isSent ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
                         </div>
                         <div>
@@ -574,7 +574,7 @@ export function SocialPay() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`text-base font-black ${tx.isSent ? 'text-[var(--text-primary)]' : 'text-emerald-600'}`}>
+                        <div className="text-base font-black" style={{ color: tx.isSent ? 'var(--text-primary)' : '#00e676' }}>
                           {tx.isSent ? '-' : '+'}{tx.amount} <span className="text-xs">{tx.asset_type}</span>
                         </div>
                         <a 
@@ -609,7 +609,7 @@ export function SocialPay() {
                       <h4 className="font-extrabold text-[var(--text-primary)] text-sm flex items-center gap-1.5">
                         {selectedRecipient.name}
                         {selectedRecipient.name === 'Custom Address' && (
-                          <span className="text-[9px] bg-slate-200 text-[var(--text-secondary)] px-2 py-0.5 rounded-full font-black uppercase">Custom</span>
+                          <span className="text-[9px] bg-[rgba(41,121,255,0.12)] text-[var(--text-secondary)] border border-[var(--border-dim)] px-2 py-0.5 rounded-full font-black uppercase">Custom</span>
                         )}
                       </h4>
                       <p className="text-[10px] text-[var(--text-secondary)] font-semibold font-mono flex items-center gap-1 mt-0.5">
@@ -617,7 +617,7 @@ export function SocialPay() {
                         <button
                           type="button"
                           onClick={() => handleCopyRecipient(selectedRecipient.wallet)}
-                          className="text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] p-0.5 hover:bg-slate-200/40 rounded transition-all"
+                          className="text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] p-0.5 hover:bg-[rgba(0,229,255,0.08)] rounded transition-all"
                           title="Copy Wallet Address"
                         >
                           {copiedRecipient ? <Check size={11} className="text-green-600" /> : <Copy size={11} />}
@@ -647,7 +647,7 @@ export function SocialPay() {
                       placeholder="Search by username (e.g. Frianowzki)..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-[var(--border-dim)] rounded-2xl text-xs outline-none focus:bg-[var(--bg-card)] focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all font-semibold"
+                      className="w-full pl-11 pr-4 py-3.5 bg-[var(--bg-input)] border border-[var(--border-dim)] rounded-2xl text-xs outline-none focus:bg-[var(--bg-card)] focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all font-semibold"
                     />
                     {searchLoading && (
                       <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -668,7 +668,7 @@ export function SocialPay() {
                             setSearchQuery('');
                             setSearchResults([]);
                           }}
-                          className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 border-b border-[var(--border-dim)] last:border-0 text-left transition-colors cursor-pointer"
+                          className="w-full flex items-center justify-between p-3.5 hover:bg-[rgba(8,16,50,0.8)] border-b border-[var(--border-dim)] last:border-0 text-left transition-colors cursor-pointer"
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg overflow-hidden border border-[var(--border-dim)] bg-[var(--bg-card)]">
@@ -726,7 +726,7 @@ export function SocialPay() {
                   className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
                     selectedAssetType === 'USDC'
                       ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] shadow-sm shadow-blue-500/5'
-                      : 'border-[var(--border-dim)] bg-slate-50 hover:bg-slate-100/50 text-[var(--text-secondary)]'
+                      : 'border-[var(--border-dim)] bg-[rgba(6,10,38,0.7)] hover:bg-[rgba(8,16,50,0.9)] text-[var(--text-secondary)]'
                   }`}
                 >
                   <DollarSign size={16} />
@@ -740,7 +740,7 @@ export function SocialPay() {
                   className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
                     selectedAssetType === 'LAUNCHED'
                       ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] shadow-sm shadow-blue-500/5'
-                      : 'border-[var(--border-dim)] bg-slate-50 hover:bg-slate-100/50 text-[var(--text-secondary)]'
+                      : 'border-[var(--border-dim)] bg-[rgba(6,10,38,0.7)] hover:bg-[rgba(8,16,50,0.9)] text-[var(--text-secondary)]'
                   }`}
                 >
                   <Users size={16} />
@@ -754,7 +754,7 @@ export function SocialPay() {
                   className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
                     selectedAssetType === 'CUSTOM'
                       ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] shadow-sm shadow-blue-500/5'
-                      : 'border-[var(--border-dim)] bg-slate-50 hover:bg-slate-100/50 text-[var(--text-secondary)]'
+                      : 'border-[var(--border-dim)] bg-[rgba(6,10,38,0.7)] hover:bg-[rgba(8,16,50,0.9)] text-[var(--text-secondary)]'
                   }`}
                 >
                   <HelpCircle size={16} />
@@ -768,7 +768,7 @@ export function SocialPay() {
                   className={`py-3.5 rounded-2xl border text-center transition-all cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 ${
                     selectedAssetType === 'NATIVE'
                       ? 'border-blue-500 bg-[rgba(0,242,254,0.05)] text-[var(--accent-cyan)] shadow-sm shadow-blue-500/5'
-                      : 'border-[var(--border-dim)] bg-slate-50 hover:bg-slate-100/50 text-[var(--text-secondary)]'
+                      : 'border-[var(--border-dim)] bg-[rgba(6,10,38,0.7)] hover:bg-[rgba(8,16,50,0.9)] text-[var(--text-secondary)]'
                   }`}
                 >
                   <QrCode size={16} />
@@ -778,7 +778,7 @@ export function SocialPay() {
 
               {/* Dynamic asset inputs */}
               {selectedAssetType === 'LAUNCHED' && (
-                <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
                   <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Choose Launched Token</span>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[140px] overflow-y-auto pr-1">
                     {tokensList.length === 0 ? (
@@ -805,7 +805,7 @@ export function SocialPay() {
               )}
 
               {selectedAssetType === 'CUSTOM' && (
-                <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4.5 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
                   <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Custom ERC-20 Address</span>
                   
                   <div className="space-y-3.5">
@@ -840,7 +840,7 @@ export function SocialPay() {
             </div>
 
             {/* Step 3: Input Amount */}
-            <div className="bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4.5">
+            <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4.5">
               <div className="flex justify-between text-[11px] text-[var(--text-secondary)] font-bold mb-2">
                 <span>Amount to Send</span>
                 <span className="text-[var(--accent-cyan)] font-extrabold">
@@ -855,7 +855,7 @@ export function SocialPay() {
                 value={sendAmount}
                 onChange={(e) => setSendAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full bg-transparent text-3xl font-extrabold font-mono text-[var(--text-primary)] outline-none placeholder:text-slate-300"
+                className="w-full bg-transparent text-3xl font-extrabold font-mono text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
                 required
                 min="0.000000000000000001"
                 step="any"
@@ -866,7 +866,7 @@ export function SocialPay() {
             <button
               type="submit"
               disabled={txStatus === 'sending'}
-              className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4.5 bg-gradient-to-r from-[#7c3aff] to-[#2979ff] hover:opacity-90 text-white rounded-2xl font-black text-sm tracking-wide uppercase transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {txStatus === 'sending' ? (
                 <>
@@ -949,7 +949,7 @@ export function SocialPay() {
             <button
               onClick={handleCopyWallet}
               disabled={!userAddress}
-              className="py-2.5 px-3 bg-slate-50 border border-[var(--border-dim)] hover:border-[var(--border-dim)] text-[var(--text-secondary)] rounded-xl text-[10px] font-bold tracking-wide uppercase transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="py-2.5 px-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] hover:border-[var(--accent-cyan)] text-[var(--text-secondary)] rounded-xl text-[10px] font-bold tracking-wide uppercase transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {copiedWallet ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
               Copy Address
@@ -994,7 +994,7 @@ export function SocialPay() {
               </div>
             </div>
 
-            <p className="text-xs text-[var(--text-secondary)] font-semibold leading-relaxed bg-slate-50 border border-[var(--border-dim)] rounded-2xl p-4">
+            <p className="text-xs text-[var(--text-secondary)] font-semibold leading-relaxed bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4">
               {alertInfo.message}
             </p>
 

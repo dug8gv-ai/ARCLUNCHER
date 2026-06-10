@@ -513,3 +513,101 @@ button.bg-red-600, button.bg-red-500 {
 .text-emerald-600.flex, .text-rose-600.flex {
   font-weight: 700 !important;
 }
+
+/* ═══════════════════════════════════════════════════════
+   LIGHT THEME — [data-theme="light"]
+   Deep ocean blue base · Bright panels · Same ArcOmni style
+═══════════════════════════════════════════════════════ */
+
+[data-theme="light"] {
+  --bg-main:        #0a1628;
+  --bg-card:        rgba(12, 26, 60, 0.92);
+  --bg-sidebar:     rgba(8, 18, 44, 0.98);
+  --bg-elevated:    rgba(14, 32, 72, 0.9);
+  --bg-input:       rgba(8, 18, 50, 0.95);
+
+  --text-primary:   #e8f4ff;
+  --text-secondary: #7ab0e8;
+  --text-muted:     #3a6090;
+
+  --accent-blue:    #4d9fff;
+  --accent-blue-2:  #66b2ff;
+  --accent-blue-3:  #99ccff;
+  --accent-cyan:    #00f0ff;
+  --accent-cyan-2:  #33ffff;
+  --accent-purple:  #cc44ff;
+  --accent-pink:    #ff66aa;
+  --accent-gold:    #ffee55;
+  --accent-green:   #33ff99;
+  --accent-red:     #ff4466;
+  --accent-amber:   #ffcc55;
+
+  --border-glow:    rgba(0, 240, 255, 0.5);
+  --border-dim:     rgba(77,159,255, 0.28);
+  --border-subtle:  rgba(77,159,255, 0.1);
+
+  --card-shadow:    0 4px 28px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,240,255,0.18);
+  --card-shadow-md: 0 6px 40px rgba(0,0,0,0.85), 0 0 0 1px rgba(0,240,255,0.25);
+}
+
+[data-theme="light"] body {
+  background-color: #0a1628;
+  background-image:
+    linear-gradient(rgba(0,240,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.05) 1px, transparent 1px),
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,240,255,0.1) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(204,68,255,0.06) 0%, transparent 60%);
+  background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+}
+
+[data-theme="light"] .card,
+[data-theme="light"] .panel,
+[data-theme="light"] .stat-box {
+  background: rgba(12,26,60,0.88);
+  border: 1px solid rgba(0,240,255,0.22);
+  box-shadow: 0 4px 28px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,240,255,0.12);
+}
+
+[data-theme="light"] .card::before,
+[data-theme="light"] .stat-box::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(0,240,255,0.7) 40%, rgba(77,159,255,0.5) 60%, transparent 100%);
+}
+
+[data-theme="light"] .sidebar-link:hover,
+[data-theme="light"] .sidebar-link.active {
+  background: rgba(0,240,255,0.1);
+  border-left-color: #00f0ff;
+  color: #ffffff;
+}
+
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .deploy-btn {
+  background: linear-gradient(135deg, #0066ff, #00aaff);
+  border-color: rgba(0,170,255,0.6);
+  box-shadow: 0 0 24px rgba(0,170,255,0.5);
+}
+
+/* Light bg Tailwind overrides for light theme */
+[data-theme="light"] .bg-white,
+[data-theme="light"] [class*="bg-white"],
+[data-theme="light"] .bg-gray-50,
+[data-theme="light"] .bg-slate-50 {
+  background-color: rgba(12,26,60,0.85) !important;
+}
+
+[data-theme="light"] [class*="bg-gray-100"],
+[data-theme="light"] [class*="bg-slate-100"] {
+  background-color: rgba(14,32,72,0.85) !important;
+}
+
+[data-theme="light"] [class*="border-gray-200"],
+[data-theme="light"] [class*="border-slate-200"] {
+  border-color: rgba(0,240,255,0.22) !important;
+}
+
+[data-theme="light"] [class*="text-white"] { color: #e8f4ff !important; }
+[data-theme="light"] [class*="text-gray-900"],
+[data-theme="light"] [class*="text-gray-800"],
+[data-theme="light"] [class*="text-black"] { color: #e8f4ff !important; }
+[data-theme="light"] [class*="text-gray-600"],
+[data-theme="light"] [class*="text-slate-400"] { color: #7ab0e8 !important; }

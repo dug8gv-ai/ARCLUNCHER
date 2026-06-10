@@ -8,26 +8,28 @@ interface Drop {
   length: number;
   speed: number;
   width: number;
+  opacity: number;
   color: string;
 }
 
-const DROP_COUNT = 320;
+const DROP_COUNT = 180;
+
 const COLORS = [
   'rgba(41,121,255,',
   'rgba(0,229,255,',
   'rgba(100,160,255,',
-  'rgba(130,177,255,',
 ];
 
 function createDrop(w: number, h: number): Drop {
   const c = COLORS[Math.floor(Math.random() * COLORS.length)];
   return {
-    x:      Math.random() * w,
-    y:      Math.random() * h * 2 - h,
-    length: Math.random() * 35 + 15,
-    speed:  Math.random() * 4 + 2,
-    width:  Math.random() * 1.5 + 0.5,
-    color:  c,
+    x:       Math.random() * w,
+    y:       Math.random() * h * 2 - h,
+    length:  Math.random() * 60 + 30,
+    speed:   Math.random() * 3 + 1.5,
+    width:   Math.random() * 1.2 + 0.4,
+    opacity: Math.random() * 0.4 + 0.1,
+    color:   c,
   };
 }
 
@@ -53,45 +55,34 @@ export function RainBackground() {
       ctx.scale(dpr, dpr);
       dropsRef.current = Array.from({ length: DROP_COUNT }, () => createDrop(w, h));
     };
-
     resize();
     window.addEventListener('resize', resize);
 
     const draw = () => {
       const w = canvas.width  / (window.devicePixelRatio || 1);
       const h = canvas.height / (window.devicePixelRatio || 1);
-
       ctx.clearRect(0, 0, w, h);
 
-      dropsRef.current.forEach(drop => {
-        const grad = ctx.createLinearGradient(drop.x, drop.y, drop.x - 1, drop.y + drop.length);
+      for (const drop of dropsRef.current) {
+        const grad = ctx.createLinearGradient(drop.x, drop.y, drop.x - 0.5, drop.y + drop.length);
         grad.addColorStop(0,   drop.color + '0)');
-        grad.addColorStop(0.4, drop.color + '0.18)');
-        grad.addColorStop(1,   drop.color + '0.55)');
+        grad.addColorStop(0.3, drop.color + (drop.opacity * 0.5).toFixed(2) + ')');
+        grad.addColorStop(1,   drop.color + drop.opacity.toFixed(2) + ')');
 
         ctx.beginPath();
         ctx.moveTo(drop.x, drop.y);
-        ctx.lineTo(drop.x - drop.width * 0.3, drop.y + drop.length);
+        ctx.lineTo(drop.x - 0.5, drop.y + drop.length);
         ctx.strokeStyle = grad;
         ctx.lineWidth   = drop.width;
         ctx.lineCap     = 'round';
         ctx.stroke();
 
-        // splash dot at bottom
-        ctx.beginPath();
-        ctx.arc(drop.x, drop.y + drop.length, drop.width * 0.8, 0, Math.PI * 2);
-        ctx.fillStyle = drop.color + '0.25)';
-        ctx.fill();
-
         drop.y += drop.speed;
-        if (drop.y > h + drop.length + 10) {
-          drop.y     = -drop.length - Math.random() * 60;
-          drop.x     = Math.random() * w;
-          drop.speed = Math.random() * 4 + 2;
-          drop.length= Math.random() * 35 + 15;
-          drop.width = Math.random() * 1.5 + 0.5;
+        if (drop.y > h + drop.length + 20) {
+          Object.assign(drop, createDrop(w, -drop.length));
+          drop.y = -drop.length - Math.random() * 80;
         }
-      });
+      }
 
       rafRef.current = requestAnimationFrame(draw);
     };
@@ -109,8 +100,7 @@ export function RainBackground() {
       aria-hidden="true"
       style={{
         position:      'fixed',
-        top:           0,
-        left:          0,
+        top: 0, left: 0,
         width:         '100vw',
         height:        '100vh',
         zIndex:        0,

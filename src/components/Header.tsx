@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useDisconnect, usePublicClient } from 'wagmi';
 import { User, MessageSquare, Check, Loader2, ChevronDown, Award, Settings, LogOut } from 'lucide-react';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { erc20Abi, formatUnits } from 'viem';
@@ -360,6 +361,7 @@ export function Header() {
           )}
 
           {/* Rainbowkit Wallet Connection Button */}
+          <ThemeSwitcher />
           <ConnectButton />
         </div>
       </motion.header>
