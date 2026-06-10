@@ -5,6 +5,7 @@ import { useAccount, useSendTransaction, usePublicClient, useWriteContract, useW
 import { parseUnits, erc20Abi, isAddress } from 'viem';
 import { supabase } from '@/lib/supabase';
 import { Search, Send, QrCode, Copy, Check, Users, Loader2, DollarSign, Wallet, ArrowRight, Info, HelpCircle, History, ExternalLink, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { SocialPayHistory } from '@/components/SocialPayHistory';
 import { USDC_ADDRESS } from '@/lib/arcDefiAbi';
 import { appKitSend, createBrowserAdapter } from '@/lib/appKit';
 
@@ -536,60 +537,8 @@ export function SocialPay() {
           </div>
 
           {activeTab === 'history' ? (
-            <div className="space-y-4 min-h-[400px]">
-              {historyLoading ? (
-                <div className="flex flex-col items-center justify-center h-40 gap-3 text-[var(--text-secondary)]">
-                  <Loader2 className="animate-spin size-6" />
-                  <span className="text-xs font-bold uppercase tracking-widest">Loading History...</span>
-                </div>
-              ) : history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-40 text-center space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-[rgba(6,10,38,0.9)] flex items-center justify-center mb-2">
-                    <History size={20} className="text-slate-300" />
-                  </div>
-                  <p className="text-sm font-bold text-[var(--text-secondary)]">No transactions yet</p>
-                  <p className="text-xs text-[var(--text-secondary)]">Payments you send or receive will appear here.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {history.map(tx => (
-                    <div key={tx.id} className="flex items-center justify-between p-4 border border-[var(--border-dim)] rounded-2xl bg-[rgba(6,10,38,0.7)] hover:bg-[rgba(8,16,50,0.9)] transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0 ${tx.isSent ? 'bg-[rgba(41,121,255,0.2)] border border-[var(--border-dim)]' : 'bg-emerald-500'}`}>
-                          {tx.isSent ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                              {tx.isSent ? 'Sent to' : 'Received from'}
-                            </span>
-                            <div className="flex items-center gap-1.5 card px-2 py-0.5 rounded-full">
-                              <img src={tx.counterpartyProfile.avatar} alt="" className="w-4 h-4 rounded-full" />
-                              <span className="text-[10px] font-bold text-[var(--text-primary)]">{tx.counterpartyProfile.name}</span>
-                            </div>
-                          </div>
-                          <span className="text-[10px] text-[var(--text-secondary)] font-mono mt-1 block">
-                            {new Date(tx.created_at).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-base font-black" style={{ color: tx.isSent ? 'var(--text-primary)' : '#00e676' }}>
-                          {tx.isSent ? '-' : '+'}{tx.amount} <span className="text-xs">{tx.asset_type}</span>
-                        </div>
-                        <a 
-                          href={`https://testnet.arc.network/tx/${tx.tx_hash}`} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="text-[10px] text-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] font-semibold flex items-center gap-1 justify-end mt-1"
-                        >
-                          View TX <ExternalLink size={10} />
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="min-h-[400px]">
+              <SocialPayHistory />
             </div>
           ) : (
           <form onSubmit={handleSendPayment} className="space-y-6">
