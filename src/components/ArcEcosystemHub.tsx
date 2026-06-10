@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAccount, usePublicClient, useWalletClient, useWriteContract } from 'wagmi';
+import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
 import { formatUnits, parseUnits, erc20Abi } from 'viem';
 import { Activity, Globe, Zap, ArrowRightLeft, Loader2, TrendingUp, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,14 +16,9 @@ import {
 
 import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi } from '@/lib/arcDefiAbi';
 
-type TokenDeployment = {
-  address: string;
-  name: string;
-  ticker: string;
-  timestamp: number;
-  volume: number;
-  isNew?: boolean;
-};
+// Import existing components
+import { PriceChart } from '@/components/PriceChart';
+import { Leaderboard } from '@/components/Leaderboard';
 
 type SwapTx = {
   hash: string;
@@ -32,6 +27,7 @@ type SwapTx = {
   amount: number;
   volume: number;
   timestamp: number;
+  token_address: string;
 };
 
 export function ArcEcosystemHub() {
@@ -40,10 +36,9 @@ export function ArcEcosystemHub() {
   const { writeContractAsync } = useWriteContract();
 
   // State
-  const [tokens, setTokens] = useState<TokenDeployment[]>([]);
   const [swaps, setSwaps] = useState<SwapTx[]>([]);
   const [totalCumulativeVolume, setTotalCumulativeVolume] = useState(0);
-  const [selectedToken, setSelectedToken] = useState<TokenDeployment | null>(null);
+  const [selectedToken, setSelectedToken] = useState<any | null>(null);
 
   // Swap Panel State
   const [swapAmount, setSwapAmount] = useState('');
@@ -51,43 +46,19 @@ export function ArcEcosystemHub() {
   const [isSwapping, setIsSwapping] = useState(false);
   const [swapDirection, setSwapDirection] = useState<'BUY' | 'SELL'>('BUY');
 
-  // Supabase Fetch & Realtime
+  // Supabase Fetch & Realtime for Global Swap Stream
   useEffect(() => {
     let isMounted = true;
 
     const fetchData = async () => {
-      // 1. Fetch Tokens
-      const { data: tokenData } = await supabase
-        .from('token_launches')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // 2. Fetch Swaps
+      // Fetch Swaps
       const { data: swapData } = await supabase
         .from('token_swaps')
-        .select('*')
+        .select('*, token_launches(ticker)')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (!isMounted) return;
-
-      const formattedTokens: TokenDeployment[] = [];
-      const tokenMap = new Map<string, string>(); // address -> ticker map
-
-      if (tokenData) {
-        tokenData.forEach((t: any) => {
-          tokenMap.set(t.token_address.toLowerCase(), t.ticker);
-          formattedTokens.push({
-            address: t.token_address,
-            name: t.name,
-            ticker: t.ticker,
-            timestamp: new Date(t.created_at).getTime(),
-            volume: t.liquidity || 0, // Fallback volume representation
-            isNew: false
-          });
-        });
-        setTokens(formattedTokens);
-      }
 
       let cumulativeVolume = 0;
       const formattedSwaps: SwapTx[] = [];
@@ -99,10 +70,11 @@ export function ArcEcosystemHub() {
           formattedSwaps.push({
             hash: s.id || `mock_hash_${Math.random()}`,
             isBuy: s.is_buy,
-            ticker: tokenMap.get(s.token_address?.toLowerCase()) || 'UNKNOWN',
+            ticker: s.token_launches?.ticker || 'UNKNOWN',
             amount: Number(s.token_amount || 0),
             volume: sVolume,
-            timestamp: new Date(s.created_at).getTime()
+            timestamp: new Date(s.created_at).getTime(),
+            token_address: s.token_address
           });
         });
         setSwaps(formattedSwaps);
@@ -112,39 +84,31 @@ export function ArcEcosystemHub() {
 
     fetchData();
 
-    // Set up Realtime subscriptions
-    const channel = supabase.channel('ecosystem-hub-realtime')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'token_launches' }, (payload) => {
-        const t = payload.new;
-        const newToken: TokenDeployment = {
-          address: t.token_address,
-          name: t.name,
-          ticker: t.ticker,
-          timestamp: new Date(t.created_at).getTime(),
-          volume: t.liquidity || 0,
-          isNew: true
-        };
-        setTokens(prev => [newToken, ...prev]);
-        toast.success(`New Token Deployed: ${t.ticker}`, { icon: '🚀' });
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'token_swaps' }, (payload) => {
+    // Set up Realtime subscription for Swaps
+    const channel = supabase.channel('ecosystem-hub-swaps')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'token_swaps' }, async (payload) => {
         const s = payload.new;
         const sVolume = Number(s.usdc_amount || 0);
         
-        setTokens(currentTokens => {
-          const targetTicker = currentTokens.find(token => token.address.toLowerCase() === s.token_address?.toLowerCase())?.ticker || 'UNKNOWN';
-          const newSwap: SwapTx = {
-            hash: s.id || `live_hash_${Date.now()}`,
-            isBuy: s.is_buy,
-            ticker: targetTicker,
-            amount: Number(s.token_amount || 0),
-            volume: sVolume,
-            timestamp: new Date(s.created_at).getTime()
-          };
-          setSwaps(prev => [newSwap, ...prev].slice(0, 50));
-          setTotalCumulativeVolume(prev => prev + sVolume);
-          return currentTokens;
-        });
+        // Fetch ticker for the new swap
+        const { data: tokenData } = await supabase
+          .from('token_launches')
+          .select('ticker')
+          .eq('token_address', s.token_address)
+          .single();
+
+        const newSwap: SwapTx = {
+          hash: s.id || `live_hash_${Date.now()}`,
+          isBuy: s.is_buy,
+          ticker: tokenData?.ticker || 'UNKNOWN',
+          amount: Number(s.token_amount || 0),
+          volume: sVolume,
+          timestamp: new Date(s.created_at).getTime(),
+          token_address: s.token_address
+        };
+        
+        setSwaps(prev => [newSwap, ...prev].slice(0, 50));
+        setTotalCumulativeVolume(prev => prev + sVolume);
       })
       .subscribe();
 
@@ -153,16 +117,6 @@ export function ArcEcosystemHub() {
       supabase.removeChannel(channel);
     };
   }, []);
-
-  // Remove "new" highlight after a few seconds
-  useEffect(() => {
-    if (tokens.some(t => t.isNew)) {
-      const timer = setTimeout(() => {
-        setTokens(prev => prev.map(t => ({ ...t, isNew: false })));
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [tokens]);
 
   const handleSwapExecute = async () => {
     if (!isConnected) return toast.error("Please connect your wallet");
@@ -176,13 +130,10 @@ export function ArcEcosystemHub() {
       if (baseAnchor === 'EURC') { anchorAddress = ECOSYSTEM_EURC_ADDRESS; decimals = 6; }
       if (baseAnchor === 'crBTC') { anchorAddress = ECOSYSTEM_CRBTC_ADDRESS; decimals = 8; }
 
-      const tokenIn = swapDirection === 'BUY' ? anchorAddress : selectedToken.address;
-      const tokenOut = swapDirection === 'BUY' ? selectedToken.address : anchorAddress;
+      const tokenIn = swapDirection === 'BUY' ? anchorAddress : selectedToken.token_address;
+      const tokenOut = swapDirection === 'BUY' ? selectedToken.token_address : anchorAddress;
       
-      // Calculate token wei amount
       const amountInWei = parseUnits(swapAmount, swapDirection === 'BUY' ? decimals : 18);
-      
-      // Dummy fixed 1:1 estimate logic for the hub fast-route interface
       const estimatedOutput = Number(swapAmount);
 
       // 1. Approve
@@ -198,7 +149,7 @@ export function ArcEcosystemHub() {
       // 2. Execute Swap via True Router
       toast.loading("Executing Swap via ArcDefiRouter...", { id: 'swap-toast' });
       const path = [tokenIn as `0x${string}`, tokenOut as `0x${string}`];
-      const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20); // 20 minutes from now
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20);
 
       const swapTx = await writeContractAsync({
         address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
@@ -214,7 +165,7 @@ export function ArcEcosystemHub() {
       // 3. Sync to Supabase Live Matrix
       const swapData = {
         user_address: address?.toLowerCase(),
-        token_address: selectedToken.address.toLowerCase(),
+        token_address: selectedToken.token_address.toLowerCase(),
         usdc_amount: swapDirection === 'BUY' ? Number(swapAmount) : estimatedOutput,
         token_amount: swapDirection === 'BUY' ? estimatedOutput : Number(swapAmount),
         is_buy: swapDirection === 'BUY',
@@ -224,7 +175,7 @@ export function ArcEcosystemHub() {
       const { error: dbError } = await supabase.from('token_swaps').insert(swapData);
       if (dbError) console.error("DB Insert Swap Error:", dbError);
 
-      // 4. Update User Stats for Global Leaderboard tracking (10 Vol = 1 Point)
+      // 4. Update User Stats
       const pointsEarned = swapData.usdc_amount / 10;
       const { data: existingStats } = await supabase
         .from('user_stats')
@@ -265,7 +216,7 @@ export function ArcEcosystemHub() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="space-y-8"
+      className="space-y-6"
     >
       {/* Header Matrix */}
       <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden border border-[var(--border-dim)] bg-white">
@@ -280,7 +231,7 @@ export function ArcEcosystemHub() {
               <h2 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">Arc Ecosystem Hub</h2>
               <p className="text-sm text-[var(--text-secondary)] font-medium flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Live Testnet Deployment & Routing Terminal
+                Global Terminal & Advanced Routing
               </p>
             </div>
           </div>
@@ -297,87 +248,23 @@ export function ArcEcosystemHub() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* 3-Column Trading Terminal Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Column: Token Terminal & Swaps (8 cols) */}
-        <div className="lg:col-span-8 space-y-8">
-          
-          {/* Feature A: Live Token Deployment Terminal */}
-          <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-white">
-            <div className="p-5 border-b border-[var(--border-dim)] bg-slate-50/50 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Zap size={18} className="text-amber-500" />
-                <h3 className="font-extrabold text-[var(--text-primary)] text-lg">Live Deployments</h3>
-              </div>
-              <div className="text-[10px] font-bold px-2 py-1 bg-amber-100 text-amber-700 rounded uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span> Listening
-              </div>
-            </div>
-            <div className="p-0 overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-[10px] uppercase text-[var(--text-secondary)] bg-slate-50 border-b border-[var(--border-dim)]">
-                  <tr>
-                    <th className="px-6 py-4 font-black tracking-widest">Asset</th>
-                    <th className="px-6 py-4 font-black tracking-widest">Contract</th>
-                    <th className="px-6 py-4 font-black tracking-widest">Deployed</th>
-                    <th className="px-6 py-4 font-black tracking-widest">Volume</th>
-                    <th className="px-6 py-4 font-black tracking-widest text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <AnimatePresence>
-                    {tokens.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-10 text-center text-[var(--text-secondary)] font-medium">
-                          <Loader2 size={24} className="mx-auto mb-2 animate-spin text-slate-300" />
-                          Waiting for new deployments...
-                        </td>
-                      </tr>
-                    ) : (
-                      tokens.map((token, idx) => (
-                        <motion.tr 
-                          key={token.address + idx}
-                          initial={{ opacity: 0, backgroundColor: 'rgba(245, 158, 11, 0.1)' }}
-                          animate={{ opacity: 1, backgroundColor: token.isNew ? 'rgba(245, 158, 11, 0.05)' : 'transparent' }}
-                          transition={{ duration: 0.5 }}
-                          className={`border-b border-[var(--border-dim)] hover:bg-slate-50 transition-colors group cursor-pointer ${selectedToken?.address === token.address ? 'bg-blue-50/50' : ''}`}
-                          onClick={() => setSelectedToken(token)}
-                        >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center font-bold text-xs text-indigo-700 border border-indigo-200">
-                                {token.ticker.substring(0, 2)}
-                              </div>
-                              <div>
-                                <div className="font-extrabold text-[var(--text-primary)]">{token.name}</div>
-                                <div className="text-[10px] font-bold text-[var(--text-secondary)] tracking-widest">{token.ticker}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 font-mono text-xs text-[var(--text-secondary)]">
-                            {token.address.substring(0, 6)}...{token.address.substring(token.address.length - 4)}
-                          </td>
-                          <td className="px-6 py-4 text-xs font-semibold text-[var(--text-secondary)]">
-                            {new Date(token.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="font-bold text-[var(--text-primary)]">${token.volume.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${selectedToken?.address === token.address ? 'bg-[var(--accent-cyan)] text-white shadow-md shadow-blue-500/20' : 'bg-slate-100 text-[var(--text-secondary)] group-hover:bg-slate-200'}`}>
-                              {selectedToken?.address === token.address ? 'Selected' : 'Trade'}
-                            </button>
-                          </td>
-                        </motion.tr>
-                      ))
-                    )}
-                  </AnimatePresence>
-                </tbody>
-              </table>
-            </div>
+        {/* Left Column: Leaderboard (3 cols) */}
+        <div className="lg:col-span-3 h-[800px]">
+          <Leaderboard onSelectToken={(token) => {
+            setSelectedToken(token);
+            toast.success(`Selected ${token.ticker} for trading`);
+          }} />
+        </div>
+
+        {/* Center Column: Price Chart & Swap Stream (6 cols) */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] bg-white overflow-hidden">
+            <PriceChart selectedToken={selectedToken} />
           </div>
 
-          {/* Feature B: Live Transaction Matrix */}
           <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-white">
             <div className="p-5 border-b border-[var(--border-dim)] bg-slate-50/50 flex justify-between items-center">
               <div className="flex items-center gap-2">
@@ -385,7 +272,7 @@ export function ArcEcosystemHub() {
                 <h3 className="font-extrabold text-[var(--text-primary)] text-lg">Global Swap Stream</h3>
               </div>
             </div>
-            <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
               <AnimatePresence>
                 {swaps.length === 0 ? (
                   <div className="text-center py-10 text-[var(--text-secondary)] font-medium">
@@ -398,7 +285,11 @@ export function ArcEcosystemHub() {
                       key={swap.hash + idx}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center justify-between p-3 rounded-xl border border-[var(--border-dim)] bg-slate-50/50 hover:bg-slate-50 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-xl border border-[var(--border-dim)] bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer"
+                      onClick={() => {
+                        // Optional: clicking a swap auto-selects the token if we had the full token object
+                        // For now we just highlight the swap
+                      }}
                     >
                       <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black ${swap.isBuy ? 'bg-emerald-100 text-emerald-600 border border-emerald-200' : 'bg-rose-100 text-rose-600 border border-rose-200'}`}>
@@ -429,11 +320,10 @@ export function ArcEcosystemHub() {
               </AnimatePresence>
             </div>
           </div>
-
         </div>
 
-        {/* Right Column: Execution Panel (4 cols) */}
-        <div className="lg:col-span-4">
+        {/* Right Column: Execution Panel (3 cols) */}
+        <div className="lg:col-span-3">
           <div className="sticky top-8 space-y-6">
             
             {/* Feature C: Integrated Buy/Sell Fast Routing Panel */}
@@ -451,12 +341,16 @@ export function ArcEcosystemHub() {
                 <div className="space-y-6">
                   {/* Token Info Block */}
                   <div className="flex items-center gap-3 p-4 rounded-2xl bg-blue-50/50 border border-blue-100">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center font-bold text-sm text-indigo-700">
-                      {selectedToken.ticker.substring(0, 2)}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center font-bold text-sm text-indigo-700 overflow-hidden">
+                      {selectedToken.image_url ? (
+                        <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        selectedToken.ticker.substring(0, 2)
+                      )}
                     </div>
                     <div>
                       <div className="font-black text-[var(--text-primary)]">{selectedToken.name} <span className="text-xs text-[var(--text-secondary)] ml-1">{selectedToken.ticker}</span></div>
-                      <div className="text-[10px] font-mono text-[var(--text-secondary)]">{selectedToken.address.substring(0, 8)}...{selectedToken.address.substring(selectedToken.address.length - 6)}</div>
+                      <div className="text-[10px] font-mono text-[var(--text-secondary)]">{selectedToken.token_address.substring(0, 8)}...{selectedToken.token_address.substring(selectedToken.token_address.length - 6)}</div>
                     </div>
                   </div>
 
