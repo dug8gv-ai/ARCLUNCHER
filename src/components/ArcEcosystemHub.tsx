@@ -263,72 +263,48 @@ export function ArcEcosystemHub() {
     setFilteredTokens(filtered);
   }, [allTokens, searchQuery, tokenTypeFilter]);
 
-  // ── Global Swap Stream (Supabase) ──────────────────────────────────
+  // ── Global Network Stream (ArcScan API) ────────────────────────────────
   useEffect(() => {
     let isMounted = true;
+    let interval: NodeJS.Timeout;
 
-    const fetchSwaps = async () => {
-      const { data: swapData } = await supabase
-        .from('token_swaps')
-        .select('*, token_launches(ticker)')
-        .order('created_at', { ascending: false })
-        .limit(50);
+    const fetchNetworkActivity = async () => {
+      try {
+        const res = await fetch('https://testnet.arcscan.app/api/v2/transactions');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isMounted) return;
 
-      if (!isMounted) return;
+        let cumulativeVolume = 0;
+        const formattedTxs: SwapTx[] = (data.items || []).map((tx: any) => {
+          const feeStr = tx.fee?.value || '0';
+          const feeVol = Number(feeStr) / 1e18; // Approx volume/fee
+          cumulativeVolume += feeVol;
 
-      let cumulativeVolume = 0;
-      const formattedSwaps: SwapTx[] = [];
-
-      if (swapData) {
-        swapData.forEach((s: any) => {
-          const sVolume = Number(s.usdc_amount || 0);
-          cumulativeVolume += sVolume;
-          formattedSwaps.push({
-            hash: s.id || `hash_${Math.random()}`,
-            isBuy: s.is_buy,
-            ticker: s.token_launches?.ticker || 'UNKNOWN',
-            amount: Number(s.token_amount || 0),
-            volume: sVolume,
-            timestamp: new Date(s.created_at).getTime(),
-            token_address: s.token_address
-          });
+          return {
+            hash: tx.hash,
+            isBuy: tx.method === 'approve' ? true : false,
+            ticker: tx.to?.name || tx.method || 'TX',
+            amount: Number(tx.value || 0) / 1e18,
+            volume: feeVol,
+            timestamp: new Date(tx.timestamp).getTime(),
+            token_address: tx.to?.hash || tx.from?.hash
+          };
         });
-        setSwaps(formattedSwaps);
-        setTotalCumulativeVolume(cumulativeVolume);
+
+        setSwaps(formattedTxs.slice(0, 50));
+        setTotalCumulativeVolume(prev => prev + cumulativeVolume);
+      } catch (err) {
+        console.error('Error fetching ArcScan transactions:', err);
       }
     };
 
-    fetchSwaps();
-
-    const channel = supabase.channel('ecosystem-hub-swaps')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'token_swaps' }, async (payload) => {
-        const s = payload.new;
-        const sVolume = Number(s.usdc_amount || 0);
-        
-        const { data: tokenData } = await supabase
-          .from('token_launches')
-          .select('ticker')
-          .eq('token_address', s.token_address)
-          .single();
-
-        const newSwap: SwapTx = {
-          hash: s.id || `live_${Date.now()}`,
-          isBuy: s.is_buy,
-          ticker: tokenData?.ticker || 'UNKNOWN',
-          amount: Number(s.token_amount || 0),
-          volume: sVolume,
-          timestamp: new Date(s.created_at).getTime(),
-          token_address: s.token_address
-        };
-        
-        setSwaps(prev => [newSwap, ...prev].slice(0, 50));
-        setTotalCumulativeVolume(prev => prev + sVolume);
-      })
-      .subscribe();
+    fetchNetworkActivity();
+    interval = setInterval(fetchNetworkActivity, 10000); // Poll every 10 seconds
 
     return () => {
       isMounted = false;
-      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, []);
 
@@ -692,7 +668,7 @@ export function ArcEcosystemHub() {
             <div className="p-4 border-b border-[var(--border-dim)] bg-slate-50/50 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Activity size={16} className="text-emerald-500" />
-                <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Global Swap Stream</h3>
+                <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Global Network Stream</h3>
               </div>
             </div>
             <div className="p-3 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar">
@@ -700,23 +676,23 @@ export function ArcEcosystemHub() {
                 {swaps.length === 0 ? (
                   <div className="text-center py-8 text-[var(--text-secondary)] font-medium">
                     <Loader2 size={20} className="mx-auto mb-2 animate-spin text-slate-300" />
-                    <p className="text-xs">Listening for live swaps...</p>
+                    <p className="text-xs">Listening for live blocks...</p>
                   </div>
                 ) : (
                   swaps.slice(0, 15).map((swap, idx) => (
                     <motion.div key={swap.hash + idx} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-dim)] bg-slate-50/50 hover:bg-slate-50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${swap.isBuy ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                          {swap.isBuy ? 'BUY' : 'SELL'}
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${swap.isBuy ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600'}`}>
+                          {swap.isBuy ? 'CALL' : 'TX'}
                         </div>
                         <div>
                           <div className="font-bold text-xs text-[var(--text-primary)]">
-                            {swap.amount.toLocaleString()} <span className="font-black">{swap.ticker}</span>
+                            {swap.amount > 0 ? `${swap.amount.toLocaleString()} ARC ` : ''} <span className="font-black">{swap.ticker}</span>
                           </div>
-                          <div className="text-[10px] text-[var(--text-secondary)]">{new Date(swap.timestamp).toLocaleTimeString()}</div>
+                          <div className="text-[10px] text-[var(--text-secondary)]">{new Date(swap.timestamp).toLocaleTimeString()} • {truncateAddr(swap.hash)}</div>
                         </div>
                       </div>
-                      <div className="font-black text-xs text-[var(--text-primary)]">${swap.volume.toFixed(2)}</div>
+                      <div className="font-black text-xs text-[var(--text-primary)]">Fee: {swap.volume.toFixed(6)}</div>
                     </motion.div>
                   ))
                 )}
