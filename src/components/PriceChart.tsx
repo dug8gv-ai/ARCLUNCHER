@@ -262,7 +262,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
         const groupedByBucket: { [key: number]: any[] } = {};
         
-        swapsWithSpotPrice.forEach(swap => {
+        swapsWithSpotPrice.forEach((swap: any) => {
           const ts = swap.timestamp;
           const time = Math.floor(ts / bucketMs) * (bucketMs / 1000);
           if (isNaN(time)) return;
