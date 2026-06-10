@@ -83,26 +83,25 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
     <form onSubmit={handleSend} style={{ background: 'rgba(6,8,20,0.6)', border: '1px solid var(--border-dim)', padding: '16px', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
       <h4 style={{ fontSize: 10, fontWeight: 900, color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: 2, fontFamily: 'Orbitron, sans-serif', margin: 0 }}>Direct Payment</h4>
 
-      {/* Amount + Token row */}
-      <div style={{ display: 'flex', border: '1px solid var(--border-dim)', borderRadius: 10, overflow: 'hidden', background: 'rgba(4,6,28,0.9)' }}>
+      {/* Amount + Token in one row */}
+      <div style={{ display: 'flex', border: '1px solid rgba(0,229,255,0.3)', borderRadius: 10, overflow: 'hidden', background: 'rgba(4,6,28,0.95)' }}>
         <input
           type="number"
           step="0.0001"
           value={amount}
           onChange={e => setAmount(e.target.value)}
-          placeholder="0.00"
+          placeholder="Enter amount..."
           style={{
             flex: 1,
             background: 'transparent',
             border: 'none',
             outline: 'none',
-            padding: '12px 14px',
+            padding: '14px 14px',
             color: 'var(--text-primary)',
             fontFamily: 'Orbitron, sans-serif',
             fontWeight: 700,
-            fontSize: 18,
+            fontSize: 16,
             minHeight: 'unset',
-            width: '100%',
           }}
         />
         <select
@@ -110,9 +109,9 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
           onChange={e => setToken(e.target.value as any)}
           style={{
             background: 'rgba(6,10,38,0.95)',
-            borderLeft: '1px solid var(--border-dim)',
+            borderLeft: '1px solid rgba(0,229,255,0.2)',
             color: 'var(--accent-cyan)',
-            padding: '12px 14px',
+            padding: '14px 14px',
             outline: 'none',
             fontWeight: 700,
             cursor: 'pointer',
@@ -126,31 +125,12 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
         </select>
       </div>
 
-      <input
-        type="text"
-        placeholder="Add a message (optional)..."
-        value={paymentMessage}
-        onChange={e => setPaymentMessage(e.target.value)}
-        style={{
-          width: '100%',
-          background: 'rgba(4,6,28,0.9)',
-          border: '1px solid var(--border-dim)',
-          borderRadius: 10,
-          padding: '10px 14px',
-          color: 'var(--text-primary)',
-          fontSize: 12,
-          outline: 'none',
-          fontFamily: 'Rajdhani, sans-serif',
-          boxSizing: 'border-box',
-        }}
-      />
-
       <button
         type="submit"
         disabled={isSending || !amount || !isValidTarget}
         style={{
           width: '100%',
-          padding: '12px',
+          padding: '13px',
           background: isSending || !amount || !isValidTarget
             ? 'rgba(41,121,255,0.3)'
             : 'linear-gradient(135deg, #7c3aff, #2979ff)',
