@@ -263,32 +263,36 @@ export function ArcEcosystemHub() {
     setFilteredTokens(filtered);
   }, [allTokens, searchQuery, tokenTypeFilter]);
 
-  // ── Global Network Stream (ArcScan API) ────────────────────────────────
+  // ── Global Network Stream (ArcScan API - V1 txlist) ─────────────────────
   useEffect(() => {
     let isMounted = true;
     let interval: NodeJS.Timeout;
 
     const fetchNetworkActivity = async () => {
       try {
-        const res = await fetch('https://testnet.arcscan.app/api/v2/transactions');
+        const url = `https://testnet.arcscan.app/api?module=account&action=txlist&address=${ARC_DEFI_ROUTER_ADDRESS}&sort=desc`;
+        const res = await fetch(url);
         if (!res.ok) return;
         const data = await res.json();
-        if (!isMounted) return;
+        if (!isMounted || data.status !== '1') return;
 
         let cumulativeVolume = 0;
-        const formattedTxs: SwapTx[] = (data.items || []).map((tx: any) => {
-          const feeStr = tx.fee?.value || '0';
-          const feeVol = Number(feeStr) / 1e18; // Approx volume/fee
+        const formattedTxs: SwapTx[] = (data.result || []).map((tx: any) => {
+          // If value is 0, we can use gasUsed * gasPrice as a fallback fee proxy
+          const feeStr = tx.value !== '0' ? tx.value : (Number(tx.gasUsed) * Number(tx.gasPrice)).toString();
+          const feeVol = Number(feeStr) / 1e18;
           cumulativeVolume += feeVol;
+          
+          const isApprove = tx.methodId === '0x095ea7b3'; // basic approve method hash
 
           return {
             hash: tx.hash,
-            isBuy: tx.method === 'approve' ? true : false,
-            ticker: tx.to?.name || tx.method || 'TX',
-            amount: Number(tx.value || 0) / 1e18,
+            isBuy: tx.isError === '0' && !isApprove,
+            ticker: isApprove ? 'APPROVE' : 'ROUTER TX',
+            amount: 0, // Hard to parse exact tokens without ABI decoding in txlist
             volume: feeVol,
-            timestamp: new Date(tx.timestamp).getTime(),
-            token_address: tx.to?.hash || tx.from?.hash
+            timestamp: Number(tx.timeStamp) * 1000,
+            token_address: tx.to
           };
         });
 

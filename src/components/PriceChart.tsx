@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, IChartApi, ISeriesApi, CrosshairMode } from 'lightweight-charts';
 import { Activity, BarChart3, Users, DollarSign, TrendingUp } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { ARC_DEFI_ROUTER_ADDRESS } from '@/lib/arcDefiAbi';
 
 interface PriceChartProps {
   selectedToken?: any;
@@ -148,16 +148,26 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       
       const addr = selectedToken.token_address.toLowerCase();
 
-      const { data: swaps, error } = await supabase
-        .from('token_swaps')
-        .select('*')
-        .eq('token_address', addr)
-        .order('timestamp', { ascending: true });
+      // Fetch on-chain token transfers (Historical)
+      const urlTx = `https://testnet.arcscan.app/api?module=account&action=tokentx&contractaddress=${addr}&sort=asc`;
+      
+      // Fetch token info and holders (Metrics)
+      const urlInfo = `https://testnet.arcscan.app/api?module=token&action=getTokenInfo&contractaddress=${addr}`;
+      const urlHolders = `https://testnet.arcscan.app/api?module=token&action=getTokenHolders&contractaddress=${addr}`;
 
-      if (error) {
-        console.error("Error fetching swaps:", error);
-        return;
-      }
+      const [resTx, resInfo, resHolders] = await Promise.all([
+        fetch(urlTx).catch(() => null),
+        fetch(urlInfo).catch(() => null),
+        fetch(urlHolders).catch(() => null)
+      ]);
+
+      const dataTx = resTx && resTx.ok ? await resTx.json() : { result: [] };
+      const dataInfo = resInfo && resInfo.ok ? await resInfo.json() : { result: [] };
+      const dataHolders = resHolders && resHolders.ok ? await resHolders.json() : { result: [] };
+
+      const transfers = Array.isArray(dataTx.result) ? dataTx.result : [];
+      const info = Array.isArray(dataInfo.result) && dataInfo.result.length > 0 ? dataInfo.result[0] : null;
+      const holdersList = Array.isArray(dataHolders.result) ? dataHolders.result : [];
 
       // ── REAL MARKET PRICE CALCULATION ─────────────────────────────────
       // Listing Price = Actual Liquidity / Total Supply
@@ -205,28 +215,40 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       let currentUSDC   = VIRTUAL_USDC;
       let currentTokens = VIRTUAL_TOKENS;
 
-      const swapsWithSpotPrice = swaps?.map(s => {
-        const usdcAmount   = Number(s.usdc_amount);
-        const tokenAmount  = Number(s.token_amount);
+      const swapsWithSpotPrice = transfers.map((tx: any) => {
+        const tokenAmount = Number(tx.value) / (10 ** Number(tx.tokenDecimal || 18));
+        
+        // Basic heuristic: if coming from a null address or router, it's buying/minting. Otherwise selling/transferring.
+        const is_buy = tx.from === '0x0000000000000000000000000000000000000000' || tx.from.toLowerCase() === ARC_DEFI_ROUTER_ADDRESS.toLowerCase();
 
-        if (s.is_buy) {
-          // No damping — chart matches real pool math exactly
-          currentUSDC   += usdcAmount;
+        let usdcVol = 0;
+
+        if (is_buy) {
           currentTokens -= tokenAmount;
+          if (currentTokens <= 0) currentTokens = 1;
+          const newUSDC = k / currentTokens;
+          usdcVol = newUSDC - currentUSDC;
+          currentUSDC = newUSDC;
         } else {
-          currentUSDC   -= usdcAmount;
           currentTokens += tokenAmount;
+          const newUSDC = k / currentTokens;
+          usdcVol = currentUSDC - newUSDC;
+          currentUSDC = newUSDC;
         }
 
-        // Floor protection: pool reserves never go below initial values
-        if (currentUSDC   < VIRTUAL_USDC)   currentUSDC   = VIRTUAL_USDC;
+        if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
         if (currentTokens > VIRTUAL_TOKENS) currentTokens = VIRTUAL_TOKENS;
-        if (currentTokens <= 0) currentTokens = 1;
 
         const spotPrice = currentUSDC / currentTokens;
 
-        return { ...s, spotPrice: Math.max(INITIAL_PRICE, spotPrice) };
-      }) || [];
+        return {
+          timestamp: Number(tx.timeStamp) * 1000,
+          token_amount: tokenAmount,
+          usdc_amount: Math.abs(usdcVol),
+          spotPrice: Math.max(INITIAL_PRICE, spotPrice),
+          is_buy
+        };
+      });
 
       let candles: any[] = [];
       let volumes: any[] = [];
@@ -241,8 +263,8 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         const groupedByBucket: { [key: number]: any[] } = {};
         
         swapsWithSpotPrice.forEach(swap => {
-          const ts = swap.timestamp || swap.created_at;
-          const time = Math.floor(new Date(ts).getTime() / bucketMs) * (bucketMs / 1000);
+          const ts = swap.timestamp;
+          const time = Math.floor(ts / bucketMs) * (bucketMs / 1000);
           if (isNaN(time)) return;
           
           if (!groupedByBucket[time]) groupedByBucket[time] = [];
@@ -303,35 +325,23 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       volumeSeries.setData(volumes);
       chart.timeScale().fitContent();
 
-      // ── METRICS: use same pool math as chart (no separate replay needed) ─
-      // Both chart and metrics now share the same undamped pool state.
+      // ── METRICS: use verified on-chain API data ──────────────────────────
+      // Both chart and metrics now share the same undamped pool state or real Explorer data.
       // ─────────────────────────────────────────────────────────────────────
-      let realUSDC   = VIRTUAL_USDC;   // starts at 20,000
-      let realTokens = VIRTUAL_TOKENS; // starts at totalSupply
-
-      swaps?.forEach(s => {
-        if (s.is_buy) {
-          realUSDC   += Number(s.usdc_amount);
-          realTokens -= Number(s.token_amount);
-        } else {
-          realUSDC   -= Number(s.usdc_amount);
-          realTokens += Number(s.token_amount);
-        }
-      });
-
-      // Floor protection
-      if (realUSDC   < VIRTUAL_USDC)   realUSDC   = VIRTUAL_USDC;
-      if (realTokens > VIRTUAL_TOKENS) realTokens = VIRTUAL_TOKENS;
-      if (realTokens <= 0)             realTokens = 1;
-
-      const realCurrentPrice = realUSDC / realTokens;
+      
+      const realCurrentPrice = currentUSDC / currentTokens;
       const latestPrice = Math.max(INITIAL_PRICE, realCurrentPrice);
 
-      const totalVolume = swaps?.reduce((acc, s) => acc + Number(s.usdc_amount), 0) || 0;
-      const uniqueHolders = new Set(swaps?.map(s => s.user_address)).size || 1;
+      const totalVolume = swapsWithSpotPrice.reduce((acc, s) => acc + s.usdc_amount, 0);
+      
+      // Real API Holders
+      const uniqueHolders = holdersList.length > 0 ? holdersList.length : new Set(transfers.map((tx: any) => tx.to)).size || 1;
 
-      // FDV = current real price × total supply
-      const mcap = latestPrice * totalSupply;
+      // Real Supply from API (if available)
+      const actualSupply = info && info.totalSupply ? Number(info.totalSupply) / (10 ** Number(info.divisor || 18)) : totalSupply;
+
+      // FDV = current real price × actual total supply
+      const mcap = latestPrice * actualSupply;
 
       setMetrics({
         mcap: formatUSD(mcap),
@@ -340,21 +350,12 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         volume: totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 }),
         price: formatSmartPrice(latestPrice),
       });
-    }
+    };
 
     fetchChartData();
 
-    // 3. REAL-TIME CHART UPDATES
-    const channel = supabase.channel(`chart_swaps_${selectedToken?.token_address}`)
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'token_swaps',
-        filter: `token_address=eq.${selectedToken?.token_address?.toLowerCase()}`
-      }, () => {
-        fetchChartData();
-      })
-      .subscribe();
+    // 3. REAL-TIME CHART UPDATES VIA POLLING API (Replaces Supabase WebSocket)
+    const intervalId = setInterval(fetchChartData, 10000);
 
     const handleResize = () => {
       if (chartContainerRef.current) {
@@ -370,7 +371,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
     return () => {
       window.removeEventListener('resize', handleResize);
       chart.remove();
-      supabase.removeChannel(channel);
+      clearInterval(intervalId);
     };
   }, [selectedToken, timeframe]); // Re-run when timeframe changes
 
