@@ -1,23 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAccount, usePublicClient, useWalletClient, useWatchContractEvent, useWriteContract, useReadContract } from 'wagmi';
+import { useAccount, usePublicClient, useWalletClient, useWriteContract } from 'wagmi';
 import { formatUnits, parseUnits, erc20Abi } from 'viem';
-import { Activity, Globe, Zap, Clock, ArrowRightLeft, Loader2, TrendingUp, CheckCircle, Search, Filter } from 'lucide-react';
+import { Activity, Globe, Zap, ArrowRightLeft, Loader2, TrendingUp, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 
 import { 
   ECOSYSTEM_USDC_ADDRESS, 
   ECOSYSTEM_EURC_ADDRESS, 
-  ECOSYSTEM_CRBTC_ADDRESS,
-  ECOSYSTEM_FACTORY_ADDRESS,
-  ECOSYSTEM_ROUTER_ADDRESS,
-  ecosystemFactoryAbi,
-  ecosystemRouterAbi
+  ECOSYSTEM_CRBTC_ADDRESS
 } from '@/lib/arcEcosystemAbi';
 
-// Mock data structures until real events flow in
+import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi } from '@/lib/arcDefiAbi';
+
 type TokenDeployment = {
   address: string;
   name: string;
@@ -39,7 +37,6 @@ type SwapTx = {
 export function ArcEcosystemHub() {
   const { isConnected, address } = useAccount();
   const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
 
   // State
@@ -52,71 +49,109 @@ export function ArcEcosystemHub() {
   const [swapAmount, setSwapAmount] = useState('');
   const [baseAnchor, setBaseAnchor] = useState<'USDC' | 'EURC' | 'crBTC'>('USDC');
   const [isSwapping, setIsSwapping] = useState(false);
-  const [swapDirection, setSwapDirection] = useState<'BUY' | 'SELL'>('BUY'); // BUY = Anchor -> Token, SELL = Token -> Anchor
+  const [swapDirection, setSwapDirection] = useState<'BUY' | 'SELL'>('BUY');
 
-  // Event Listeners (using wagmi hooks)
-  useWatchContractEvent({
-    address: ECOSYSTEM_FACTORY_ADDRESS as `0x${string}`,
-    abi: ecosystemFactoryAbi,
-    eventName: 'TokenCreated',
-    onLogs(logs) {
-      logs.forEach(log => {
-        const { tokenAddress, name, ticker, timestamp } = log.args;
-        if (tokenAddress && name && ticker && timestamp) {
-          const newToken: TokenDeployment = {
-            address: tokenAddress,
-            name,
-            ticker,
-            timestamp: Number(timestamp) * 1000,
-            volume: 0,
-            isNew: true
-          };
-          setTokens(prev => [newToken, ...prev]);
-          toast.success(`New Token Deployed: ${ticker}`, { icon: '🚀' });
-        }
-      });
-    },
-  });
+  // Supabase Fetch & Realtime
+  useEffect(() => {
+    let isMounted = true;
 
-  useWatchContractEvent({
-    address: ECOSYSTEM_ROUTER_ADDRESS as `0x${string}`,
-    abi: ecosystemRouterAbi,
-    eventName: 'Swap',
-    onLogs(logs) {
-      logs.forEach(log => {
-        const { amountIn, amountOut, isBuy, tokenIn, tokenOut } = log.args;
-        if (amountIn && amountOut && isBuy !== undefined) {
-          const volume = Number(formatUnits(isBuy ? amountIn : amountOut, 18)); // Mock decimals
+    const fetchData = async () => {
+      // 1. Fetch Tokens
+      const { data: tokenData } = await supabase
+        .from('token_launches')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // 2. Fetch Swaps
+      const { data: swapData } = await supabase
+        .from('token_swaps')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (!isMounted) return;
+
+      const formattedTokens: TokenDeployment[] = [];
+      const tokenMap = new Map<string, string>(); // address -> ticker map
+
+      if (tokenData) {
+        tokenData.forEach((t: any) => {
+          tokenMap.set(t.token_address.toLowerCase(), t.ticker);
+          formattedTokens.push({
+            address: t.token_address,
+            name: t.name,
+            ticker: t.ticker,
+            timestamp: new Date(t.created_at).getTime(),
+            volume: t.liquidity || 0, // Fallback volume representation
+            isNew: false
+          });
+        });
+        setTokens(formattedTokens);
+      }
+
+      let cumulativeVolume = 0;
+      const formattedSwaps: SwapTx[] = [];
+
+      if (swapData) {
+        swapData.forEach((s: any) => {
+          const sVolume = Number(s.usdc_amount || 0);
+          cumulativeVolume += sVolume;
+          formattedSwaps.push({
+            hash: s.id || `mock_hash_${Math.random()}`,
+            isBuy: s.is_buy,
+            ticker: tokenMap.get(s.token_address?.toLowerCase()) || 'UNKNOWN',
+            amount: Number(s.token_amount || 0),
+            volume: sVolume,
+            timestamp: new Date(s.created_at).getTime()
+          });
+        });
+        setSwaps(formattedSwaps);
+        setTotalCumulativeVolume(cumulativeVolume);
+      }
+    };
+
+    fetchData();
+
+    // Set up Realtime subscriptions
+    const channel = supabase.channel('ecosystem-hub-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'token_launches' }, (payload) => {
+        const t = payload.new;
+        const newToken: TokenDeployment = {
+          address: t.token_address,
+          name: t.name,
+          ticker: t.ticker,
+          timestamp: new Date(t.created_at).getTime(),
+          volume: t.liquidity || 0,
+          isNew: true
+        };
+        setTokens(prev => [newToken, ...prev]);
+        toast.success(`New Token Deployed: ${t.ticker}`, { icon: '🚀' });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'token_swaps' }, (payload) => {
+        const s = payload.new;
+        const sVolume = Number(s.usdc_amount || 0);
+        
+        setTokens(currentTokens => {
+          const targetTicker = currentTokens.find(token => token.address.toLowerCase() === s.token_address?.toLowerCase())?.ticker || 'UNKNOWN';
           const newSwap: SwapTx = {
-            hash: log.transactionHash,
-            isBuy,
-            ticker: 'UNKNOWN', // Will match against token list in a real app
-            amount: Number(formatUnits(amountIn, 18)),
-            volume: volume,
-            timestamp: Date.now()
+            hash: s.id || `live_hash_${Date.now()}`,
+            isBuy: s.is_buy,
+            ticker: targetTicker,
+            amount: Number(s.token_amount || 0),
+            volume: sVolume,
+            timestamp: new Date(s.created_at).getTime()
           };
           setSwaps(prev => [newSwap, ...prev].slice(0, 50));
-          setTotalCumulativeVolume(prev => prev + volume);
-        }
-      });
-    },
-  });
+          setTotalCumulativeVolume(prev => prev + sVolume);
+          return currentTokens;
+        });
+      })
+      .subscribe();
 
-  // Mock initial data population
-  useEffect(() => {
-    setTokens([
-      { address: '0x123...456', name: 'Arc AI', ticker: 'ARCAI', timestamp: Date.now() - 3600000, volume: 14500.50 },
-      { address: '0xabc...def', name: 'Nexus Node', ticker: 'NEXUS', timestamp: Date.now() - 7200000, volume: 8200.00 },
-      { address: '0x789...012', name: 'Quantum Yield', ticker: 'QY', timestamp: Date.now() - 86400000, volume: 450.25 },
-    ]);
-    
-    setSwaps([
-      { hash: '0xaa...bb', isBuy: true, ticker: 'ARCAI', amount: 500, volume: 500, timestamp: Date.now() - 10000 },
-      { hash: '0xcc...dd', isBuy: false, ticker: 'NEXUS', amount: 1200, volume: 1200, timestamp: Date.now() - 45000 },
-      { hash: '0xee...ff', isBuy: true, ticker: 'QY', amount: 50, volume: 50, timestamp: Date.now() - 120000 },
-    ]);
-    
-    setTotalCumulativeVolume(23150.75);
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Remove "new" highlight after a few seconds
@@ -143,7 +178,12 @@ export function ArcEcosystemHub() {
 
       const tokenIn = swapDirection === 'BUY' ? anchorAddress : selectedToken.address;
       const tokenOut = swapDirection === 'BUY' ? selectedToken.address : anchorAddress;
+      
+      // Calculate token wei amount
       const amountInWei = parseUnits(swapAmount, swapDirection === 'BUY' ? decimals : 18);
+      
+      // Dummy fixed 1:1 estimate logic for the hub fast-route interface
+      const estimatedOutput = Number(swapAmount);
 
       // 1. Approve
       toast.loading("Approving...", { id: 'swap-toast' });
@@ -151,21 +191,63 @@ export function ArcEcosystemHub() {
         address: tokenIn as `0x${string}`,
         abi: erc20Abi,
         functionName: 'approve',
-        args: [ECOSYSTEM_ROUTER_ADDRESS as `0x${string}`, amountInWei],
+        args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amountInWei],
       });
       if (publicClient) await publicClient.waitForTransactionReceipt({ hash: approveTx });
 
-      // 2. Swap
-      toast.loading("Executing Swap...", { id: 'swap-toast' });
+      // 2. Execute Swap via True Router
+      toast.loading("Executing Swap via ArcDefiRouter...", { id: 'swap-toast' });
+      const path = [tokenIn as `0x${string}`, tokenOut as `0x${string}`];
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20); // 20 minutes from now
+
       const swapTx = await writeContractAsync({
-        address: ECOSYSTEM_ROUTER_ADDRESS as `0x${string}`,
-        abi: ecosystemRouterAbi,
+        address: ARC_DEFI_ROUTER_ADDRESS as `0x${string}`,
+        abi: arcDefiRouterAbi,
         functionName: 'swapExactTokensForTokens',
-        args: [tokenIn as `0x${string}`, tokenOut as `0x${string}`, amountInWei, BigInt(0)],
+        args: [amountInWei, BigInt(0), path, address as `0x${string}`, deadline],
       });
       
       if (publicClient) {
          await publicClient.waitForTransactionReceipt({ hash: swapTx });
+      }
+
+      // 3. Sync to Supabase Live Matrix
+      const swapData = {
+        user_address: address?.toLowerCase(),
+        token_address: selectedToken.address.toLowerCase(),
+        usdc_amount: swapDirection === 'BUY' ? Number(swapAmount) : estimatedOutput,
+        token_amount: swapDirection === 'BUY' ? estimatedOutput : Number(swapAmount),
+        is_buy: swapDirection === 'BUY',
+        type: swapDirection === 'BUY' ? 'buy' : 'sell'
+      };
+
+      const { error: dbError } = await supabase.from('token_swaps').insert(swapData);
+      if (dbError) console.error("DB Insert Swap Error:", dbError);
+
+      // 4. Update User Stats for Global Leaderboard tracking (10 Vol = 1 Point)
+      const pointsEarned = swapData.usdc_amount / 10;
+      const { data: existingStats } = await supabase
+        .from('user_stats')
+        .select('*')
+        .eq('wallet', address?.toLowerCase());
+
+      if (existingStats && existingStats.length > 0) {
+        const stats = existingStats[0];
+        await supabase
+          .from('user_stats')
+          .update({
+            total_volume: Number(stats.total_volume || 0) + swapData.usdc_amount,
+            points: Number(stats.points || 0) + pointsEarned
+          })
+          .eq('wallet', address?.toLowerCase());
+      } else {
+        await supabase
+          .from('user_stats')
+          .insert({
+            wallet: address?.toLowerCase(),
+            total_volume: swapData.usdc_amount,
+            points: pointsEarned
+          });
       }
 
       toast.success("Swap Executed Successfully!", { id: 'swap-toast' });
@@ -308,7 +390,7 @@ export function ArcEcosystemHub() {
                 {swaps.length === 0 ? (
                   <div className="text-center py-10 text-[var(--text-secondary)] font-medium">
                     <Loader2 size={24} className="mx-auto mb-2 animate-spin text-slate-300" />
-                    Listening for swaps...
+                    Listening for live swaps via Supabase...
                   </div>
                 ) : (
                   swaps.map((swap, idx) => (
@@ -434,7 +516,7 @@ export function ArcEcosystemHub() {
                   <div className="bg-slate-50 rounded-xl p-3 space-y-2 border border-slate-100">
                     <div className="flex justify-between text-xs">
                       <span className="text-[var(--text-secondary)] font-medium">Est. Output</span>
-                      <span className="font-bold text-[var(--text-primary)]">-- {swapDirection === 'BUY' ? selectedToken.ticker : baseAnchor}</span>
+                      <span className="font-bold text-[var(--text-primary)]">{swapAmount ? swapAmount : '--'} {swapDirection === 'BUY' ? selectedToken.ticker : baseAnchor}</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-[var(--text-secondary)] font-medium">Price Impact</span>
