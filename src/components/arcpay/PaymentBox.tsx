@@ -80,22 +80,46 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
   };
 
   return (
-    <form onSubmit={handleSend} className="bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] p-5 rounded-2xl space-y-4">
-      <h4 className="text-xs font-black text-[var(--accent-cyan)] uppercase tracking-wider">Direct Payment</h4>
+    <form onSubmit={handleSend} style={{ background: 'rgba(6,8,20,0.6)', border: '1px solid var(--border-dim)', padding: '16px', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <h4 style={{ fontSize: 10, fontWeight: 900, color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: 2, fontFamily: 'Orbitron, sans-serif', margin: 0 }}>Direct Payment</h4>
 
-      <div className="flex cyber-input rounded-xl overflow-hidden transition-all">
+      {/* Amount + Token row */}
+      <div style={{ display: 'flex', border: '1px solid var(--border-dim)', borderRadius: 10, overflow: 'hidden', background: 'rgba(4,6,28,0.9)' }}>
         <input
           type="number"
           step="0.0001"
           value={amount}
           onChange={e => setAmount(e.target.value)}
           placeholder="0.00"
-          className="flex-1 bg-transparent px-4 py-3 text-[var(--text-primary)] font-semibold outline-none"
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            padding: '12px 14px',
+            color: 'var(--text-primary)',
+            fontFamily: 'Orbitron, sans-serif',
+            fontWeight: 700,
+            fontSize: 18,
+            minHeight: 'unset',
+            width: '100%',
+          }}
         />
         <select
           value={token}
           onChange={e => setToken(e.target.value as any)}
-          className="bg-[rgba(6,8,20,0.8)] border-l border-[var(--border-dim)] text-[var(--text-primary)] px-4 py-3 outline-none font-bold cursor-pointer"
+          style={{
+            background: 'rgba(6,10,38,0.95)',
+            borderLeft: '1px solid var(--border-dim)',
+            color: 'var(--accent-cyan)',
+            padding: '12px 14px',
+            outline: 'none',
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'Orbitron, sans-serif',
+            fontSize: 12,
+            letterSpacing: 1,
+          }}
         >
           <option value="ARC">ARC</option>
           <option value="USDC">USDC</option>
@@ -107,21 +131,55 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
         placeholder="Add a message (optional)..."
         value={paymentMessage}
         onChange={e => setPaymentMessage(e.target.value)}
-        className="w-full cyber-input rounded-xl px-4 py-3 text-xs text-[var(--text-primary)] outline-none"
+        style={{
+          width: '100%',
+          background: 'rgba(4,6,28,0.9)',
+          border: '1px solid var(--border-dim)',
+          borderRadius: 10,
+          padding: '10px 14px',
+          color: 'var(--text-primary)',
+          fontSize: 12,
+          outline: 'none',
+          fontFamily: 'Rajdhani, sans-serif',
+          boxSizing: 'border-box',
+        }}
       />
 
       <button
         type="submit"
         disabled={isSending || !amount || !isValidTarget}
-        className="deploy-btn w-full py-3 text-sm flex justify-center items-center gap-2 disabled:opacity-50"
+        style={{
+          width: '100%',
+          padding: '12px',
+          background: isSending || !amount || !isValidTarget
+            ? 'rgba(41,121,255,0.3)'
+            : 'linear-gradient(135deg, #7c3aff, #2979ff)',
+          color: '#ffffff',
+          border: 'none',
+          borderRadius: 10,
+          fontFamily: 'Orbitron, sans-serif',
+          fontWeight: 900,
+          fontSize: 11,
+          letterSpacing: 2,
+          textTransform: 'uppercase',
+          cursor: isSending || !amount || !isValidTarget ? 'not-allowed' : 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          boxShadow: '0 0 20px rgba(124,58,255,0.35)',
+          transition: 'all 0.15s',
+        }}
       >
-        {isSending ? <Loader2 className="animate-spin" size={20} /> : (
-          <>Pay {shortAddr} <ArrowRight size={18} /></>
+        {isSending ? <Loader2 className="animate-spin" size={16} /> : (
+          <>Pay {shortAddr} <ArrowRight size={14} /></>
         )}
       </button>
 
       {!isCorrectNetwork && (
-        <p className="text-xs text-red-500 text-center font-semibold">Switch to Arc Testnet to pay</p>
+        <p style={{ fontSize: 11, color: '#ff1744', textAlign: 'center', fontWeight: 600, margin: 0 }}>
+          Switch to Arc Testnet to pay
+        </p>
       )}
     </form>
   );
