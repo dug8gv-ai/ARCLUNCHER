@@ -2,8 +2,8 @@
 
 import dynamic from 'next/dynamic';
 
-const RainBackground = dynamic(
-  () => import('@/components/RainBackground').then(m => ({ default: m.RainBackground })),
+const EnvironmentalEffects = dynamic(
+  () => import('@/components/EnvironmentalEffects').then(m => ({ default: m.EnvironmentalEffects })),
   { ssr: false }
 );
 
@@ -16,7 +16,7 @@ export function RainBackgroundClient() {
   return (
     <>
       <GridBackground />
-      <RainBackground />
+      <EnvironmentalEffects />
     </>
   );
 }
