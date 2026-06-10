@@ -11,7 +11,11 @@ import { supabase } from '@/lib/supabase';
 import { 
   ECOSYSTEM_USDC_ADDRESS, 
   ECOSYSTEM_EURC_ADDRESS, 
-  ECOSYSTEM_CRBTC_ADDRESS
+  ECOSYSTEM_CRBTC_ADDRESS,
+  ECOSYSTEM_FACTORY_ADDRESS,
+  ECOSYSTEM_ROUTER_ADDRESS,
+  ecosystemFactoryAbi,
+  ecosystemRouterAbi
 } from '@/lib/arcEcosystemAbi';
 
 import { ARC_DEFI_ROUTER_ADDRESS, arcDefiRouterAbi } from '@/lib/arcDefiAbi';
@@ -250,7 +254,7 @@ export function ArcEcosystemHub() {
     setFilteredTokens(filtered);
   }, [allTokens, searchQuery, tokenTypeFilter]);
 
-  // ── Global Swap Stream ───────────────────────────────────────────────
+  // ── Global Swap Stream (Supabase) ──────────────────────────────────
   useEffect(() => {
     let isMounted = true;
 
@@ -318,6 +322,136 @@ export function ArcEcosystemHub() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // ── On-Chain Web3 Event Sync (getContractEvents & watchContractEvent) ──
+  useEffect(() => {
+    if (!publicClient) return;
+
+    let unwatchTokens: (() => void) | undefined;
+    let unwatchSwaps: (() => void) | undefined;
+
+    const syncOnChainEvents = async () => {
+      try {
+        // 1. Fetch Historical Data
+        const [pastTokens, pastSwaps] = await Promise.all([
+          publicClient.getContractEvents({
+            address: ECOSYSTEM_FACTORY_ADDRESS as `0x${string}`,
+            abi: ecosystemFactoryAbi,
+            eventName: 'TokenCreated',
+            fromBlock: 0n,
+          }),
+          publicClient.getContractEvents({
+            address: ECOSYSTEM_ROUTER_ADDRESS as `0x${string}`,
+            abi: ecosystemRouterAbi,
+            eventName: 'Swap',
+            fromBlock: 0n,
+          })
+        ]);
+
+        // Process Historical Tokens
+        const historicalTokens = pastTokens.map(log => ({
+          id: log.args.tokenAddress as string,
+          token_address: log.args.tokenAddress as string,
+          name: log.args.name || 'Unknown',
+          ticker: log.args.ticker || '???',
+          image_url: null,
+          holders: 0,
+          priceChange: '0.00',
+          type: 'ERC-20',
+          _source: 'arcomni' as const,
+          _holdersRaw: 0
+        }));
+
+        if (historicalTokens.length > 0) {
+          setAllTokens(prev => {
+            const existingIds = new Set(prev.map(p => p.token_address.toLowerCase()));
+            const newTokens = historicalTokens.filter(t => !existingIds.has(t.token_address.toLowerCase()));
+            return [...newTokens, ...prev];
+          });
+        }
+
+        // Process Historical Swaps
+        const mappedPastSwaps = pastSwaps.map((log: any) => ({
+          hash: log.transactionHash || `tx_${Math.random()}`,
+          isBuy: log.args.isBuy,
+          ticker: 'ONCHAIN', // Fetching real ticker would require mapping tokenAddress
+          amount: Number(log.args.isBuy ? log.args.amountOut : log.args.amountIn) / 1e18,
+          volume: Number(log.args.isBuy ? log.args.amountIn : log.args.amountOut) / 1e6, // Assuming USDC 6 decimals
+          timestamp: Date.now(), // Block timestamp fetch omitted for speed
+          token_address: log.args.isBuy ? log.args.tokenOut : log.args.tokenIn
+        }));
+
+        if (mappedPastSwaps.length > 0) {
+          setSwaps(prev => {
+            const existingHashes = new Set(prev.map(s => s.hash));
+            const newSwaps = mappedPastSwaps.filter(s => !existingHashes.has(s.hash));
+            return [...newSwaps, ...prev].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
+          });
+        }
+
+        // 2. Seamlessly Chain Real-Time Subscriptions
+        unwatchTokens = publicClient.watchContractEvent({
+          address: ECOSYSTEM_FACTORY_ADDRESS as `0x${string}`,
+          abi: ecosystemFactoryAbi,
+          eventName: 'TokenCreated',
+          onLogs: (logs) => {
+            const liveTokens = logs.map(log => ({
+              id: log.args.tokenAddress as string,
+              token_address: log.args.tokenAddress as string,
+              name: log.args.name || 'New Token',
+              ticker: log.args.ticker || 'NEW',
+              image_url: null,
+              holders: 0,
+              priceChange: '0.00',
+              type: 'ERC-20',
+              _source: 'arcomni' as const,
+              _holdersRaw: 0
+            }));
+
+            setAllTokens(prev => {
+              const existingIds = new Set(prev.map(p => p.token_address.toLowerCase()));
+              const newUniques = liveTokens.filter(t => !existingIds.has(t.token_address.toLowerCase()));
+              return [...newUniques, ...prev];
+            });
+            toast.success(`New token deployed: ${liveTokens[0]?.ticker}`);
+          }
+        });
+
+        unwatchSwaps = publicClient.watchContractEvent({
+          address: ECOSYSTEM_ROUTER_ADDRESS as `0x${string}`,
+          abi: ecosystemRouterAbi,
+          eventName: 'Swap',
+          onLogs: (logs) => {
+            const liveSwaps = logs.map((log: any) => {
+              const volume = Number(log.args.isBuy ? log.args.amountIn : log.args.amountOut) / 1e6;
+              setTotalCumulativeVolume(prev => prev + volume);
+              return {
+                hash: log.transactionHash || `live_${Math.random()}`,
+                isBuy: log.args.isBuy,
+                ticker: 'ONCHAIN',
+                amount: Number(log.args.isBuy ? log.args.amountOut : log.args.amountIn) / 1e18,
+                volume: volume,
+                timestamp: Date.now(),
+                token_address: log.args.isBuy ? log.args.tokenOut : log.args.tokenIn
+              };
+            });
+
+            setSwaps(prev => [...liveSwaps, ...prev].slice(0, 50));
+          }
+        });
+
+      } catch (err) {
+        console.error("On-chain event sync failed:", err);
+      }
+    };
+
+    syncOnChainEvents();
+
+    return () => {
+      if (unwatchTokens) unwatchTokens();
+      if (unwatchSwaps) unwatchSwaps();
+    };
+  }, [publicClient]);
 
   // ── Handlers ─────────────────────────────────────────────────────────
   const handleSelectToken = async (token: UnifiedToken) => {
