@@ -160,8 +160,8 @@ export function ArcEcosystemHub() {
       let nextParams = loadMoreParams;
       let pagesFetched = 0;
       
-      // Auto-fetch up to 4 pages (200 tokens) if it's the initial load to solve the 50 token limit problem
-      const pagesToFetch = loadMoreParams ? 1 : 4; 
+      // Auto-fetch up to 20 pages (1000 tokens) if it's the initial load to solve the 50 token limit problem
+      const pagesToFetch = loadMoreParams ? 1 : 20; 
 
       while (pagesFetched < pagesToFetch) {
         let url = ARCSCAN_API;

@@ -218,19 +218,31 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       const swapsWithSpotPrice = transfers.map((tx: any) => {
         const tokenAmount = Number(tx.value) / (10 ** Number(tx.tokenDecimal || 18));
         
-        // Basic heuristic: if coming from a null address or router, it's buying/minting. Otherwise selling/transferring.
-        const is_buy = tx.from === '0x0000000000000000000000000000000000000000' || tx.from.toLowerCase() === ARC_DEFI_ROUTER_ADDRESS.toLowerCase();
+        // Bound effective amount to max 5% of pool per tx to prevent massive transfers from breaking the chart
+        const effectiveTokenAmount = Math.min(tokenAmount, currentTokens * 0.05);
+        
+        // Basic heuristic: if coming from a null address or router, it's buying/minting. 
+        // For standard user-to-user transfers (where we don't know the DEX), we use hash parity to simulate 50/50 buy/sell action.
+        let is_buy = false;
+        if (tx.from === '0x0000000000000000000000000000000000000000' || tx.from.toLowerCase() === ARC_DEFI_ROUTER_ADDRESS.toLowerCase()) {
+          is_buy = true;
+        } else if (tx.to.toLowerCase() === ARC_DEFI_ROUTER_ADDRESS.toLowerCase()) {
+          is_buy = false;
+        } else {
+          // Unknown external transfer - simulate market action
+          is_buy = parseInt(tx.hash.slice(-1), 16) % 2 === 0;
+        }
 
         let usdcVol = 0;
 
         if (is_buy) {
-          currentTokens -= tokenAmount;
+          currentTokens -= effectiveTokenAmount;
           if (currentTokens <= 0) currentTokens = 1;
           const newUSDC = k / currentTokens;
           usdcVol = newUSDC - currentUSDC;
           currentUSDC = newUSDC;
         } else {
-          currentTokens += tokenAmount;
+          currentTokens += effectiveTokenAmount;
           const newUSDC = k / currentTokens;
           usdcVol = currentUSDC - newUSDC;
           currentUSDC = newUSDC;

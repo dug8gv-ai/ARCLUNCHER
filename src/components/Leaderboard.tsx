@@ -120,13 +120,29 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
       // ── 2. Fetch ALL on-chain tokens from ArcScan API ──
       let arcScanTokens: any[] = [];
       try {
-        const arcRes = await fetch('https://testnet.arcscan.app/api/v2/tokens');
-        if (arcRes.ok) {
+        let nextParams: any = null;
+        let pagesFetched = 0;
+        const maxPages = 10; // Fetch up to 500 tokens for the leaderboard
+
+        while (pagesFetched < maxPages) {
+          let url = 'https://testnet.arcscan.app/api/v2/tokens';
+          if (nextParams) {
+            const params = new URLSearchParams();
+            if (nextParams.contract_address_hash) params.set('contract_address_hash', nextParams.contract_address_hash);
+            if (nextParams.holders_count !== undefined) params.set('holders_count', String(nextParams.holders_count));
+            if (nextParams.items_count !== undefined) params.set('items_count', String(nextParams.items_count));
+            if (nextParams.name) params.set('name', nextParams.name);
+            url = `${url}?${params.toString()}`;
+          }
+
+          const arcRes = await fetch(url);
+          if (!arcRes.ok) break;
+          
           const arcData = await arcRes.json();
           const items = arcData.items || [];
           
           // Only include ERC-20 tokens that are NOT already in ArcOmni
-          arcScanTokens = items
+          const mapped = items
             .filter((t: any) => t.type === 'ERC-20' && !arcOmniMap.has(t.address_hash.toLowerCase()))
             .map((t: any) => ({
               id: t.address_hash,
@@ -142,6 +158,12 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
               _source: 'arcscan' as const,
               _holdersRaw: t.holders_count
             }));
+
+          arcScanTokens = [...arcScanTokens, ...mapped];
+          nextParams = arcData.next_page_params;
+          pagesFetched++;
+
+          if (!nextParams) break;
         }
       } catch (arcErr) {
         console.error('ArcScan API fetch failed:', arcErr);
