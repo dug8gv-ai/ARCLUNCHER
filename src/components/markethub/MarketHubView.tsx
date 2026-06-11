@@ -14,7 +14,7 @@ export function MarketHubView() {
     <div className="animate-in fade-in duration-300 max-w-6xl mx-auto space-y-6">
       
       {/* Top Navigation Panel */}
-      <div className="stat-box rounded-[32px] p-2 flex items-center gap-2 overflow-x-auto bg-[rgba(6,8,20,0.5)] backdrop-blur-xl">
+      <div className="stat-box rounded-[32px] p-2 flex items-center gap-2 overflow-x-auto bg-[var(--bg-elevated)] backdrop-blur-xl">
         <button
           onClick={() => setActiveTab('market')}
           className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 rounded-[24px] text-sm font-black transition-all ${

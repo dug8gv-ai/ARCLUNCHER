@@ -309,7 +309,7 @@ export function Marketplace() {
             </div>
             <button 
               onClick={() => setIsCartOpen(true)}
-              className="relative p-3 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-xl hover:border-[var(--accent-cyan)] transition-colors"
+              className="relative p-3 bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-xl hover:border-[var(--accent-cyan)] transition-colors"
             >
               <ShoppingCart size={20} className="text-[var(--text-primary)]" />
               {cart.length > 0 && (
@@ -330,7 +330,7 @@ export function Marketplace() {
               className={`whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                 activeCategory === cat 
                   ? 'bg-[var(--accent-cyan)] text-slate-900 shadow-sm' 
-                  : 'bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  : 'bg-[var(--bg-elevated)] border border-[var(--border-dim)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               {cat}
@@ -388,7 +388,7 @@ export function Marketplace() {
                 {p.images?.[0] ? (
                   <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-[rgba(6,8,20,0.5)]"><ShoppingCart className="text-slate-600" size={32} /></div>
+                  <div className="w-full h-full flex items-center justify-center bg-[var(--bg-elevated)]"><ShoppingCart className="text-slate-600" size={32} /></div>
                 )}
                 <div className="absolute top-3 left-3 bg-black/60 backdrop-blur px-2 py-1 rounded text-[9px] font-black text-white border border-white/10 uppercase tracking-widest">
                   {p.category}
@@ -447,7 +447,7 @@ export function Marketplace() {
                 </div>
               ) : (
                 cart.map(item => (
-                  <div key={item.id} className="flex gap-4 p-3 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl">
+                  <div key={item.id} className="flex gap-4 p-3 bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-2xl">
                     <img src={item.images?.[0] || ''} className="w-16 h-16 rounded-xl object-cover bg-black" alt="" />
                     <div className="flex-1 flex flex-col">
                       <div className="flex justify-between items-start">
@@ -529,7 +529,7 @@ export function Marketplace() {
                 </div>
                 
                 {/* Vendor & Price */}
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center p-4 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl gap-4">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center p-4 bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-2xl gap-4">
                   <div className="flex items-center gap-3">
                     <img src={viewingProduct.vendor_profiles?.logo_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${viewingProduct.vendor_wallet}`} className="w-10 h-10 rounded-lg bg-slate-800 object-cover" alt="" />
                     <div>
@@ -555,7 +555,7 @@ export function Marketplace() {
                   <h3 className="text-lg font-black text-white flex items-center gap-2 mb-4"><MessageSquare size={18} className="text-[var(--text-secondary)]" /> Customer Reviews</h3>
                   
                   {/* Add Review */}
-                  <div className="mb-6 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4">
+                  <div className="mb-6 bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-2xl p-4">
                     <p className="text-xs font-bold text-[var(--text-secondary)] mb-2">Leave a Rating</p>
                     <div className="flex gap-1 mb-3">
                       {[1,2,3,4,5].map(r => (

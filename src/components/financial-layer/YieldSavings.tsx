@@ -289,7 +289,7 @@ export default function YieldSavings() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* Real-time Ticker Card */}
-        <div className="md:col-span-7 bg-slate-900 border border-[var(--border-dim)] rounded-[32px] p-6 sm:p-8 text-white relative overflow-hidden shadow-xl flex flex-col justify-between min-h-[300px]">
+        <div className="md:col-span-7 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-[32px] p-6 sm:p-8 text-white relative overflow-hidden shadow-xl flex flex-col justify-between min-h-[300px]">
           {/* Subtle neon glowing backdrops */}
           <div className="absolute top-0 right-0 w-48 h-48 bg-[rgba(0,242,254,0.05)]0/10 rounded-full blur-[80px] pointer-events-none -z-10" />
           <div className="absolute bottom-0 left-0 w-36 h-36 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none -z-10" />
@@ -334,7 +334,7 @@ export default function YieldSavings() {
         {/* Action Panel */}
         <div className="md:col-span-5 card rounded-[32px] p-6 shadow-sm flex flex-col justify-between">
           <div className="space-y-4">
-            <div className="flex gap-2 p-1 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl">
+            <div className="flex gap-2 p-1 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl">
               <button
                 type="button"
                 onClick={() => {
@@ -379,7 +379,7 @@ export default function YieldSavings() {
                     placeholder="0.00"
                     value={amountInput}
                     onChange={(e) => setAmountInput(e.target.value)}
-                    className="w-full pl-4 pr-16 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
+                    className="w-full pl-4 pr-16 py-3.5 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-mono font-bold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                   />
                   <button
                     type="button"
@@ -417,19 +417,19 @@ export default function YieldSavings() {
         <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-0.5">Estimated earnings projected based on your current vault balance. Actual gains accumulate dynamically every second.</p>
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-4 rounded-2xl flex flex-col justify-between">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] p-4 rounded-2xl flex flex-col justify-between">
             <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Daily Est. Reward</span>
             <span className="text-base font-black text-[var(--text-primary)] font-mono mt-1.5">
               +{dailyEarnings.toFixed(4)} {activeTab}
             </span>
           </div>
-          <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-4 rounded-2xl flex flex-col justify-between">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] p-4 rounded-2xl flex flex-col justify-between">
             <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Monthly Est. Reward</span>
             <span className="text-base font-black text-[var(--text-primary)] font-mono mt-1.5">
               +{monthlyEarnings.toFixed(2)} {activeTab}
             </span>
           </div>
-          <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-4 rounded-2xl flex flex-col justify-between">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] p-4 rounded-2xl flex flex-col justify-between">
             <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-wider block">Yearly Est. Reward</span>
             <span className="text-base font-black text-emerald-600 font-mono mt-1.5">
               +{yearlyEarnings.toFixed(2)} {activeTab}

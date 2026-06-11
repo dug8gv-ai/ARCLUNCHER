@@ -318,7 +318,7 @@ export function LaunchForm() {
           </div>
         </div>
 
-        <div className="bg-[rgba(6,8,20,0.6)] p-4 rounded-xl border border-[var(--border-dim)] my-4 text-xs font-semibold text-[var(--text-secondary)] space-y-2">
+        <div className="bg-[var(--bg-elevated)] p-4 rounded-xl border border-[var(--border-dim)] my-4 text-xs font-semibold text-[var(--text-secondary)] space-y-2">
           <div className="flex justify-between text-[var(--text-primary)]">
             <span className="font-extrabold">Fixed Fee</span>
             <span className="font-black text-[var(--text-primary)]">4.00 USDC</span>

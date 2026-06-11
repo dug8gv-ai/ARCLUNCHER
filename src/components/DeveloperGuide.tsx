@@ -32,7 +32,7 @@ export function DeveloperGuide() {
           </div>
         </div>
 
-        <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4 flex items-center justify-between">
           <code className="text-[var(--accent-cyan)] font-mono font-bold text-sm">{ARC_GLOBAL_VAULT_ADDRESS}</code>
           <button
             onClick={() => handleCopy(ARC_GLOBAL_VAULT_ADDRESS, 'address')}
@@ -67,7 +67,7 @@ export function DeveloperGuide() {
           {/* Swap Snippet */}
           <div>
             <h4 className="text-sm font-bold text-[var(--text-primary)] uppercase mb-3">Execute a Swap (ethers.js)</h4>
-            <div className="bg-slate-900 rounded-2xl p-4 relative group">
+            <div className="bg-[var(--bg-card)] rounded-2xl p-4 relative group">
               <button
                 onClick={() => handleCopy(swapSnippet, 'swap')}
                 className="absolute top-4 right-4 p-2 bg-[var(--bg-card)]/10 hover:bg-[var(--bg-card)]/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"

@@ -501,7 +501,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
             value={amount}
             onChange={e => handleAmountChange(e.target.value)}
             placeholder="0.00"
-            className="w-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-2xl font-bold font-mono text-[var(--text-primary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300 transition-all"
+            className="w-full bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl px-4 py-3 text-2xl font-bold font-mono text-[var(--text-primary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300 transition-all"
           />
 
           {/* ── Range slider ── */}
@@ -605,7 +605,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
           Add {token.ticker} to Wallet
         </button>
 
-        <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl p-4 text-xs text-slate-500 space-y-1.5 font-medium">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl p-4 text-xs text-slate-500 space-y-1.5 font-medium">
           <p className="flex justify-between">
             <span>Price Impact</span>
             <span className="text-[var(--text-secondary)]">{'< 0.1%'}</span>
@@ -619,7 +619,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
 
       {/* Premium Styled Dialog Alert Overlay */}
       {premiumAlert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-[var(--bg-card)]/20 transition-all duration-200 animate-in fade-in">
           <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
             {/* Header Icon & Title */}
             <div className="flex items-center gap-3">
@@ -645,7 +645,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
             </div>
 
             {/* Details List */}
-            <div className="space-y-3 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
+            <div className="space-y-3 bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
               {premiumAlert.details.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-0.5">
                   <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">{item.label}</span>

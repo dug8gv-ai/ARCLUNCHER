@@ -46,7 +46,7 @@ export function PoolDisplay({ refreshInterval = 5000 }: PoolDisplayProps) {
 
   if (!isClient) {
     return (
-      <div className="p-4 rounded-lg bg-slate-900 border border-[var(--border-dim)] animate-pulse">
+      <div className="p-4 rounded-lg bg-[var(--bg-card)] border border-[var(--border-dim)] animate-pulse">
         <div className="h-6 bg-slate-700 rounded w-1/3"></div>
       </div>
     );

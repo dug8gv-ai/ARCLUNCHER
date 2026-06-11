@@ -133,7 +133,7 @@ export function P2PChat({ targetWallet }: { targetWallet: string }) {
 
   if (!address) {
     return (
-      <div className="p-4 text-[var(--text-secondary)] bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl text-center text-xs font-semibold">
+      <div className="p-4 text-[var(--text-secondary)] bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-2xl text-center text-xs font-semibold">
         Connect wallet to chat
       </div>
     );

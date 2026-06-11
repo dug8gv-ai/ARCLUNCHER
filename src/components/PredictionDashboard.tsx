@@ -467,7 +467,7 @@ export function PredictionDashboard() {
                     className="card rounded-[24px] p-6 shadow-sm transition-all hover:shadow-md"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] flex-shrink-0">
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[var(--bg-card)] border border-[var(--border-dim)] flex-shrink-0">
                         {market.imageUrl ? <img src={market.imageUrl} className="w-full h-full object-contain p-0.5" alt="" /> : <PieChart className="w-8 h-8 m-4 text-slate-300" />}
                       </div>
                       <div className="flex-1">
@@ -528,11 +528,11 @@ export function PredictionDashboard() {
                                 placeholder="Amount in USDC"
                                 value={betAmount}
                                 onChange={(e) => setBetAmount(e.target.value)}
-                                className="flex-1 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-blue-500"
+                                className="flex-1 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:border-blue-500"
                               />
                               <button 
                                 onClick={() => handlePlaceBet(market.id)}
-                                className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition-all"
+                                className="bg-[var(--bg-card)] hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition-all"
                               >
                                 Submit Tx
                               </button>

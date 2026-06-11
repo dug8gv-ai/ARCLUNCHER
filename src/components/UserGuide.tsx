@@ -282,7 +282,7 @@ export default function UserGuide() {
             <span className="inline-block px-2.5 py-1 bg-[rgba(0,242,254,0.1)] text-[var(--accent-cyan)] text-[10px] font-black uppercase rounded-lg mb-2">IN PROGRESS</span>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed">A freelancer has accepted the gig. Client can see who is working and release payment when done.</p>
           </div>
-          <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4">
             <span className="inline-block px-2.5 py-1 bg-[rgba(8,14,44,0.8)] text-[var(--text-primary)] text-[10px] font-black uppercase rounded-lg mb-2">COMPLETED</span>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed">Payment has been sent on-chain. The gig is archived and visible for reference.</p>
           </div>

@@ -105,7 +105,7 @@ export default function ArcBridge() {
         </div>
         <button 
           onClick={fetchBalance}
-          className="p-3.5 hover:bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          className="p-3.5 hover:bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           title="Refresh Balance"
         >
           <RefreshCw size={14} />
@@ -219,7 +219,7 @@ export default function ArcBridge() {
         </div>
 
         {/* Info Panel */}
-        <div className="bg-slate-900 border border-[var(--border-dim)] rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6 text-white">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6 text-white">
           <div className="flex items-center gap-2 mb-2">
             <ShieldCheck size={20} className="text-emerald-400" />
             <h3 className="font-extrabold text-white text-lg">Cross-Chain Transfer Protocol</h3>

@@ -44,7 +44,7 @@ export function SlotReel({ isSpinning, finalSymbols = [], onSpinComplete }: Slot
   }, [isSpinning, finalSymbols, onSpinComplete]);
 
   return (
-    <div className="flex justify-center gap-4 p-6 rounded-xl bg-slate-900 border border-cyan-500/20">
+    <div className="flex justify-center gap-4 p-6 rounded-xl bg-[var(--bg-card)] border border-cyan-500/20">
       <AnimatePresence mode="wait">
         {displaySymbols.map((symbol, index) => (
           <motion.div

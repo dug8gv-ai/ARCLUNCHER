@@ -74,7 +74,7 @@ export function BuyerOrders() {
       ) : (
         <div className="space-y-4">
           {orders.map(order => (
-            <div key={order.id} className="stat-box rounded-[24px] p-5 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] flex flex-col md:flex-row gap-6">
+            <div key={order.id} className="stat-box rounded-[24px] p-5 bg-[var(--bg-elevated)] border border-[var(--border-dim)] flex flex-col md:flex-row gap-6">
               
               <div className="flex gap-4 flex-1">
                 <img src={order.market_products?.images?.[0] || ''} className="w-20 h-20 rounded-xl object-cover bg-black" alt="" />

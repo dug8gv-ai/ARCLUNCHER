@@ -264,7 +264,7 @@ export default function ArcYield() {
               Real on-chain staking — tokens are locked in the ArcDefiRouter contract for 1 week. Balances and lock state are read live from Arc Chain.
             </p>
           </div>
-          <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl px-4 py-3 text-right">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl px-4 py-3 text-right">
             <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)] font-black">Total Accrued Yield</p>
             <p className="text-xl font-black text-[var(--text-primary)] mt-2">{fmtYield(totalAccruedYield)}</p>
             <p className="text-[10px] text-[var(--text-secondary)] mt-1">Block: {currentBlock || 'syncing...'}</p>
@@ -307,7 +307,7 @@ export default function ArcYield() {
             </div>
 
             {/* Amount input */}
-            <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-[24px] p-4 space-y-3">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-[24px] p-4 space-y-3">
               <div className="flex justify-between items-center text-[10px] uppercase tracking-[0.2em] font-black text-[var(--text-secondary)]">
                 <span>Amount</span>
                 <button type="button" onClick={() => setAmountInput(balances[selectedAsset].toFixed(selectedMeta.decimals === 8 ? 8 : 2))} className="text-amber-700 hover:text-amber-800">Use max</button>
@@ -339,7 +339,7 @@ export default function ArcYield() {
                 {isPending ? <Loader2 className="animate-spin" size={15} /> : <ArrowDown size={15} />} Stake
               </button>
               <button type="button" onClick={handleUnstake} disabled={isPending || !selectedPosition}
-                className="rounded-2xl bg-slate-900 text-white font-black px-4 py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-slate-800 transition-all">
+                className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-dim)] text-[var(--text-primary)] font-black px-4 py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-[var(--bg-elevated)] transition-all">
                 {isPending ? <Loader2 className="animate-spin" size={15} /> : <ArrowUp size={15} />} Unstake
               </button>
               <button type="button" onClick={handleClaim} disabled={isPending || !selectedPosition}
@@ -361,11 +361,11 @@ export default function ArcYield() {
 
         {/* RIGHT — Live Console */}
         <div className="xl:col-span-7 space-y-6">
-          <div className="bg-slate-900 text-white rounded-[32px] p-6 shadow-sm">
+          <div className="bg-[var(--bg-card)] rounded-[32px] p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-dim)] pb-4">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-300">Live Staking Console</p>
-                <h3 className="text-lg font-black mt-2">On-chain lock state read directly from ArcDefiRouter.</h3>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-[var(--text-secondary)]">Live Staking Console</p>
+                <h3 className="text-lg font-black mt-2 text-[var(--text-primary)]">On-chain lock state read directly from ArcDefiRouter.</h3>
               </div>
               <div className="flex items-center gap-2 text-sm font-bold text-emerald-300"><Activity size={15} /> live</div>
             </div>
@@ -378,7 +378,7 @@ export default function ArcYield() {
                 const accrued = pos ? calcYield(pos, currentBlock, meta.apy) : 0;
                 const locked  = pos && pos.unlockTime > now;
                 return (
-                  <div key={asset} className="rounded-[24px] border border-[var(--border-dim)] bg-slate-950/60 p-4">
+                  <div key={asset} className="rounded-[24px] border border-[var(--border-dim)] bg-[var(--bg-elevated)] p-4">
                     <div className="flex items-center justify-between gap-2">
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">{meta.symbol}</p>
@@ -386,10 +386,10 @@ export default function ArcYield() {
                       </div>
                       <span className="rounded-full border border-[var(--border-dim)] px-2 py-1 text-[10px] font-black text-slate-200">{meta.apy}%</span>
                     </div>
-                    <div className="mt-4 space-y-1 text-[11px] text-slate-300">
-                      <div className="flex justify-between"><span>Accrued Yield</span><span className="font-black text-emerald-300">{fmtYield(accrued)}</span></div>
-                      <div className="flex justify-between"><span>Lock Status</span><span className={`font-black ${locked ? 'text-amber-300' : pos ? 'text-emerald-300' : 'text-[var(--text-secondary)]'}`}>{pos ? (locked ? timeUntilUnlock(pos.unlockTime) : 'Unlockable') : 'Not staked'}</span></div>
-                      <div className="flex justify-between"><span>Wallet Balance</span><span className="font-black">{fmt(balances[asset], meta.decimals)}</span></div>
+                    <div className="mt-4 space-y-1 text-[11px] text-[var(--text-secondary)]">
+                      <div className="flex justify-between"><span>Accrued Yield</span><span className="font-black text-emerald-400">{fmtYield(accrued)}</span></div>
+                      <div className="flex justify-between"><span>Lock Status</span><span className={`font-black ${locked ? 'text-amber-500' : pos ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>{pos ? (locked ? timeUntilUnlock(pos.unlockTime) : 'Unlockable') : 'Not staked'}</span></div>
+                      <div className="flex justify-between"><span>Wallet Balance</span><span className="font-black text-[var(--text-primary)]">{fmt(balances[asset], meta.decimals)}</span></div>
                     </div>
                   </div>
                 );
@@ -404,20 +404,20 @@ export default function ArcYield() {
                 <p className="text-[10px] uppercase tracking-[0.3em] font-extrabold text-[var(--text-secondary)]">Current Focus</p>
                 <h3 className="text-lg font-black text-[var(--text-primary)] mt-2">{selectedMeta.symbol} • {selectedPosition ? 'active stake' : 'ready to stake'}</h3>
               </div>
-              <div className="rounded-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] px-3 py-1 text-[10px] font-black text-[var(--text-primary)] flex items-center gap-2">
+              <div className="rounded-full bg-[var(--bg-card)] border border-[var(--border-dim)] px-3 py-1 text-[10px] font-black text-[var(--text-primary)] flex items-center gap-2">
                 <ShieldCheck size={12} /> On-chain lock
               </div>
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="rounded-[24px] bg-slate-50 p-4">
+              <div className="rounded-[24px] bg-[var(--bg-elevated)] border border-[var(--border-dim)] p-4">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Wallet</p>
                 <p className="text-lg font-black text-[var(--text-primary)] mt-2">{fmt(balances[selectedAsset], selectedMeta.decimals)} {selectedMeta.symbol}</p>
               </div>
-              <div className="rounded-[24px] bg-slate-50 p-4">
+              <div className="rounded-[24px] bg-[var(--bg-elevated)] border border-[var(--border-dim)] p-4">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Staked (On-Chain)</p>
                 <p className="text-lg font-black text-[var(--text-primary)] mt-2">{selectedPosition ? fmt(selectedPosition.amount, selectedMeta.decimals) : '0.00'} {selectedMeta.symbol}</p>
               </div>
-              <div className="rounded-[24px] bg-slate-50 p-4">
+              <div className="rounded-[24px] bg-[var(--bg-elevated)] border border-[var(--border-dim)] p-4">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Accrued Yield</p>
                 <p className="text-lg font-black text-emerald-600 mt-2">{fmtYield(selectedYield)} {selectedMeta.symbol}</p>
               </div>

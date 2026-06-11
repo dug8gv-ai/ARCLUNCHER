@@ -304,7 +304,7 @@ export default function ArcGlobalDashboard() {
                 <div className="relative">
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] hover:bg-[rgba(8,14,44,0.8)] text-[var(--text-primary)] px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold cursor-pointer"
+                    className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border-dim)] hover:bg-[rgba(8,14,44,0.8)] text-[var(--text-primary)] px-3.5 py-1.5 rounded-full shadow-sm text-xs font-semibold cursor-pointer"
                   >
                     <div className="w-6 h-6 rounded-full overflow-hidden border border-[var(--border-dim)] bg-[var(--bg-card)]">
                       <img src={myProfile.avatar} alt="" className="w-full h-full object-contain p-0.5" />
@@ -390,7 +390,7 @@ export default function ArcGlobalDashboard() {
               <div className="space-y-8 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between card rounded-[28px] p-5 shadow-sm">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-[var(--bg-card)] border border-[var(--border-dim)] flex items-center justify-center">
                       {selectedToken.image_url ? (
                         <img src={selectedToken.image_url} alt="" className="w-full h-full object-contain p-0.5" />
                       ) : (

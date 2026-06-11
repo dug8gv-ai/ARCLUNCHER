@@ -357,7 +357,7 @@ export function FreelanceHub() {
 
         {/* POST GIG MODAL */}
         {isPosting && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-card)]/40 backdrop-blur-sm p-4">
             <div className="card rounded-3xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-black text-[var(--text-primary)]">Post a New Gig</h3>
@@ -380,17 +380,17 @@ export function FreelanceHub() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Job Title</label>
-                  <input required value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="e.g. Design a logo for Arc" className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-sm outline-none focus:border-indigo-500" />
+                  <input required value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="e.g. Design a logo for Arc" className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-sm outline-none focus:border-indigo-500" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Description</label>
-                  <textarea required value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Details of the job..." className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-sm outline-none focus:border-indigo-500 min-h-[90px]" />
+                  <textarea required value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Details of the job..." className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-sm outline-none focus:border-indigo-500 min-h-[90px]" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Budget (USDC)</label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
-                    <input required type="number" min="1" value={newBudget} onChange={e => setNewBudget(e.target.value)} placeholder="50" className="w-full pl-9 pr-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-sm font-black outline-none focus:border-indigo-500" />
+                    <input required type="number" min="1" value={newBudget} onChange={e => setNewBudget(e.target.value)} placeholder="50" className="w-full pl-9 pr-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-sm font-black outline-none focus:border-indigo-500" />
                   </div>
                 </div>
                 <div className="border border-[var(--border-dim)] rounded-2xl p-4 bg-slate-50/50">
@@ -432,14 +432,14 @@ export function FreelanceHub() {
 
         {/* PAYMENT CONFIRMATION MODAL (for gig completion) */}
         {payConfirmGig && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-card)]/50 backdrop-blur-sm p-4">
             <div className="card rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
               <div className="text-center mb-5">
                 <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-3"><DollarSign size={28} className="text-emerald-600" /></div>
                 <h3 className="text-lg font-black text-[var(--text-primary)]">Confirm Payment</h3>
                 <p className="text-xs text-[var(--text-secondary)] mt-1">Release funds to the freelancer.</p>
               </div>
-              <div className="space-y-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 mb-5 text-xs">
+              <div className="space-y-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4 mb-5 text-xs">
                 <div className="flex justify-between"><span className="text-[var(--text-secondary)] font-bold uppercase text-[10px]">Gig</span><span className="font-black text-[var(--text-primary)] truncate max-w-[180px]">{payConfirmGig.title}</span></div>
                 <div className="w-full h-px bg-slate-200" />
                 <div className="flex justify-between"><span className="text-[var(--text-secondary)] font-bold uppercase text-[10px]">Amount</span><span className="font-black text-emerald-600 text-base">${payConfirmGig.budget} USDC</span></div>
@@ -462,13 +462,13 @@ export function FreelanceHub() {
 
         {/* DIRECT PAYMENT MODAL (from profile/chat) */}
         {directPayTarget && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-card)]/50 backdrop-blur-sm p-4">
             <div className="card rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-lg font-black text-[var(--text-primary)]">Send USDC</h3>
                 <button onClick={() => { setDirectPayTarget(null); setDirectPayAmount(''); }} className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] p-1.5 rounded-full hover:bg-slate-100"><X size={18} /></button>
               </div>
-              <div className="flex items-center gap-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 mb-4">
+              <div className="flex items-center gap-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4 mb-4">
                 <img src={directPayTarget.avatar} alt="" className="w-12 h-12 rounded-full border-2 border-white shadow" />
                 <div><p className="font-black text-[var(--text-primary)]">{directPayTarget.name}</p><p className="text-[10px] font-mono text-[var(--text-secondary)]">{directPayTarget.wallet.slice(0, 10)}...{directPayTarget.wallet.slice(-6)}</p></div>
               </div>
@@ -476,7 +476,7 @@ export function FreelanceHub() {
                 <label className="block text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Amount (USDC)</label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
-                  <input type="number" min="0.01" step="0.01" value={directPayAmount} onChange={e => setDirectPayAmount(e.target.value)} placeholder="10.00" className="w-full pl-9 pr-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-sm font-black outline-none focus:border-indigo-500" />
+                  <input type="number" min="0.01" step="0.01" value={directPayAmount} onChange={e => setDirectPayAmount(e.target.value)} placeholder="10.00" className="w-full pl-9 pr-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-sm font-black outline-none focus:border-indigo-500" />
                 </div>
               </div>
               <div className="flex gap-3">
@@ -491,7 +491,7 @@ export function FreelanceHub() {
 
         {/* PROFILE MODAL */}
         {profileModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-card)]/50 backdrop-blur-sm p-4">
             <div className="card rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-lg font-black text-[var(--text-primary)]">Profile</h3>
@@ -514,7 +514,7 @@ export function FreelanceHub() {
 
         {/* CHAT MODAL */}
         {chatGig && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-sm p-0 sm:p-4">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[var(--bg-card)]/40 backdrop-blur-sm p-0 sm:p-4">
             <div className="card rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg shadow-2xl animate-in slide-in-from-bottom duration-200 flex flex-col h-[85vh] sm:h-[75vh]">
               {/* Chat Header */}
               <div className="flex items-center justify-between p-4 border-b border-[var(--border-dim)] flex-shrink-0">
@@ -570,7 +570,7 @@ export function FreelanceHub() {
 
               {/* Chat Input */}
               <form onSubmit={handleSendChat} className="p-3 border-t border-[var(--border-dim)] flex gap-2 flex-shrink-0">
-                <input value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Type a message..." className="flex-1 px-4 py-2.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs outline-none focus:border-indigo-500" />
+                <input value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Type a message..." className="flex-1 px-4 py-2.5 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs outline-none focus:border-indigo-500" />
                 <button type="submit" disabled={chatSending || !chatInput.trim()} className="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl disabled:opacity-40 transition-all">
                   {chatSending ? <Loader2 className="animate-spin size-4" /> : <Send size={16} />}
                 </button>
@@ -644,7 +644,7 @@ export function FreelanceHub() {
                     {/* Actions */}
                     <div className="mt-4 pt-4 border-t border-[var(--border-dim)] space-y-2">
                       {gig.status === 'OPEN' && gig.client_wallet !== userAddress?.toLowerCase() && (
-                        <button onClick={() => handleApply(gig.id)} className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black transition-all">Accept Gig</button>
+                        <button onClick={() => handleApply(gig.id)} className="w-full py-2.5 bg-[var(--bg-card)] hover:bg-slate-800 text-white rounded-xl text-xs font-black transition-all">Accept Gig</button>
                       )}
                       {gig.status === 'IN_PROGRESS' && gig.client_wallet === userAddress?.toLowerCase() && (
                         <div className="space-y-2">

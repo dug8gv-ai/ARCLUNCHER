@@ -205,7 +205,7 @@ export function VendorProfile() {
             <div>
               <label className="block text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Store Logo</label>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] flex items-center justify-center">
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-[var(--bg-elevated)] border border-[var(--border-dim)] flex items-center justify-center">
                   {logoFile ? (
                     <img src={URL.createObjectURL(logoFile)} alt="Preview" className="w-full h-full object-cover" />
                   ) : logoUrl ? (
@@ -225,7 +225,7 @@ export function VendorProfile() {
 
             <div>
               <label className="block text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5">Store Banner</label>
-              <div className="w-full h-32 rounded-xl overflow-hidden bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] flex items-center justify-center relative group">
+              <div className="w-full h-32 rounded-xl overflow-hidden bg-[var(--bg-elevated)] border border-[var(--border-dim)] flex items-center justify-center relative group">
                 {bannerFile ? (
                   <img src={URL.createObjectURL(bannerFile)} alt="Preview" className="w-full h-full object-cover opacity-80" />
                 ) : bannerUrl ? (

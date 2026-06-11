@@ -199,7 +199,7 @@ export function InventoryManager() {
                 
                 <div>
                   <label className="block text-[10px] font-extrabold text-[var(--text-secondary)] uppercase mb-1.5">Product Images</label>
-                  <div className="w-full p-6 border-2 border-dashed border-[var(--border-dim)] bg-[rgba(6,8,20,0.5)] rounded-xl text-center relative hover:border-[var(--accent-cyan)] transition-colors">
+                  <div className="w-full p-6 border-2 border-dashed border-[var(--border-dim)] bg-[var(--bg-elevated)] rounded-xl text-center relative hover:border-[var(--accent-cyan)] transition-colors">
                     <input type="file" multiple accept="image/*" onChange={e => e.target.files && setImageFiles(Array.from(e.target.files))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                     <ImageIcon className="mx-auto text-[var(--text-secondary)] mb-2" size={24} />
                     <p className="text-xs text-[var(--text-secondary)] font-semibold">{imageFiles.length > 0 ? `${imageFiles.length} files selected` : 'Click or drag images here'}</p>

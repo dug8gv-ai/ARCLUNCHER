@@ -242,7 +242,7 @@ export default function CircleHub() {
                   <p className="text-[10px] text-[var(--text-secondary)] font-semibold">Generate highly secure programmable Web3 wallets powered by Circle infrastructure.</p>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-secondary)] bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-3.5 rounded-xl">
+                <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-secondary)] bg-[var(--bg-card)] border border-[var(--border-dim)] p-3.5 rounded-xl">
                   <Zap size={14} className="text-[var(--accent-cyan)] shrink-0" />
                   <span>Creates authentic developer-controlled SCA wallets under automated sandbox rules. Get +5 points!</span>
                 </div>
@@ -256,7 +256,7 @@ export default function CircleHub() {
                       placeholder="e.g. user_or_username"
                       value={walletUsername}
                       onChange={(e) => setWalletUsername(e.target.value)}
-                      className="w-full px-4 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
+                      className="w-full px-4 py-3.5 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                     />
                   </div>
 
@@ -302,7 +302,7 @@ export default function CircleHub() {
 
                     <div className="space-y-4">
                       {/* Address Card */}
-                      <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
+                      <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
                         <div className="flex justify-between items-center text-[9px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
                           <span>Wallet Address</span>
                           <button
@@ -394,7 +394,7 @@ export default function CircleHub() {
                         placeholder="John Doe"
                         value={cardHolder}
                         onChange={(e) => setCardHolder(e.target.value)}
-                        className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
+                        className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -406,7 +406,7 @@ export default function CircleHub() {
                         placeholder="4111 2222 3333 4444"
                         value={cardNumber}
                         onChange={(e) => setCardNumber(e.target.value)}
-                        className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
+                        className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
                       />
                     </div>
                   </div>
@@ -421,7 +421,7 @@ export default function CircleHub() {
                         placeholder="12"
                         value={cardExpiryMonth}
                         onChange={(e) => setCardExpiryMonth(e.target.value)} // Exp month hook
-                        className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
+                        className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -433,7 +433,7 @@ export default function CircleHub() {
                         placeholder="2028"
                         value={cardExpiryYear}
                         onChange={(e) => setCardExpiryYear(e.target.value)}
-                        className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
+                        className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -445,12 +445,12 @@ export default function CircleHub() {
                         placeholder="•••"
                         value={cardCvv}
                         onChange={(e) => setCardCvv(e.target.value)}
-                        className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
+                        className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500 text-center"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
+                  <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
                     <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Purchase Amount (USD)</span>
                     <input
                       type="number"

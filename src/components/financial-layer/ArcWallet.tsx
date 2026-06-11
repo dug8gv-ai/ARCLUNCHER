@@ -236,7 +236,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
         <button 
           onClick={() => { fetchBalances(); window.dispatchEvent(new Event('arc-balance-update')); }} 
           disabled={isLoadingBalances}
-          className="p-3.5 hover:bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50"
+          className="p-3.5 hover:bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50"
           title="Refresh Balances"
         >
           <RefreshCw size={14} className={isLoadingBalances ? 'animate-spin' : ''} />
@@ -320,7 +320,7 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
 
         <form onSubmit={handleSwap} className="space-y-5">
           {/* FROM ASSET BOX */}
-          <div className="bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
             <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
               <span>From Asset</span>
               <span className="cursor-pointer text-[var(--accent-cyan)]" onClick={() => setFromAmount(balances[fromAsset].toString())}>
@@ -355,14 +355,14 @@ export default function ArcWallet({ onSwitchToBridge }: { onSwitchToBridge?: (to
             <button
               type="button"
               onClick={handleSwapToggle}
-              className="p-3 bg-[var(--bg-card)] hover:bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] text-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105 cursor-pointer active:scale-95"
+              className="p-3 bg-[var(--bg-card)] hover:bg-[var(--bg-card)] border border-[var(--border-dim)] text-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105 cursor-pointer active:scale-95"
             >
               <ArrowDown size={16} />
             </button>
           </div>
 
           {/* TO ASSET BOX */}
-          <div className="bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
             <div className="flex justify-between items-center text-[10px] font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
               <span>To Asset (Estimated)</span>
             </div>

@@ -371,7 +371,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
         </h2>
         
         {/* Toggle Switch Tabs */}
-        <div className="flex bg-[rgba(6,8,20,0.6)] rounded-xl p-1 self-start sm:self-auto border border-[var(--border-dim)]">
+        <div className="flex bg-[var(--bg-elevated)] rounded-xl p-1 self-start sm:self-auto border border-[var(--border-dim)]">
           <button 
             onClick={() => setActiveTab('tokens')}
             className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
@@ -412,7 +412,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                   transition={{ delay: Math.min(i * 0.05, 0.4) }}
                   key={token.id || token.token_address} 
                   onClick={() => onSelectToken?.(token)}
-                  className="bg-[rgba(6,8,20,0.5)] hover:bg-[rgba(13,17,39,0.8)] border border-[var(--border-dim)] rounded-2xl p-4 hover:border-[var(--border-glow)] transition-all cursor-pointer group flex items-center justify-between"
+                  className="bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4 hover:border-[var(--border-glow)] transition-all cursor-pointer group flex items-center justify-between"
                 >
                   <div className="flex gap-4 items-center">
                     {/* Token Logo */}
@@ -484,7 +484,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
 
                         {/* Admin Action Buttons (only for ArcOmni tokens) */}
                         {isAdmin && token._source === 'arcomni' && (
-                          <div className="flex items-center gap-1 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] p-0.5 rounded-lg ml-2">
+                          <div className="flex items-center gap-1 bg-[var(--bg-elevated)] border border-[var(--border-dim)] p-0.5 rounded-lg ml-2">
                             {/* Pin Toggle */}
                             <button
                               onClick={(e) => handleTogglePin(e, token.id, !!token.is_pinned)}
@@ -574,7 +574,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                   className={`border rounded-2xl p-4 flex items-center justify-between ${
                     userAddress?.toLowerCase() === earner.wallet.toLowerCase()
                       ? 'bg-[rgba(0,242,254,0.08)] border-[var(--border-glow)]'
-                      : 'bg-[rgba(6,8,20,0.5)] hover:bg-[rgba(13,17,39,0.8)] border-[var(--border-dim)]'
+                      : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] border-[var(--border-dim)]'
                   }`}
                 >
                   <div className="flex gap-4 items-center">
@@ -615,7 +615,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                       </div>
 
                       {/* Daily Check-in Stats Display */}
-                      <div className="flex items-center gap-2 mt-1.5 text-[9px] font-bold text-[var(--text-secondary)] bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] px-2.5 py-1 rounded-xl w-fit">
+                      <div className="flex items-center gap-2 mt-1.5 text-[9px] font-bold text-[var(--text-secondary)] bg-[var(--bg-elevated)] border border-[var(--border-dim)] px-2.5 py-1 rounded-xl w-fit">
                         <span>📅 Check-ins: <span className="text-[var(--accent-cyan)] font-black">{earner.checkin_count || 0}d</span></span>
                         <span className="text-slate-300 font-normal">|</span>
                         <span>⚠️ Missed: <span className="text-[var(--text-secondary)] font-extrabold">{earner.missed_count || 0}d</span></span>
@@ -659,7 +659,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
 
       {/* Premium Styled Dialog Alert Overlay */}
       {premiumAlert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-[var(--bg-card)]/20 transition-all duration-200 animate-in fade-in">
           <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
             {/* Header Icon & Title */}
             <div className="flex items-center gap-3">
@@ -685,7 +685,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
             </div>
 
             {/* Details List */}
-            <div className="space-y-3 bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
+            <div className="space-y-3 bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-2xl p-4 font-mono text-[10px] text-[var(--text-secondary)]">
               {premiumAlert.details.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-0.5">
                   <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest">{item.label}</span>
@@ -710,7 +710,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
 
       {/* Premium Styled Dialog Confirm Overlay */}
       {premiumConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-[var(--bg-card)]/20 transition-all duration-200 animate-in fade-in">
           <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-5 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
             {/* Header Icon & Title */}
             <div className="flex items-center gap-3">
@@ -724,7 +724,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
             </div>
 
             {/* Message Body */}
-            <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed bg-[rgba(6,8,20,0.5)] border border-[var(--border-dim)] rounded-2xl p-4">
+            <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed bg-[var(--bg-elevated)] border border-[var(--border-dim)] rounded-2xl p-4">
               {premiumConfirm.message}
             </p>
 

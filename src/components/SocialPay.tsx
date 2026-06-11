@@ -516,7 +516,7 @@ export function SocialPay() {
               </div>
             </div>
 
-            <div className="flex items-center bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] p-1 rounded-xl">
+            <div className="flex items-center bg-[var(--bg-card)] border border-[var(--border-dim)] p-1 rounded-xl">
               <button
                 onClick={() => setActiveTab('pay')}
                 className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${
@@ -656,7 +656,7 @@ export function SocialPay() {
                           });
                         }
                       }}
-                      className="w-full pl-11 pr-4 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:bg-[var(--bg-card)] focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all"
+                      className="w-full pl-11 pr-4 py-3.5 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:bg-[var(--bg-card)] focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all"
                     />
                   </div>
                 </div>
@@ -727,7 +727,7 @@ export function SocialPay() {
 
               {/* Dynamic asset inputs */}
               {selectedAssetType === 'LAUNCHED' && (
-                <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
                   <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Choose Launched Token</span>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[140px] overflow-y-auto pr-1">
                     {tokensList.length === 0 ? (
@@ -754,7 +754,7 @@ export function SocialPay() {
               )}
 
               {selectedAssetType === 'CUSTOM' && (
-                <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
                   <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Custom ERC-20 Address</span>
                   
                   <div className="space-y-3.5">
@@ -940,7 +940,7 @@ export function SocialPay() {
             <button
               onClick={handleCopyWallet}
               disabled={!userAddress}
-              className="py-2.5 px-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] hover:border-[var(--accent-cyan)] text-[var(--text-secondary)] rounded-xl text-[10px] font-bold tracking-wide uppercase transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="py-2.5 px-3 bg-[var(--bg-card)] border border-[var(--border-dim)] hover:border-[var(--accent-cyan)] text-[var(--text-secondary)] rounded-xl text-[10px] font-bold tracking-wide uppercase transition-all shadow-sm cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {copiedWallet ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
               Copy Address
@@ -961,7 +961,7 @@ export function SocialPay() {
 
       {/* Custom Global Alert Dialog */}
       {alertInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-slate-900/20 transition-all duration-200 animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-[var(--bg-card)]/20 transition-all duration-200 animate-in fade-in">
           <div className="bg-[var(--bg-card)]/95 border border-[var(--border-dim)] shadow-2xl rounded-[28px] p-6 max-w-sm w-full space-y-4 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg ${
@@ -985,12 +985,12 @@ export function SocialPay() {
               </div>
             </div>
 
-            <p className="text-xs text-[var(--text-secondary)] font-semibold leading-relaxed bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4">
+            <p className="text-xs text-[var(--text-secondary)] font-semibold leading-relaxed bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4">
               {alertInfo.message}
             </p>
 
             {successTxHash && (
-              <div className="space-y-1 bg-slate-900 border border-[var(--border-dim)] p-3.5 rounded-2xl font-mono text-[9px] text-[var(--text-secondary)]">
+              <div className="space-y-1 bg-[var(--bg-card)] border border-[var(--border-dim)] p-3.5 rounded-2xl font-mono text-[9px] text-[var(--text-secondary)]">
                 <span className="text-[8px] font-black text-[var(--text-secondary)] uppercase tracking-widest block">Transaction Hash</span>
                 <a
                   href={`https://testnet.arcscan.app/tx/${successTxHash}`}

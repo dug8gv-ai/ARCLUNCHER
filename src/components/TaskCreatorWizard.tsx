@@ -221,7 +221,7 @@ export function TaskCreatorWizard({ onSuccess }: TaskCreatorWizardProps) {
                 value={cfg.taskTitle}
                 onChange={e => dispatch({ type: 'SET_TITLE', payload: e.target.value })}
                 placeholder='e.g. "Will Bitcoin hit $80k before Friday?"'
-                className="w-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none resize-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300 transition-all"
+                className="w-full bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none resize-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300 transition-all"
               />
               <p className="text-[10px] text-slate-400 mt-1">{cfg.taskTitle.length} chars — minimum 5</p>
             </div>
@@ -260,7 +260,7 @@ export function TaskCreatorWizard({ onSuccess }: TaskCreatorWizardProps) {
                   value={cfg.oracleEndpoint}
                   onChange={e => dispatch({ type: 'SET_ORACLE', payload: e.target.value })}
                   placeholder="e.g. 0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43"
-                  className="w-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[var(--text-secondary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300 transition-all"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[var(--text-secondary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 placeholder:text-slate-300 transition-all"
                 />
                 <p className="text-[10px] text-slate-400 mt-1">
                   Paste Pyth price feed ID or Chainlink aggregator address
@@ -277,7 +277,7 @@ export function TaskCreatorWizard({ onSuccess }: TaskCreatorWizardProps) {
                 type="datetime-local"
                 value={cfg.expiryTimestamp}
                 onChange={e => dispatch({ type: 'SET_EXPIRY', payload: e.target.value })}
-                className="w-full bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-secondary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 transition-all"
+                className="w-full bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-secondary)] outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-900 transition-all"
               />
               {/* Quick shortcuts */}
               <div className="flex gap-1.5 mt-2">
@@ -316,7 +316,7 @@ export function TaskCreatorWizard({ onSuccess }: TaskCreatorWizardProps) {
           <div className="space-y-5 animate-in fade-in duration-200">
 
             {/* Summary card */}
-            <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl p-3.5 space-y-1.5">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl p-3.5 space-y-1.5">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Question</p>
               <p className="text-sm font-black text-[var(--text-primary)] leading-snug">{cfg.taskTitle}</p>
               <div className="flex flex-wrap gap-2 pt-1">
@@ -361,7 +361,7 @@ export function TaskCreatorWizard({ onSuccess }: TaskCreatorWizardProps) {
               </div>
 
               {/* Bound address display */}
-              <div className="mt-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5">
+              <div className="mt-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl px-3.5 py-2.5">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
                   Bound Contract Address
                 </p>

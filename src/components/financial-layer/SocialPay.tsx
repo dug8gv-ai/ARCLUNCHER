@@ -395,7 +395,7 @@ export default function SocialPay() {
                             placeholder="Search custom @username (e.g. Frianowzki)..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-11 pr-4 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
+                            className="w-full pl-11 pr-4 py-3.5 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                           />
                           {searchLoading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-[var(--accent-cyan)] size-4" />}
                         </div>
@@ -449,7 +449,7 @@ export default function SocialPay() {
                                 });
                               }
                             }}
-                            className="w-full pl-11 pr-4 py-3.5 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
+                            className="w-full pl-11 pr-4 py-3.5 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl text-xs font-mono outline-none focus:border-blue-500 focus:bg-[var(--bg-card)] transition-all"
                           />
                         </div>
                       </div>
@@ -487,7 +487,7 @@ export default function SocialPay() {
                   </div>
 
                   {/* Amount Box */}
-                  <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
+                  <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-2xl p-4 space-y-2">
                     <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider block">Amount to Send</span>
                     <input
                       type="number"
@@ -543,7 +543,7 @@ export default function SocialPay() {
                         placeholder="e.g. Design Services"
                         value={invoiceReason}
                         onChange={(e) => setInvoiceReason(e.target.value)}
-                        className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
+                        className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -554,21 +554,21 @@ export default function SocialPay() {
                         placeholder="0.00"
                         value={invoiceAmount}
                         onChange={(e) => setInvoiceAmount(e.target.value)}
-                        className="w-full px-4 py-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500"
+                        className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-mono outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
 
                   <button
                     type="submit"
-                    className="py-3 px-5 bg-slate-900 hover:bg-slate-850 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md cursor-pointer transition-all active:scale-98"
+                    className="py-3 px-5 bg-[var(--bg-card)] hover:bg-slate-850 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md cursor-pointer transition-all active:scale-98"
                   >
                     Generate Invoice Link
                   </button>
                 </form>
 
                 {generatedInvoiceLink && (
-                  <div className="bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl p-4 flex justify-between items-center animate-in fade-in slide-in-from-top-1 duration-150">
+                  <div className="bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl p-4 flex justify-between items-center animate-in fade-in slide-in-from-top-1 duration-150">
                     <span className="text-[10.5px] font-mono text-[var(--text-secondary)] truncate mr-4">{generatedInvoiceLink}</span>
                     <button
                       type="button"
@@ -661,7 +661,7 @@ export default function SocialPay() {
 
       {/* Profile Settings Modal Overlay */}
       {isProfileModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--bg-card)]/30 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-md card p-8 space-y-6 relative rounded-[28px] shadow-2xl animate-in zoom-in-95 duration-200">
             <button
               onClick={() => setIsProfileModalOpen(false)}
@@ -686,7 +686,7 @@ export default function SocialPay() {
                   placeholder="e.g. Frianowzki"
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
-                  className="w-full p-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
+                  className="w-full p-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
                 />
               </div>
 
@@ -697,7 +697,7 @@ export default function SocialPay() {
                   placeholder="https://api.dicebear.com/..."
                   value={profileAvatar}
                   onChange={(e) => setProfileAvatar(e.target.value)}
-                  className="w-full p-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
+                  className="w-full p-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs font-semibold outline-none focus:border-blue-500 focus:bg-[var(--bg-card)]"
                 />
               </div>
 
@@ -709,7 +709,7 @@ export default function SocialPay() {
                     placeholder="@handle"
                     value={profileTwitter}
                     onChange={(e) => setProfileTwitter(e.target.value)}
-                    className="w-full p-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs outline-none focus:border-blue-500"
+                    className="w-full p-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs outline-none focus:border-blue-500"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -719,7 +719,7 @@ export default function SocialPay() {
                     placeholder="handle#0000"
                     value={profileDiscord}
                     onChange={(e) => setProfileDiscord(e.target.value)}
-                    className="w-full p-3 bg-[rgba(6,10,38,0.9)] border border-[var(--border-dim)] rounded-xl text-xs outline-none focus:border-blue-500"
+                    className="w-full p-3 bg-[var(--bg-card)] border border-[var(--border-dim)] rounded-xl text-xs outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
