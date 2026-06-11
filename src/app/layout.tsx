@@ -24,40 +24,44 @@ export const viewport: Viewport = {
   themeColor: "#04061a",
 };
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="overflow-x-hidden">
+    <html lang="en" className="overflow-x-hidden" suppressHydrationWarning>
       <body
         className="antialiased overflow-x-hidden"
         style={{ position: "relative" }}
       >
-        {/* ── Ambient rain — client-only, z-0, pointer-events:none ── */}
-        <RainBackgroundClient />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          {/* ── Ambient rain — client-only, z-0, pointer-events:none ── */}
+          <RainBackgroundClient />
 
-        <Web3Provider>
-          <WelcomeSplash />
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              style: {
-                background: "rgba(8,14,44,0.95)",
-                color: "#e8eeff",
-                border: "1px solid rgba(41,121,255,0.25)",
-                borderRadius: "8px",
-                boxShadow: "0 0 24px rgba(41,121,255,0.2)",
-                backdropFilter: "blur(12px)",
-                fontFamily: "'Rajdhani', sans-serif",
-                letterSpacing: "0.03em",
-              },
-            }}
-          />
-          {/* Main content — sits above canvas z-index */}
-          <div style={{ position: "relative", zIndex: 1 }}>
-            {children}
-          </div>
-        </Web3Provider>
+          <Web3Provider>
+            <WelcomeSplash />
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                style: {
+                  background: "var(--bg-panel, rgba(8,14,44,0.95))",
+                  color: "var(--text-bright, #e8eeff)",
+                  border: "1px solid var(--border-dim, rgba(41,121,255,0.25))",
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+                  backdropFilter: "blur(12px)",
+                  fontFamily: "'Rajdhani', sans-serif",
+                  letterSpacing: "0.03em",
+                },
+              }}
+            />
+            {/* Main content — sits above canvas z-index */}
+            <div style={{ position: "relative", zIndex: 1 }}>
+              {children}
+            </div>
+          </Web3Provider>
+        </ThemeProvider>
       </body>
     </html>
   );

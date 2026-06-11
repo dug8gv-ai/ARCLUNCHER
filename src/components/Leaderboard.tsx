@@ -445,7 +445,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                           </span>
                         ) : null}
                         {token.badge_type === 'official' && (
-                          <span className="text-[8px] btn-primary text-white px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-blue-400/20">
+                          <span className="text-[8px] bg-[var(--accent-gold)] text-[var(--text-bright)] px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-0.5 shadow-sm border border-blue-400/20">
                             👑 Official
                           </span>
                         )}
@@ -593,7 +593,7 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
                       <h3 className="font-extrabold text-[var(--text-primary)] text-sm flex items-center gap-2">
                         {earner.name}
                         {earner.is_affiliate && (
-                          <span className="text-[9px] btn-primary text-white px-2 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                          <span className="text-[9px] bg-[var(--accent-gold)] text-[var(--text-bright)] px-2 py-0.5 rounded-full font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
                             ⭐ Affiliate
                           </span>
                         )}

@@ -107,7 +107,7 @@ export function AffiliatesView() {
               className="bg-[var(--bg-card)]/80 backdrop-blur-sm border border-[var(--border-dim)] rounded-[32px] p-6 hover:shadow-xl hover:border-blue-300 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
             >
               {/* Decorative top gradient accent */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 btn-primary" />
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-[var(--accent-gold)]" />
               
               <div className="space-y-4">
                 {/* Header Profile Info */}
@@ -118,7 +118,7 @@ export function AffiliatesView() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <h4 className="font-black text-[var(--text-primary)] text-sm truncate">{partner.name}</h4>
-                      <span className="text-[8px] btn-primary text-white px-2 py-0.5 rounded-full font-black uppercase tracking-wider flex-shrink-0">
+                      <span className="text-[8px] bg-[var(--accent-gold)] text-[var(--text-bright)] px-2 py-0.5 rounded-full font-black uppercase tracking-wider flex-shrink-0">
                         Partner
                       </span>
                     </div>

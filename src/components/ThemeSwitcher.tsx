@@ -1,26 +1,19 @@
 'use client';
 
+import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
 export function ThemeSwitcher() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem('arc-theme') as 'dark' | 'light' | null;
-    if (saved) {
-      setTheme(saved);
-      document.documentElement.setAttribute('data-theme', saved);
-    }
   }, []);
 
   const toggle = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    localStorage.setItem('arc-theme', next);
-    document.documentElement.setAttribute('data-theme', next);
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   if (!mounted) return null;
@@ -31,9 +24,9 @@ export function ThemeSwitcher() {
       aria-label="Toggle theme"
       style={{
         background: theme === 'dark'
-          ? 'rgba(6,10,38,0.9)'
-          : 'rgba(10,20,80,0.85)',
-        border: '1px solid rgba(0,229,255,0.3)',
+          ? 'var(--bg-card)'
+          : 'var(--bg-elevated)',
+        border: '1px solid var(--accent-gold)',
         borderRadius: '10px',
         padding: '7px 14px',
         display: 'flex',
@@ -41,14 +34,20 @@ export function ThemeSwitcher() {
         gap: '7px',
         cursor: 'pointer',
         transition: 'all 0.2s',
-        color: theme === 'dark' ? '#ffd740' : '#00e5ff',
+        color: 'var(--accent-gold)',
         fontSize: '11px',
         fontFamily: "'Orbitron', sans-serif",
         fontWeight: 700,
         letterSpacing: '1px',
-        boxShadow: theme === 'dark'
-          ? '0 0 12px rgba(255,215,64,0.15)'
-          : '0 0 12px rgba(0,229,255,0.2)',
+        boxShadow: '0 0 12px rgba(234, 179, 8, 0.15)'
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-gold)';
+        (e.currentTarget as HTMLButtonElement).style.color = 'var(--bg-main)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = theme === 'dark' ? 'var(--bg-card)' : 'var(--bg-elevated)';
+        (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-gold)';
       }}
     >
       {theme === 'dark' ? (
@@ -65,3 +64,4 @@ export function ThemeSwitcher() {
     </button>
   );
 }
+
