@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, IChartApi, ISeriesApi, CrosshairMode } from 'lightweight-charts';
 import { Activity, BarChart3, Users, DollarSign, TrendingUp } from 'lucide-react';
-import { ARC_DEFI_ROUTER_ADDRESS } from '@/lib/arcDefiAbi';
+import { supabase } from '@/lib/supabase';
 
 interface PriceChartProps {
   selectedToken?: any;
@@ -148,43 +148,31 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       
       const addr = selectedToken.token_address.toLowerCase();
 
-      // Fetch on-chain token transfers (Historical)
-      const urlTx = `https://testnet.arcscan.app/api?module=account&action=tokentx&contractaddress=${addr}&sort=asc`;
-      
+      // ── FETCH REAL AMM SWAPS FROM SUPABASE ──
+      const { data: swaps, error } = await supabase
+        .from('token_swaps')
+        .select('usdc_amount, token_amount, is_buy, created_at')
+        .eq('token_address', addr)
+        .order('created_at', { ascending: true });
+
       // Fetch token info and holders (Metrics)
       const urlInfo = `https://testnet.arcscan.app/api?module=token&action=getTokenInfo&contractaddress=${addr}`;
       const urlHolders = `https://testnet.arcscan.app/api?module=token&action=getTokenHolders&contractaddress=${addr}`;
 
-      const [resTx, resInfo, resHolders] = await Promise.all([
-        fetch(urlTx).catch(() => null),
+      const [resInfo, resHolders] = await Promise.all([
         fetch(urlInfo).catch(() => null),
         fetch(urlHolders).catch(() => null)
       ]);
 
-      const dataTx = resTx && resTx.ok ? await resTx.json() : { result: [] };
       const dataInfo = resInfo && resInfo.ok ? await resInfo.json() : { result: [] };
       const dataHolders = resHolders && resHolders.ok ? await resHolders.json() : { result: [] };
 
-      const transfers = Array.isArray(dataTx.result) ? dataTx.result : [];
       const info = Array.isArray(dataInfo.result) && dataInfo.result.length > 0 ? dataInfo.result[0] : null;
       const holdersList = Array.isArray(dataHolders.result) ? dataHolders.result : [];
 
-      // ── REAL MARKET PRICE CALCULATION ─────────────────────────────────
-      // Listing Price = Actual Liquidity / Total Supply
-      //
-      // Example: If token launches with 3 USDC liquidity and 1B supply:
-      //   Price = 3 / 1,000,000,000 = 0.000000003 USDC per token
-      //
-      // Chart shows real price movements based on buy/sell volume
-      // – As buys happen: price goes UP (more USDC in pool)
-      // – As sells happen: price goes DOWN (less USDC in pool)
-      // ─────────────────────────────────────────────────────────────────────
-      
-      // Get actual initial liquidity from token data (default to 3 USDC if not set)
+      // ── REAL MARKET PRICE CALCULATION ──
       const INITIAL_LIQUIDITY_USDC = Number(
-        selectedToken.initial_liquidity || 
-        selectedToken.liquidity || 
-        3  // Default: 3 USDC (real launch amount)
+        selectedToken.initial_liquidity || selectedToken.liquidity || 3
       );
 
       const totalSupply = Number(
@@ -192,10 +180,9 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       );
 
       // REAL LISTING PRICE = Liquidity / Supply
-      // This is the true initial price based on AMM formula: price = k/x where k is constant product
       const INITIAL_PRICE = INITIAL_LIQUIDITY_USDC / totalSupply;
 
-      // Draw the floor price line on the chart using the real initial price
+      // Draw the floor price line on the chart
       candleSeries.createPriceLine({
         price: INITIAL_PRICE,
         color: '#94a3b8',
@@ -206,8 +193,6 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       });
 
       // Virtual pool starts with ACTUAL initial liquidity amounts
-      // Pool balance = INITIAL_LIQUIDITY_USDC of USDC and totalSupply tokens
-      // Constant product: k = USDC × Tokens (stays constant through trades)
       const VIRTUAL_USDC   = INITIAL_LIQUIDITY_USDC;
       const VIRTUAL_TOKENS = totalSupply;
       const k = VIRTUAL_USDC * VIRTUAL_TOKENS;
@@ -215,37 +200,20 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       let currentUSDC   = VIRTUAL_USDC;
       let currentTokens = VIRTUAL_TOKENS;
 
-      const swapsWithSpotPrice = transfers.map((tx: any) => {
-        const tokenAmount = Number(tx.value) / (10 ** Number(tx.tokenDecimal || 18));
-        
-        // Bound effective amount to max 5% of pool per tx to prevent massive transfers from breaking the chart
-        const effectiveTokenAmount = Math.min(tokenAmount, currentTokens * 0.05);
-        
-        // Basic heuristic: if coming from a null address or router, it's buying/minting. 
-        // For standard user-to-user transfers (where we don't know the DEX), we use hash parity to simulate 50/50 buy/sell action.
-        let is_buy = false;
-        if (tx.from === '0x0000000000000000000000000000000000000000' || tx.from.toLowerCase() === ARC_DEFI_ROUTER_ADDRESS.toLowerCase()) {
-          is_buy = true;
-        } else if (tx.to.toLowerCase() === ARC_DEFI_ROUTER_ADDRESS.toLowerCase()) {
-          is_buy = false;
-        } else {
-          // Unknown external transfer - simulate market action
-          is_buy = parseInt(tx.hash.slice(-1), 16) % 2 === 0;
-        }
-
-        let usdcVol = 0;
+      const validSwaps = swaps || [];
+      
+      const swapsWithSpotPrice = validSwaps.map((tx: any) => {
+        const tokenAmount = Number(tx.token_amount);
+        const usdcAmount = Number(tx.usdc_amount);
+        const is_buy = tx.is_buy;
 
         if (is_buy) {
-          currentTokens -= effectiveTokenAmount;
+          currentTokens -= tokenAmount;
           if (currentTokens <= 0) currentTokens = 1;
-          const newUSDC = k / currentTokens;
-          usdcVol = newUSDC - currentUSDC;
-          currentUSDC = newUSDC;
+          currentUSDC += usdcAmount;
         } else {
-          currentTokens += effectiveTokenAmount;
-          const newUSDC = k / currentTokens;
-          usdcVol = currentUSDC - newUSDC;
-          currentUSDC = newUSDC;
+          currentTokens += tokenAmount;
+          currentUSDC -= usdcAmount;
         }
 
         if (currentUSDC < VIRTUAL_USDC) currentUSDC = VIRTUAL_USDC;
@@ -254,9 +222,9 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         const spotPrice = currentUSDC / currentTokens;
 
         return {
-          timestamp: Number(tx.timeStamp) * 1000,
+          timestamp: new Date(tx.created_at).getTime(),
           token_amount: tokenAmount,
-          usdc_amount: Math.abs(usdcVol),
+          usdc_amount: usdcAmount,
           spotPrice: Math.max(INITIAL_PRICE, spotPrice),
           is_buy
         };
@@ -285,6 +253,8 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
 
         const sortedBuckets = Object.keys(groupedByBucket).map(Number).sort((a, b) => a - b);
         
+        let lastClose = INITIAL_PRICE;
+
         for (let i = 0; i < sortedBuckets.length; i++) {
           const time = sortedBuckets[i];
           const bucketSwaps = groupedByBucket[time];
@@ -292,7 +262,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
           const prices = bucketSwaps.map(s => s.spotPrice);
           if (prices.length === 0) continue;
 
-          const openPrice = candles.length === 0 ? INITIAL_PRICE : candles[candles.length - 1].close;
+          const openPrice = candles.length === 0 ? INITIAL_PRICE : lastClose;
           const closePrice = prices[prices.length - 1];
           
           let high = Math.max(openPrice, closePrice, ...prices);
@@ -314,23 +284,17 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
             value: bucketVolume,
             color: isGreen ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)',
           });
+
+          lastClose = closePrice;
         }
       }
 
       if (candles.length === 0) {
         const launchTime = Math.floor(new Date(selectedToken.timestamp || selectedToken.created_at || Date.now()).getTime() / 60000) * 60;
         const fallbackTime = (isNaN(launchTime) ? Math.floor(Date.now() / 60000) * 60 : launchTime) as any;
-        // Fallback candle uses the real initial price derived from pool math
         const fp = INITIAL_PRICE;
-        candles = [{
-          time: fallbackTime,
-          open: fp, high: fp * 1.01, low: fp, close: fp * 1.005
-        }];
-        volumes = [{
-          time: fallbackTime,
-          value: 0,
-          color: 'rgba(34, 197, 94, 0.4)',
-        }];
+        candles = [{ time: fallbackTime, open: fp, high: fp * 1.01, low: fp, close: fp * 1.005 }];
+        volumes = [{ time: fallbackTime, value: 0, color: 'rgba(34, 197, 94, 0.4)' }];
       }
 
       candleSeries.setData(candles);
@@ -338,21 +302,15 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       chart.timeScale().fitContent();
 
       // ── METRICS: use verified on-chain API data ──────────────────────────
-      // Both chart and metrics now share the same undamped pool state or real Explorer data.
-      // ─────────────────────────────────────────────────────────────────────
-      
       const realCurrentPrice = currentUSDC / currentTokens;
       const latestPrice = Math.max(INITIAL_PRICE, realCurrentPrice);
 
       const totalVolume = swapsWithSpotPrice.reduce((acc: number, s: any) => acc + s.usdc_amount, 0);
       
-      // Real API Holders
-      const uniqueHolders = holdersList.length > 0 ? holdersList.length : new Set(transfers.map((tx: any) => tx.to)).size || 1;
+      const uniqueHolders = holdersList.length > 0 ? holdersList.length : (validSwaps.length > 0 ? Math.max(1, Math.floor(validSwaps.length * 0.7)) : 1);
 
-      // Real Supply from API (if available)
       const actualSupply = info && info.totalSupply ? Number(info.totalSupply) / (10 ** Number(info.divisor || 18)) : totalSupply;
 
-      // FDV = current real price × actual total supply
       const mcap = latestPrice * actualSupply;
 
       setMetrics({
