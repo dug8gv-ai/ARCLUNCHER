@@ -107,10 +107,21 @@ export function ContractTracker() {
           : BigInt(0);
 
         // ── ALL TIME logs ──────────────────────────────────────────────────
-        const [allLogs, logs24h] = await Promise.all([
-          publicClient.getLogs({ address: addr, fromBlock: BigInt(0), toBlock: 'latest' }),
-          publicClient.getLogs({ address: addr, fromBlock: fromBlock24h, toBlock: 'latest' }),
-        ]);
+        let allLogs: any[] = [];
+        let logs24h: any[] = [];
+        
+        try {
+          logs24h = await publicClient.getLogs({ address: addr, fromBlock: fromBlock24h, toBlock: 'latest' });
+        } catch (e) {
+          console.warn('24h getLogs failed', e);
+        }
+
+        try {
+          allLogs = await publicClient.getLogs({ address: addr, fromBlock: BigInt(0), toBlock: 'latest' });
+        } catch (e) {
+          console.warn('All-time getLogs failed, falling back to 24h logs', e);
+          allLogs = logs24h;
+        }
 
         // Unique TX hashes
         const allHashes = [...new Set(allLogs.map(l => l.transactionHash).filter(Boolean) as string[])];
@@ -146,7 +157,7 @@ export function ContractTracker() {
         // Check if it's a token launch contract
         const { data: swapsDirect } = await supabase
           .from('token_swaps')
-          .select('usdc_amount, created_at')
+          .select('usdc_amount, timestamp')
           .eq('token_address', addr);
 
         if (swapsDirect && swapsDirect.length > 0) {
@@ -154,19 +165,19 @@ export function ContractTracker() {
           const now = Date.now();
           volumeTotal = swapsDirect.reduce((s: number, r: any) => s + Number(r.usdc_amount), 0);
           volume24h   = swapsDirect
-            .filter((r: any) => now - new Date(r.created_at).getTime() < 86400_000)
+            .filter((r: any) => now - new Date(r.timestamp).getTime() < 86400_000)
             .reduce((s: number, r: any) => s + Number(r.usdc_amount), 0);
         } else {
           // Launcher/router contract — sum all platform swaps
           const { data: allSwaps } = await supabase
             .from('token_swaps')
-            .select('usdc_amount, created_at');
+            .select('usdc_amount, timestamp');
 
           if (allSwaps && allSwaps.length > 0) {
             const now = Date.now();
             volumeTotal = allSwaps.reduce((s: number, r: any) => s + Number(r.usdc_amount), 0);
             volume24h   = allSwaps
-              .filter((r: any) => now - new Date(r.created_at).getTime() < 86400_000)
+              .filter((r: any) => now - new Date(r.timestamp).getTime() < 86400_000)
               .reduce((s: number, r: any) => s + Number(r.usdc_amount), 0);
           } else {
             // Fallback: native ARC volume
