@@ -160,8 +160,8 @@ export function ArcEcosystemHub() {
       let nextParams = loadMoreParams;
       let pagesFetched = 0;
       
-      // Auto-fetch up to 20 pages (1000 tokens) if it's the initial load to solve the 50 token limit problem
-      const pagesToFetch = loadMoreParams ? 1 : 20; 
+      // Auto-fetch up to 2 pages (100 tokens) if it's the initial load to prevent UI hanging
+      const pagesToFetch = loadMoreParams ? 1 : 2; 
 
       while (pagesFetched < pagesToFetch) {
         let url = ARCSCAN_API;
@@ -184,7 +184,9 @@ export function ArcEcosystemHub() {
           .filter((t: any) => {
             // If it's initial load, filter against ArcOmni. If pagination, we filter against existing allTokens in state.
             const isAlreadyArcOmni = arcOmniMap.has(t.address_hash.toLowerCase());
-            return !isAlreadyArcOmni;
+            const hasHolders = Number(t.holders_count || 0) > 0;
+            const hasName = t.name && t.name.trim() !== '';
+            return !isAlreadyArcOmni && hasHolders && hasName;
           })
           .map((t: any) => ({
             id: t.address_hash,

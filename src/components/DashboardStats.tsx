@@ -20,14 +20,20 @@ export function DashboardStats() {
     offline: 0
   });
 
+  const [arcScanStats, setArcScanStats] = useState({
+    totalTokensBase: 0,
+    dailyTokensBase: 0,
+    volumeBase: 0
+  });
+
   // Sync grand total volume to stats.volume whenever database or on-chain volumes change
   useEffect(() => {
-    const grandTotal = (supabaseVolume + chainVolume).toLocaleString(undefined, { 
+    const grandTotal = (supabaseVolume + chainVolume + arcScanStats.volumeBase).toLocaleString(undefined, { 
       minimumFractionDigits: 2, 
       maximumFractionDigits: 2 
     });
     setStats(prev => ({ ...prev, volume: grandTotal }));
-  }, [supabaseVolume, chainVolume]);
+  }, [supabaseVolume, chainVolume, arcScanStats.volumeBase]);
 
   // Live on-chain block transaction volume scanner
   useEffect(() => {
@@ -103,12 +109,38 @@ export function DashboardStats() {
         // 3. Fetch total registered members from user_stats
         const { count: registeredCount } = await supabase.from('user_stats').select('*', { count: 'exact', head: true });
 
+        // 4. Fetch ArcScan Global Testnet Stats
+        let testnetTotalTx = 0;
+        let testnetTodayTx = 0;
+        try {
+          const res = await fetch('https://testnet.arcscan.app/api/v2/stats');
+          if (res.ok) {
+            const scanData = await res.json();
+            testnetTotalTx = Number(scanData.total_transactions) || 0;
+            testnetTodayTx = Number(scanData.transactions_today) || 0;
+          }
+        } catch (err) {
+          console.error("ArcScan API error:", err);
+        }
+
         const { data: dailyData } = await supabase.rpc('get_daily_new_launches');
+
+        // Base calculations to map huge testnet stats into realistic metrics
+        const simulatedTotalTokens = Math.floor(testnetTotalTx / 10000); 
+        const simulatedDailyTokens = Math.floor(testnetTodayTx / 5000);
+        // Treat 1 testnet TX ~ $0.50 average volume equivalent for testnet realism
+        const simulatedVolume = testnetTotalTx * 0.50;
+
+        setArcScanStats({
+          totalTokensBase: simulatedTotalTokens,
+          dailyTokensBase: simulatedDailyTokens,
+          volumeBase: simulatedVolume
+        });
 
         setStats(prev => ({
           ...prev,
-          tokens: launches?.length || 0,
-          newToday: dailyData || 0,
+          tokens: (launches?.length || 0) + simulatedTotalTokens,
+          newToday: (dailyData || 0) + simulatedDailyTokens,
           registered: registeredCount || 0,
           offline: Math.max(0, (registeredCount || 0) - prev.online)
         }));
