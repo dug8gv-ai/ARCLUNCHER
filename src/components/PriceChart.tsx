@@ -151,9 +151,9 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
       // ── FETCH REAL AMM SWAPS FROM SUPABASE ──
       const { data: swaps, error } = await supabase
         .from('token_swaps')
-        .select('usdc_amount, token_amount, is_buy, created_at')
+        .select('usdc_amount, token_amount, is_buy, timestamp')
         .eq('token_address', addr)
-        .order('created_at', { ascending: true });
+        .order('timestamp', { ascending: true });
 
       // Fetch token info and holders (Metrics)
       const urlInfo = `https://testnet.arcscan.app/api?module=token&action=getTokenInfo&contractaddress=${addr}`;
@@ -222,7 +222,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
         const spotPrice = currentUSDC / currentTokens;
 
         return {
-          timestamp: new Date(tx.created_at).getTime(),
+          timestamp: new Date(tx.timestamp).getTime(),
           token_amount: tokenAmount,
           usdc_amount: usdcAmount,
           spotPrice: Math.max(INITIAL_PRICE, spotPrice),
