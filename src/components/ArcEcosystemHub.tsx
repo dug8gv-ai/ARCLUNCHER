@@ -546,7 +546,17 @@ export function ArcEcosystemHub() {
         type: swapDirection === 'BUY' ? 'buy' : 'sell'
       };
 
-      await supabase.from('token_swaps').insert(swapData);
+      // 🛡️ SECURITY PROTOCOL: Secure Backend Routing (Zero-Trust)
+      const apiRes = await fetch('/api/swaps/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ txHash: swapTx, swapData })
+      });
+
+      if (!apiRes.ok) {
+        throw new Error('Backend verification failed for this swap.');
+      }
+
       toast.success("Swap Executed Successfully!", { id: 'swap-toast' });
       setSwapAmount('');
     } catch (e: any) {

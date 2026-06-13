@@ -317,12 +317,20 @@ export function TradingPanel({ token }: TradingPanelProps) {
         type: isBuy ? 'buy' : 'sell'
       };
 
-      const { error: dbError } = await supabase.from('token_swaps').insert(swapData);
-      if (dbError) {
+      // 🛡️ SECURITY PROTOCOL: Secure Backend Routing
+      const apiRes = await fetch('/api/swaps/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ txHash: swapHash, swapData })
+      });
+
+      if (!apiRes.ok) {
         await triggerPremiumAlert("DATABASE ERROR", [
           { label: "Status", value: "Database Sync Error" },
-          { label: "Error Detail", value: dbError.message }
-        ], "error");
+          { label: "Detail", value: "Blockchain tx succeeded, but backend secure sync failed. Refresh to update." }
+        ], 'error');
+        setStatus('idle');
+        return;
       }
 
       // Track user volume & points: 10 USDC Volume = 1 ARCL Point. Store in user_stats.
