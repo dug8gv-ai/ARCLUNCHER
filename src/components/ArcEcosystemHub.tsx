@@ -61,8 +61,11 @@ type MinedBlock = {
   volume: number;
 };
 
-const ARCSCAN_API = 'https://testnet.arcscan.app/api/v2/tokens';
+const ARCSCAN_API = process.env.NEXT_PUBLIC_ARCSCAN_API_URL || 'https://testnet.arcscan.app/api/v2/tokens';
 const ARCSCAN_EXPLORER = 'https://testnet.arcscan.app';
+
+// 🛡️ SECURITY PROTOCOL: Strict Sanitizer for XSS Prevention
+const sanitizeString = (str: string) => str ? str.replace(/[<>"'`=\/]/g, '') : '';
 
 export function ArcEcosystemHub() {
   const { isConnected, address } = useAccount();
@@ -191,8 +194,8 @@ export function ArcEcosystemHub() {
           .map((t: any) => ({
             id: t.address_hash,
             token_address: t.address_hash,
-            name: t.name || 'Unknown Token',
-            ticker: t.symbol || '???',
+            name: sanitizeString(t.name || 'Unknown Token'),
+            ticker: sanitizeString(t.symbol || '???'),
             image_url: t.icon_url,
             holders: Number(t.holders_count || 0),
             priceChange: '0.00',
@@ -387,10 +390,18 @@ export function ArcEcosystemHub() {
         });
 
         if (historicalTokens.length > 0) {
-          setAllTokens(prev => [...historicalTokens, ...prev]);
+          setAllTokens(prev => {
+            const existingIds = new Set(prev.map(p => p.token_address.toLowerCase()));
+            const newUniques = historicalTokens.filter(t => !existingIds.has(t.token_address.toLowerCase()));
+            return [...newUniques, ...prev];
+          });
         }
 
         // 2. Seamlessly Chain Real-Time Subscriptions
+        // 🛡️ SECURITY PROTOCOL: Throttling / Debouncing Events
+        let pendingTokens: UnifiedToken[] = [];
+        let tokenThrottleTimeout: any = null;
+
         unwatchTokens = publicClient.watchContractEvent({
           address: ECOSYSTEM_FACTORY_ADDRESS as `0x${string}`,
           abi: ecosystemFactoryAbi,
@@ -401,8 +412,8 @@ export function ArcEcosystemHub() {
               return {
                 id: log.args.tokenAddress as string,
                 token_address: log.args.tokenAddress as string,
-                name: log.args.name || 'New Token',
-                ticker: log.args.ticker || 'NEW',
+                name: sanitizeString(log.args.name || 'New Token'),
+                ticker: sanitizeString(log.args.ticker || 'NEW'),
                 image_url: null,
                 holders: 0,
                 priceChange: '0.00',
@@ -414,12 +425,21 @@ export function ArcEcosystemHub() {
               };
             });
 
-            setAllTokens(prev => {
-              const existingIds = new Set(prev.map(p => p.token_address.toLowerCase()));
-              const newUniques = liveTokens.filter(t => !existingIds.has(t.token_address.toLowerCase()));
-              return [...newUniques, ...prev];
-            });
-            toast.success(`New token deployed: ${liveTokens[0]?.ticker}`);
+            pendingTokens.push(...liveTokens);
+            
+            if (tokenThrottleTimeout) clearTimeout(tokenThrottleTimeout);
+            tokenThrottleTimeout = setTimeout(() => {
+              if (pendingTokens.length > 0) {
+                const flushTokens = [...pendingTokens];
+                pendingTokens = [];
+                setAllTokens(prev => {
+                  const existingIds = new Set(prev.map(p => p.token_address.toLowerCase()));
+                  const newUniques = flushTokens.filter(t => !existingIds.has(t.token_address.toLowerCase()));
+                  return [...newUniques, ...prev];
+                });
+                toast.success(`New token deployed: ${flushTokens[0]?.ticker}`);
+              }
+            }, 1000); // Flush queue every 1 second
           }
         });
 
@@ -469,7 +489,19 @@ export function ArcEcosystemHub() {
     if (!isConnected) return toast.error("Please connect your wallet");
     if (!selectedToken) return toast.error("Select a token first");
     if (selectedToken._isExternalToken) return toast.error("External tokens cannot be traded through this router");
-    if (!swapAmount || Number(swapAmount) <= 0) return toast.error("Enter a valid amount");
+    
+    // 🛡️ SECURITY PROTOCOL: Strict Payload Validation
+    const numAmount = Number(swapAmount);
+    if (!swapAmount || isNaN(numAmount) || numAmount <= 0) {
+      toast.error("Invalid swap payload detected. Action blocked.");
+      return;
+    }
+    
+    const ethRegex = /^0x[a-fA-F0-9]{40}$/;
+    if (!ethRegex.test(selectedToken.token_address)) {
+       toast.error("Malformed routing address. Action blocked.");
+       return;
+    }
 
     setIsSwapping(true);
     try {
