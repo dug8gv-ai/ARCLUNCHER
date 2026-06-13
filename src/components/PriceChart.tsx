@@ -144,7 +144,7 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
     volumeSeriesRef.current = volumeSeries;
 
     const fetchChartData = async () => {
-      if (!selectedToken) return;
+      if (!selectedToken || selectedToken._source === 'arcscan') return;
       
       const addr = selectedToken.token_address.toLowerCase();
 
@@ -398,6 +398,16 @@ export function PriceChart({ selectedToken }: PriceChartProps) {
               <BarChart3 className="text-slate-300 mx-auto mb-2" size={42} />
               <p className="text-[var(--text-secondary)] font-bold text-sm">No token selected</p>
               <p className="text-[var(--text-secondary)] text-xs font-medium max-w-xs mx-auto">Select a live market from the leaderboard on the right to load trading history</p>
+            </div>
+          </div>
+        )}
+
+        {selectedToken && selectedToken._source === 'arcscan' && (
+          <div className="absolute inset-0 z-10 bg-slate-50/95 backdrop-blur-[2px] flex items-center justify-center rounded-2xl border border-dashed border-[var(--border-dim)]">
+            <div className="text-center p-6 space-y-2">
+              <BarChart3 className="text-indigo-300 mx-auto mb-2" size={42} />
+              <p className="text-[var(--text-secondary)] font-bold text-sm">External Testnet Token</p>
+              <p className="text-[var(--text-secondary)] text-xs font-medium max-w-xs mx-auto">This token was not deployed via ArcOmni. Live AMM charting is only available for native platform tokens.</p>
             </div>
           </div>
         )}
