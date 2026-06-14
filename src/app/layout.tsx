@@ -4,6 +4,7 @@ import { Web3Provider } from "@/components/Web3Provider";
 import { Toaster } from "react-hot-toast";
 import { WelcomeSplash } from "@/components/WelcomeSplash";
 import { RainBackgroundClient } from "@/components/RainBackgroundClient";
+import { AuthGate } from "@/components/AuthGate";
 
 export const metadata: Metadata = {
   title: "ArcOmni Pro | Global Analytics Edition",
@@ -58,7 +59,9 @@ export default function RootLayout({
             />
             {/* Main content — sits above canvas z-index */}
             <div style={{ position: "relative", zIndex: 1 }}>
-              {children}
+              <AuthGate>
+                {children}
+              </AuthGate>
             </div>
           </Web3Provider>
         </ThemeProvider>
