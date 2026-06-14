@@ -83,25 +83,32 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
     <form onSubmit={handleSend} className="bg-[var(--bg-input)] border border-[var(--border-dim)] p-5 rounded-2xl flex flex-col gap-4 shadow-sm">
       <h4 className="text-[10px] font-black text-[var(--accent-gold-2)] uppercase tracking-wider font-sans m-0">Direct Payment</h4>
 
-      {/* Amount + Token in one row */}
-      <div className="flex border border-[var(--border-dim)] rounded-xl overflow-hidden bg-white focus-within:border-[var(--accent-gold)] transition-colors">
+      {/* Full-width numerical input field on top */}
+      <div className="border border-[var(--border-dim)] rounded-xl overflow-hidden bg-white focus-within:border-[var(--accent-gold)] transition-colors">
         <input
           type="number"
           step="0.0001"
           value={amount}
           onChange={e => setAmount(e.target.value)}
-          placeholder="Enter amount..."
-          className="flex-1 bg-transparent border-none outline-none px-4 py-3 text-[var(--text-primary)] font-sans font-bold text-base min-h-unset"
+          placeholder={`Enter Amount (${token})`}
+          className="w-full bg-transparent border-none outline-none px-4 py-3.5 text-[var(--text-primary)] font-sans font-bold text-base min-h-unset amount-input-override"
           style={{ minHeight: 'unset' }}
         />
-        <select
-          value={token}
-          onChange={e => setToken(e.target.value as any)}
-          className="bg-[var(--bg-elevated)] border-l border-[var(--border-dim)] text-[var(--text-primary)] px-4 py-3 outline-none font-bold cursor-pointer font-sans text-xs tracking-wider"
-        >
-          <option value="ARC" className="bg-white text-gray-800">ARC</option>
-          <option value="USDC" className="bg-white text-gray-800">USDC</option>
-        </select>
+      </div>
+
+      {/* Premium token asset selector dropdown underneath */}
+      <div className="flex flex-col gap-1">
+        <label className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-wider px-1">Select Token</label>
+        <div className="border border-[var(--border-dim)] rounded-xl overflow-hidden bg-white focus-within:border-[var(--accent-gold)] transition-colors">
+          <select
+            value={token}
+            onChange={e => setToken(e.target.value as any)}
+            className="w-full bg-transparent text-[var(--text-primary)] px-4 py-3 outline-none font-bold cursor-pointer font-sans text-xs tracking-wider"
+          >
+            <option value="ARC" className="bg-white text-gray-800">ARC</option>
+            <option value="USDC" className="bg-white text-gray-800">USDC</option>
+          </select>
+        </div>
       </div>
 
       <button
