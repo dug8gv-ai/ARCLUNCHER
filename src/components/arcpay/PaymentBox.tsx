@@ -53,7 +53,7 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
           message: paymentMessage ? `💰 Sent ${amount} ARC: ${paymentMessage}` : `💰 Sent ${amount} ARC`,
         });
       } else if (token === 'USDC') {
-        const value = parseUnits(amount, 18);
+        const value = parseUnits(amount, 6);
         const hash = await writeContractAsync({
           address: '0x3600000000000000000000000000000000000000' as `0x${string}`,
           abi: erc20Abi,
