@@ -122,15 +122,21 @@ export function ArcEcosystemHub() {
         }
 
         // Fetch swaps for metrics
-        const addresses = dbTokensData?.map(t => t.token_address) || [];
-        const { data: allSwaps } = await supabase
-          .from('token_swaps')
-          .select('token_address, user_address, usdc_amount, token_amount, created_at')
-          .in('token_address', addresses);
+        const addresses = (dbTokensData?.map(t => t.token_address) || [])
+          .filter((addr): addr is string => typeof addr === 'string' && addr.trim() !== '');
+
+        let allSwaps: any[] = [];
+        if (addresses.length > 0) {
+          const { data } = await supabase
+            .from('token_swaps')
+            .select('token_address,user_address,usdc_amount,token_amount,created_at')
+            .in('token_address', addresses);
+          allSwaps = data || [];
+        }
 
         arcOmniTokens = (dbTokensData || []).map(token => {
           arcOmniMap.set(token.token_address.toLowerCase(), true);
-          const tSwaps = (allSwaps?.filter(s => s.token_address === token.token_address) || [])
+          const tSwaps = (allSwaps.filter(s => s.token_address === token.token_address) || [])
             .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
           const holdersCount = new Set(tSwaps.map(s => s.user_address)).size;
           

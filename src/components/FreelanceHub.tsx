@@ -168,7 +168,10 @@ export function FreelanceHub() {
     const channel = supabase.channel(`gig_chat_${chatGig.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gig_messages', filter: `gig_id=eq.${chatGig.id}` }, async () => { await fetchChatMessages(chatGig.id); })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+    };
   }, [chatGig]);
 
   // Real-time new message notifications for gig owner
@@ -183,7 +186,10 @@ export function FreelanceHub() {
           setUnreadCount(c => c + 1);
         }
       }).subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+    };
   }, [gigs, userAddress]);
 
   useEffect(() => { if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);

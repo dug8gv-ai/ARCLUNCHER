@@ -62,6 +62,7 @@ export default function AirdropTracker({ onTokenPreFilled }: AirdropTrackerProps
         .subscribe();
 
       return () => {
+        channel.unsubscribe();
         supabase.removeChannel(channel);
       };
     } else {

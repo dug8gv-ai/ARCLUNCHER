@@ -97,16 +97,22 @@ export function Leaderboard({
       if (error) throw error;
 
       // Enrich ArcOmni tokens with swap metrics
-      const tokenAddresses = tokensData?.map(t => t.token_address) || [];
-      const { data: allSwaps } = await supabase
-        .from('token_swaps')
-        .select('token_address, user_address, usdc_amount, token_amount, created_at')
-        .in('token_address', tokenAddresses);
+      const tokenAddresses = (tokensData?.map(t => t.token_address) || [])
+        .filter((addr): addr is string => typeof addr === 'string' && addr.trim() !== '');
+
+      let allSwaps: any[] = [];
+      if (tokenAddresses.length > 0) {
+        const { data } = await supabase
+          .from('token_swaps')
+          .select('token_address,user_address,usdc_amount,token_amount,created_at')
+          .in('token_address', tokenAddresses);
+        allSwaps = data || [];
+      }
 
       const arcOmniMap = new Map<string, boolean>();
       const enrichedArcOmni = (tokensData || []).map(token => {
         arcOmniMap.set(token.token_address.toLowerCase(), true);
-        const tokenSwaps = (allSwaps?.filter(s => s.token_address === token.token_address) || [])
+        const tokenSwaps = (allSwaps.filter(s => s.token_address === token.token_address) || [])
           .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         const holders = new Set(tokenSwaps.map(s => s.user_address)).size;
         
@@ -317,6 +323,7 @@ export function Leaderboard({
     }, 30000);
 
     return () => {
+      tokenChannel.unsubscribe();
       supabase.removeChannel(tokenChannel);
       clearInterval(arcScanPoll);
     };

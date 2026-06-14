@@ -83,6 +83,7 @@ export default function ArcGlobalDashboard() {
         .subscribe();
 
       return () => {
+        channel.unsubscribe();
         supabase.removeChannel(channel);
       };
     } else {

@@ -158,7 +158,9 @@ export function Leaderboard() {
                 const { data: launches } = await supabase
                   .from('token_launches')
                   .select('token_address');
-                const tokenAddresses = (launches ?? []).map((l: { token_address: string }) => l.token_address);
+                const tokenAddresses = (launches ?? [])
+                  .map((l: { token_address: string }) => l.token_address)
+                  .filter((addr): addr is string => typeof addr === 'string' && addr.trim() !== '');
                 if (tokenAddresses.length > 0) {
                   const { data: allSwaps } = await supabase
                     .from('token_swaps')

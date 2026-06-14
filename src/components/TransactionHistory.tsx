@@ -31,6 +31,7 @@ export function TransactionHistory({ tokenAddress }: { tokenAddress?: string }) 
       .subscribe();
 
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [tokenAddress]);

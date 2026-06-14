@@ -184,6 +184,7 @@ export function Header() {
       return () => {
         window.removeEventListener('storage', handleStorageSync);
         clearInterval(interval);
+        channel.unsubscribe();
         supabase.removeChannel(channel);
       };
     } else {

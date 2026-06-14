@@ -264,7 +264,7 @@ export default function Home() {
 
           const { data: swaps } = await supabase
             .from('token_swaps')
-            .select('usdc_amount, token_amount, is_buy')
+            .select('usdc_amount,token_amount,is_buy')
             .eq('token_address', lockAddress.toLowerCase());
 
           swaps?.forEach(s => {
@@ -799,6 +799,7 @@ export default function Home() {
         .subscribe();
 
       return () => {
+        channel.unsubscribe();
         supabase.removeChannel(channel);
       };
     } else {

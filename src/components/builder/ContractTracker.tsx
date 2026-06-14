@@ -157,7 +157,7 @@ export function ContractTracker() {
         // Check if it's a token launch contract
         const { data: swapsDirect } = await supabase
           .from('token_swaps')
-          .select('usdc_amount, timestamp')
+          .select('usdc_amount,timestamp')
           .eq('token_address', addr);
 
         if (swapsDirect && swapsDirect.length > 0) {
@@ -171,7 +171,7 @@ export function ContractTracker() {
           // Launcher/router contract — sum all platform swaps
           const { data: allSwaps } = await supabase
             .from('token_swaps')
-            .select('usdc_amount, timestamp');
+            .select('usdc_amount,timestamp');
 
           if (allSwaps && allSwaps.length > 0) {
             const now = Date.now();

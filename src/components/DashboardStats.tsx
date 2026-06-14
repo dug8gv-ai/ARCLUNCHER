@@ -190,6 +190,8 @@ export function DashboardStats() {
       });
 
     return () => {
+      dbChannel.unsubscribe();
+      presenceChannel.unsubscribe();
       supabase.removeChannel(dbChannel);
       supabase.removeChannel(presenceChannel);
     };

@@ -146,7 +146,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
     try {
       const { data: swaps } = await supabase
         .from('token_swaps')
-        .select('usdc_amount, token_amount, is_buy')
+        .select('usdc_amount,token_amount,is_buy')
         .eq('token_address', token.token_address.toLowerCase());
 
       // ── AMM BONDING CURVE — REAL MARKET PRICING ────────────────────────
