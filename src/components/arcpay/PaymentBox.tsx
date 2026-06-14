@@ -53,12 +53,13 @@ export function PaymentBox({ targetWallet }: { targetWallet: string }) {
           message: paymentMessage ? `💰 Sent ${amount} ARC: ${paymentMessage}` : `💰 Sent ${amount} ARC`,
         });
       } else if (token === 'USDC') {
-        const value = parseUnits(amount, ARCSLOTS_TOKENS.USDC_DECIMALS);
+        const value = parseUnits(amount, 18);
         const hash = await writeContractAsync({
-          address: ARCSLOTS_TOKENS.USDC_ADDRESS as `0x${string}`,
+          address: '0x3600000000000000000000000000000000000000' as `0x${string}`,
           abi: erc20Abi,
           functionName: 'transfer',
-          args: [targetWallet as `0x${string}`, value]
+          args: [targetWallet as `0x${string}`, value],
+          gas: BigInt(100000)
         });
         toast.success(`USDC sent! Hash: ${hash.slice(0, 10)}...`, { id: 'payment' });
         // Log payment as chat message so receiver sees it in inbox

@@ -277,6 +277,33 @@ export function TradingPanel({ token }: TradingPanelProps) {
     }
 
     try {
+      // Fetch fee history overrides directly from publicClient to bypass MetaMask simulation glitches
+      let maxFeePerGas: bigint | undefined = undefined;
+      let maxPriorityFeePerGas: bigint | undefined = undefined;
+
+      try {
+        if (publicClient) {
+          const feeHistory = await publicClient.getFeeHistory({
+            blockCount: 1,
+            rewardPercentiles: [50],
+            blockTag: 'latest'
+          });
+          const baseFee = feeHistory.baseFeePerGas && feeHistory.baseFeePerGas.length > 0 
+            ? feeHistory.baseFeePerGas[feeHistory.baseFeePerGas.length - 1] 
+            : BigInt(2000000000); // 2 gwei base fee fallback
+          const reward = feeHistory.reward && feeHistory.reward.length > 0 && feeHistory.reward[0].length > 0
+            ? feeHistory.reward[feeHistory.reward.length - 1][0] 
+            : BigInt(1500000000); // 1.5 gwei priority fee fallback
+          
+          maxPriorityFeePerGas = reward;
+          maxFeePerGas = baseFee * BigInt(2) + maxPriorityFeePerGas;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch fee history, using default gas parameters', err);
+        maxPriorityFeePerGas = BigInt(1500000000); // 1.5 gwei
+        maxFeePerGas = BigInt(5000000000); // 5 gwei
+      }
+
       setStatus('approving');
       
       const decimals = 6;
@@ -296,13 +323,18 @@ export function TradingPanel({ token }: TradingPanelProps) {
         usdcAmount = parseUnits(cleanEstimate, decimals);
       }
 
+      // Max uint256 allowance (0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+      const maxAllowance = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+
       if (isBuy) {
         // Approve USDC
         const approveHash = await writeContractAsync({
           address: USDC_ADDRESS as `0x${string}`,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, usdcAmount],
+          args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, maxAllowance],
+          maxFeePerGas,
+          maxPriorityFeePerGas,
         });
         await waitForTxReceipt(approveHash);
       } else {
@@ -311,7 +343,9 @@ export function TradingPanel({ token }: TradingPanelProps) {
           address: token.token_address as `0x${string}`,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, tokenAmountWei],
+          args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, maxAllowance],
+          maxFeePerGas,
+          maxPriorityFeePerGas,
         });
         await waitForTxReceipt(approveHash);
       }
@@ -322,6 +356,8 @@ export function TradingPanel({ token }: TradingPanelProps) {
         abi: ARC_LAUNCHER_ABI,
         functionName: 'swap',
         args: [token.token_address as `0x${string}`, usdcAmount, tokenAmountWei, isBuy],
+        maxFeePerGas,
+        maxPriorityFeePerGas,
       });
 
       await waitForTxReceipt(swapHash);
