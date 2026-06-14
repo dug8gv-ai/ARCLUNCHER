@@ -143,7 +143,7 @@ function FluidParticlesBackground({
     let animationFrameId: number;
 
     const animate = () => {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'; // White trailing background for swirly lines
+      ctx.fillStyle = 'rgba(250, 249, 246, 0.12)'; // Cream trailing background for swirly lines
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       for (const particle of particles) {
