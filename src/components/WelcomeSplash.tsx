@@ -5,8 +5,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export function WelcomeSplash() {
   const [visible, setVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024 || 
+        ('ontouchstart' in window && window.innerWidth < 1280);
+      setIsMobile(mobile);
+      return mobile;
+    };
+    const mobileVal = checkMobile();
+
+    if (mobileVal) {
+      // Skip splash on mobile for instant loading
+      return;
+    }
+
     const seen = sessionStorage.getItem('arcomni_splash_shown_v2');
     if (!seen) {
       setVisible(true);
@@ -15,6 +29,8 @@ export function WelcomeSplash() {
       return () => clearTimeout(t);
     }
   }, []);
+
+  if (isMobile) return null;
 
   return (
     <AnimatePresence>

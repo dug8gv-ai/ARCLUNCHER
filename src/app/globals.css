@@ -386,3 +386,111 @@ button[class*="text-white"],
 .bg-blue-600[class*="text-white"] {
   color: #ffffff !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PWA MOBILE NATIVE APP FEEL
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Disable pull-to-refresh on mobile (native app feel) */
+html, body {
+  overscroll-behavior-y: contain;
+}
+
+/* Disable text selection on UI elements (native feel) */
+button, a, nav, aside, .sidebar-link, .card, .stat-box, .panel, label, h1, h2, h3, h4, h5, h6 {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection only in inputs and content areas */
+input, textarea, [contenteditable], .select-all, p, span.break-all {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Disable long-press context menu on mobile */
+* {
+  -webkit-touch-callout: none;
+}
+input, textarea, [contenteditable] {
+  -webkit-touch-callout: default;
+}
+
+/* PWA standalone mode specific styles */
+@media all and (display-mode: standalone) {
+  /* Extra top padding for status bar in standalone mode */
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  /* Bottom nav safe area */
+  .pwa-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Bottom navigation bar for mobile */
+.pwa-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: var(--bg-sidebar);
+  border-top: 1px solid var(--border-dim);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px 4px 8px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.pwa-bottom-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'Rajdhani', sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 52px;
+}
+
+.pwa-bottom-nav button.active {
+  color: var(--accent-gold);
+}
+
+.pwa-bottom-nav button:active {
+  transform: scale(0.9);
+}
+
+.pwa-bottom-nav .nav-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Add bottom padding to main content so it doesn't hide behind bottom nav on mobile */
+@media (max-width: 1023px) {
+  .main-content-area {
+    padding-bottom: 72px !important;
+  }
+}
+
+/* Reduce motion for users who prefer it (also helps low-end phones) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -33,6 +33,8 @@ import { UserProfileDrawer } from '@/components/arcpay/UserProfileDrawer';
 import { DiscreteTasks } from '@/components/airdrop/DiscreteTasks';
 import { MarketHubView } from '@/components/markethub/MarketHubView';
 import { ArcEcosystemHub } from '@/components/ArcEcosystemHub';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
+import { WalletDetector } from '@/components/WalletDetector';
 
 export default function Home() {
   const { isConnected, address: userAddress } = useAccount();
@@ -1123,7 +1125,7 @@ export default function Home() {
       </aside>
 
       {/* 2. Main content viewport area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto main-content-area">
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 w-full space-y-6">
           <Header />
           <NetworkGuard />
@@ -1789,6 +1791,12 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileBottomNav currentView={currentView} onNavigate={(view: any) => setCurrentView(view)} />
+
+      {/* Wallet Provider Detection (renders nothing, logs to console) */}
+      <WalletDetector />
     </div>
   );
 }

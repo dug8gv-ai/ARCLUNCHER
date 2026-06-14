@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // ── Simplex Noise Helper ──
 function createNoise() {
@@ -99,8 +99,24 @@ interface Particle {
 export function RainBackgroundClient() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const noise = createNoise();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024 || 
+        ('ontouchstart' in window && window.innerWidth < 1280);
+      setIsMobile(mobile);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
+    // Skip animation entirely on mobile to prevent hang/lag
+    if (isMobile) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -114,6 +130,7 @@ export function RainBackgroundClient() {
 
     resizeCanvas();
 
+    // Keep 1000 particles on desktop to match original design exactly
     const particles: Particle[] = Array.from({ length: 1000 }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
@@ -179,13 +196,16 @@ export function RainBackgroundClient() {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [isMobile]);
+
+  // On mobile, render nothing — no canvas, no GPU usage
+  if (isMobile) return null;
 
   return (
     <canvas
       ref={canvasRef}
       className="fixed inset-0 w-full h-full pointer-events-none z-0"
-      style={{ display: 'block' }}
+      style={{ display: 'block', willChange: 'transform' }}
     />
   );
 }
