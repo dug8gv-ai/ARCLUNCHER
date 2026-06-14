@@ -852,7 +852,7 @@ export default function Home() {
     <div className="min-h-screen flex antialiased selection:bg-blue-900 selection:text-white">
       
       {/* 1. Desktop Sidebar Navigation (Luxury White & Calm Blue layout) */}
-      <aside className="hidden lg:flex w-72 flex-col bg-[var(--bg-sidebar)] border-r border-[var(--border-dim)] p-6 space-y-8 sticky top-0 h-screen justify-between z-30">
+      <aside className="hidden lg:flex w-72 flex-col bg-[var(--bg-sidebar)] border-r border-[var(--border-dim)] p-6 space-y-8 sticky top-0 h-screen overflow-y-auto justify-start z-30">
         <div className="space-y-8">
           {/* Brand header */}
           <div className="flex items-center gap-3 px-2">
@@ -1119,74 +1119,6 @@ export default function Home() {
             </button>
           </nav>
         </div>
-
-        {/* Your Wallet Balances Card */}
-        {isConnected && (
-          <div className="card p-5 space-y-3 select-none">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider">Your Wallet</span>
-              <span className="text-[9px] bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border border-[var(--border-dim)]">
-                Arc Chain Assets
-              </span>
-            </div>
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs">🔵</span>
-                  <span className="text-[11px] font-bold text-[var(--text-primary)]">USDC Balance</span>
-                </div>
-                <span className="text-xs font-extrabold text-[var(--text-primary)]">
-                  {usdcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="w-full h-[1px] bg-[var(--border-dim)]" />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs">🟣</span>
-                  <span className="text-[11px] font-bold text-[var(--text-primary)]">EURC (Euro) Balance</span>
-                </div>
-                <span className="text-xs font-extrabold text-[var(--text-primary)]">
-                  {eurcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="w-full h-[1px] bg-[var(--border-dim)]" />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs">🟡</span>
-                  <span className="text-[11px] font-bold text-[var(--text-primary)]">cirBTC Balance</span>
-                </div>
-                <span className="text-xs font-extrabold text-[var(--text-primary)]">
-                  {cirbtcWalletBalance.toLocaleString(undefined, { minimumFractionDigits: 8, maximumFractionDigits: 8 })}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Bottom Sidebar Staking & Yield card */}
-        <button
-          type="button"
-          onClick={() => {
-            setCurrentView('staking');
-            setIsRulesOpen(false);
-          }}
-          className="card p-5 space-y-3.5 cursor-pointer group text-left"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider group-hover:text-[var(--accent-gold)] transition-colors">Staking & Yield</span>
-            <span className="bg-[rgba(0,242,254,0.1)] text-[var(--accent-gold)] border border-[var(--border-dim)] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
-              Live
-            </span>
-          </div>
-          <div>
-            <h4 className="text-lg font-black text-[var(--text-primary)] tracking-tight">
-              Open the live vaults
-            </h4>
-            <p className="text-[10px] text-[var(--text-secondary)] font-semibold mt-2 leading-relaxed">
-              Review APY, wallets, and wallet-signed staking actions for USDC, EURC, and cirBTC in one place.
-            </p>
-          </div>
-        </button>
       </aside>
 
       {/* 2. Main content viewport area */}
