@@ -100,20 +100,41 @@ export function Leaderboard({
       const tokenAddresses = tokensData?.map(t => t.token_address) || [];
       const { data: allSwaps } = await supabase
         .from('token_swaps')
-        .select('token_address, user_address, usdc_amount, token_amount')
+        .select('token_address, user_address, usdc_amount, token_amount, created_at')
         .in('token_address', tokenAddresses);
 
       const arcOmniMap = new Map<string, boolean>();
       const enrichedArcOmni = (tokensData || []).map(token => {
         arcOmniMap.set(token.token_address.toLowerCase(), true);
-        const tokenSwaps = allSwaps?.filter(s => s.token_address === token.token_address) || [];
+        const tokenSwaps = (allSwaps?.filter(s => s.token_address === token.token_address) || [])
+          .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         const holders = new Set(tokenSwaps.map(s => s.user_address)).size;
         
         let priceChange = 0;
-        if (tokenSwaps.length >= 2) {
-          const initialPrice = Number(tokenSwaps[0].usdc_amount / tokenSwaps[0].token_amount);
-          const latestPrice = Number(tokenSwaps[tokenSwaps.length - 1].usdc_amount / tokenSwaps[tokenSwaps.length - 1].token_amount);
-          priceChange = ((latestPrice - initialPrice) / (initialPrice || 1)) * 100;
+        if (tokenSwaps.length > 0) {
+          const latestSwap = tokenSwaps[tokenSwaps.length - 1];
+          const latestPrice = Number(latestSwap.token_amount) > 0 
+            ? Number(latestSwap.usdc_amount) / Number(latestSwap.token_amount) 
+            : 0;
+          
+          const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          const swapsBefore24h = tokenSwaps.filter(s => new Date(s.created_at) < twentyFourHoursAgo);
+          
+          let price24hAgo = 0;
+          if (swapsBefore24h.length > 0) {
+            const latestSwapBefore24h = swapsBefore24h[swapsBefore24h.length - 1];
+            price24hAgo = Number(latestSwapBefore24h.token_amount) > 0 
+              ? Number(latestSwapBefore24h.usdc_amount) / Number(latestSwapBefore24h.token_amount) 
+              : 0;
+          } else {
+            const initialLiquidity = Number(token.initial_liquidity || token.liquidity || 3);
+            const totalSupply = Number(token.initial_supply || token.supply || 1_000_000_000);
+            price24hAgo = initialLiquidity / totalSupply;
+          }
+          
+          if (price24hAgo > 0 && latestPrice > 0) {
+            priceChange = ((latestPrice - price24hAgo) / price24hAgo) * 100;
+          }
         }
 
         return {
