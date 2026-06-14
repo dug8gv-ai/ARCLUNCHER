@@ -6,55 +6,55 @@
 ════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Light Mode (Default) ── */
-  --bg-main:        #ffffff;
+  /* ── Warm Luxury Light Mode (Default) ── */
+  --bg-main:        #fcfbfa;
   --bg-sidebar:     #ffffff;
   --bg-card:        #ffffff;
-  --bg-elevated:    #ffffff;
-  --bg-input:       #fafafa;
+  --bg-elevated:    #f9f8f6;
+  --bg-input:       #faf9f6;
   --bg-panel:       #ffffff;
 
   /* ── Text ── */
-  --text-primary:   #0f172a;
-  --text-secondary: #475569;
-  --text-muted:     #94a3b8;
-  --text-bright:    #000000;
+  --text-primary:   #1c1917;
+  --text-secondary: #78716c;
+  --text-muted:     #a8a29e;
+  --text-bright:    #1c1917;
 
-  /* ── Accents (Yellow & Gold) ── */
-  --accent-gold:    #eab308;
-  --accent-gold-2:  #facc15;
-  --accent-gold-dim: rgba(234, 179, 8, 0.1);
-  --accent-blue:    #eab308;
-  --accent-cyan:    #eab308;
-  --accent-purple:  #eab308;
-  --accent-purple-2:#facc15;
-  --accent-orange:  #eab308;
+  /* ── Accents (Amber & Gold) ── */
+  --accent-gold:    #f59e0b;
+  --accent-gold-2:  #d97706;
+  --accent-gold-dim: rgba(245, 158, 11, 0.1);
+  --accent-blue:    #f59e0b;
+  --accent-cyan:    #f59e0b;
+  --accent-purple:  #f59e0b;
+  --accent-purple-2:#d97706;
+  --accent-orange:  #f59e0b;
   --accent-green:   #16a34a; 
   --accent-red:     #dc2626; 
-  --accent-amber:   #eab308;
-  --accent-dim:     rgba(234, 179, 8, 0.15);
+  --accent-amber:   #f59e0b;
+  --accent-dim:     rgba(245, 158, 11, 0.15);
 
   /* ── Borders ── */
-  --border-glow:    rgba(234, 179, 8, 0.3);
-  --border-dim:     #e2e8f0;
-  --border-subtle:  #f1f5f9;
-  --border-active:  rgba(234, 179, 8, 0.5);
+  --border-glow:    rgba(245, 158, 11, 0.3);
+  --border-dim:     #f1ede4;
+  --border-subtle:  #f9f8f6;
+  --border-active:  rgba(245, 158, 11, 0.5);
 
   /* ── Shadows ── */
-  --card-shadow:    0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02);
-  --card-shadow-md: 0 4px 12px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.03);
+  --card-shadow:    0 4px 20px -2px rgba(217, 119, 6, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  --card-shadow-md: 0 10px 30px -4px rgba(217, 119, 6, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
   
   --bd-bg-primary:    #ffffff;
 }
 
 .dark {
-  /* ── Dark Mode ── */
-  --bg-main:        #020617;
-  --bg-sidebar:     #020617;
-  --bg-card:        #0f172a;
-  --bg-elevated:    #1e293b;
-  --bg-input:       #0f172a;
-  --bg-panel:       #0f172a;
+  /* ── Warm Luxury Dark Mode ── */
+  --bg-main:        #04060d;
+  --bg-sidebar:     #070b19;
+  --bg-card:        #0a0f1d;
+  --bg-elevated:    #0f172a;
+  --bg-input:       #070b19;
+  --bg-panel:       #0a0f1d;
 
   /* ── Text ── */
   --text-primary:   #f8fafc;
@@ -62,17 +62,31 @@
   --text-muted:     #64748b;
   --text-bright:    #ffffff;
 
+  /* ── Accents (Amber & Gold) ── */
+  --accent-gold:    #f59e0b;
+  --accent-gold-2:  #d97706;
+  --accent-gold-dim: rgba(245, 158, 11, 0.1);
+  --accent-blue:    #f59e0b;
+  --accent-cyan:    #f59e0b;
+  --accent-purple:  #f59e0b;
+  --accent-purple-2:#d97706;
+  --accent-orange:  #f59e0b;
+  --accent-green:   #16a34a; 
+  --accent-red:     #dc2626; 
+  --accent-amber:   #f59e0b;
+  --accent-dim:     rgba(245, 158, 11, 0.15);
+
   /* ── Borders ── */
-  --border-glow:    rgba(234, 179, 8, 0.3);
+  --border-glow:    rgba(245, 158, 11, 0.3);
   --border-dim:     #1e293b;
-  --border-subtle:  #0f172a;
-  --border-active:  rgba(234, 179, 8, 0.5);
+  --border-subtle:  #0a0f1d;
+  --border-active:  rgba(245, 158, 11, 0.5);
 
   /* ── Shadows ── */
-  --card-shadow:    0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
-  --card-shadow-md: 0 4px 12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  --card-shadow:    0 4px 20px -2px rgba(217, 119, 6, 0.4), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
+  --card-shadow-md: 0 10px 30px -4px rgba(217, 119, 6, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.2);
 
-  --bd-bg-primary:    #020617;
+  --bd-bg-primary:    #04060d;
 }
 
 @theme inline {

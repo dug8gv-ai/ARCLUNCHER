@@ -5,7 +5,7 @@ import { useAccount, useSignMessage } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, Loader2, Sparkles, Check } from 'lucide-react';
+import { ShieldAlert, Loader2, Sparkles, Check, Wallet, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // ── Simplex Noise Helper ──
@@ -105,9 +105,9 @@ interface Particle {
 // ── Simplex Fluid Particles Background ──
 function FluidParticlesBackground({
   children,
-  particleCount = 150,
-  noiseIntensity = 0.002,
-  particleSize = { min: 0.8, max: 2.5 },
+  particleCount = 1000,
+  noiseIntensity = 0.003,
+  particleSize = { min: 0.4, max: 1.5 },
 }: {
   children?: React.ReactNode;
   particleCount?: number;
@@ -137,13 +137,13 @@ function FluidParticlesBackground({
       size: Math.random() * (particleSize.max - particleSize.min) + particleSize.min,
       velocity: { x: 0, y: 0 },
       life: Math.random() * 100,
-      maxLife: 120 + Math.random() * 60,
+      maxLife: 100 + Math.random() * 50,
     }));
 
     let animationFrameId: number;
 
     const animate = () => {
-      ctx.fillStyle = 'rgba(4, 6, 13, 0.15)'; // Soft trailing background
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'; // White trailing background for swirly lines
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       for (const particle of particles) {
@@ -154,17 +154,17 @@ function FluidParticlesBackground({
           particle.y = Math.random() * canvas.height;
         }
 
-        const opacity = Math.sin((particle.life / particle.maxLife) * Math.PI) * 0.35;
+        const opacity = Math.sin((particle.life / particle.maxLife) * Math.PI) * 0.15;
 
         const n = noise.simplex3(
           particle.x * noiseIntensity,
           particle.y * noiseIntensity,
-          Date.now() * 0.00005,
+          Date.now() * 0.0001,
         );
 
         const angle = n * Math.PI * 4;
-        particle.velocity.x = Math.cos(angle) * 1.2;
-        particle.velocity.y = Math.sin(angle) * 1.2;
+        particle.velocity.x = Math.cos(angle) * 1.8;
+        particle.velocity.y = Math.sin(angle) * 1.8;
 
         particle.x += particle.velocity.x;
         particle.y += particle.velocity.y;
@@ -174,12 +174,8 @@ function FluidParticlesBackground({
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
 
-        // Alternate colors: Gold and Cyan/Blue
-        const isGold = particle.maxLife % 2 === 0;
-        ctx.fillStyle = isGold
-          ? `rgba(212, 167, 44, ${opacity})`
-          : `rgba(59, 130, 246, ${opacity})`;
-
+        // Thin swirly dark lines
+        ctx.fillStyle = `rgba(30, 27, 22, ${opacity})`;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fill();
@@ -202,7 +198,7 @@ function FluidParticlesBackground({
   }, [particleCount, noiseIntensity, particleSize]);
 
   return (
-    <div className="relative w-full min-h-screen overflow-x-hidden flex items-center justify-center bg-[#04060d]">
+    <div className="relative w-full min-h-screen overflow-x-hidden flex items-center justify-center bg-[#FAF9F6]">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
       <div className="relative z-10 w-full flex items-center justify-center p-4">
         {children}
@@ -219,18 +215,12 @@ function OrbitingLogo() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-        className="absolute inset-0 rounded-full border-2 border-dashed border-[rgba(212,167,44,0.3)]"
-      />
-      {/* Middle breathing glow ring */}
-      <motion.div
-        animate={{ scale: [0.95, 1.05, 0.95] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute inset-2 rounded-full border border-blue-500/20 bg-blue-500/5 blur-xs"
+        className="absolute inset-0 rounded-full border border-dashed border-[#D4A72C]/45"
       />
       {/* Center Image Container */}
       <motion.div
         whileHover={{ scale: 1.05 }}
-        className="relative w-16 h-16 rounded-2xl bg-[#070b19] border border-[rgba(212,167,44,0.4)] shadow-[0_0_20px_rgba(212,167,44,0.25)] flex items-center justify-center overflow-hidden"
+        className="relative w-16 h-16 rounded-full bg-[#0a1128] border-2 border-[#D4A72C]/40 shadow-[0_4px_20px_rgba(212,167,44,0.3)] flex items-center justify-center overflow-hidden"
       >
         <img
           src="/main-logo.jpg"
@@ -361,9 +351,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   // 1. Loading State
   if (checking) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#04060d] text-white">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#fbfbfa] text-gray-800">
         <Loader2 size={40} className="animate-spin text-[#D4A72C] mb-4" />
-        <p className="text-xs font-bold tracking-widest uppercase font-mono text-slate-400">Verifying Security Credentials...</p>
+        <p className="text-xs font-bold tracking-widest uppercase font-mono text-slate-500">Verifying Security Credentials...</p>
       </div>
     );
   }
@@ -377,41 +367,38 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   return (
     <FluidParticlesBackground>
       {/* Decorative Blur Spheres */}
-      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-blue-900/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#D4A72C]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="w-full max-w-md bg-[#0a0f1d]/40 backdrop-blur-xl border border-slate-800/80 rounded-[32px] p-8 shadow-2xl relative overflow-hidden z-10"
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="w-full max-w-md bg-white border border-[#f1ede4] rounded-[32px] p-8 shadow-[0_20px_50px_rgba(217,119,6,0.06)] relative overflow-hidden z-10"
       >
         {/* Luxury top gradient line */}
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-500 via-[#D4A72C] to-emerald-500" />
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#D4A72C] to-transparent" />
 
         {/* Brand / Header */}
-        <div className="text-center space-y-2 mb-6">
+        <div className="text-center space-y-2 mb-8">
           <OrbitingLogo />
-          <h2 className="text-2xl font-black tracking-tight font-sans uppercase bg-gradient-to-b from-white via-white to-slate-400 bg-clip-text text-transparent">
-            ArcOmni Gatekeeper
-          </h2>
-          <p className="text-xs text-slate-400 font-semibold max-w-xs mx-auto leading-relaxed">
-            Authorized Personnel Only. Please verify your Web3 identity to access the terminal.
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-600 mb-1"
+          >
+            Welcome
+          </motion.h1>
+          <p className="text-xs text-gray-500 font-semibold max-w-xs mx-auto leading-relaxed">
+            Connect your wallet to access premium features
           </p>
         </div>
 
         {/* Action Panel */}
         <div>
           {!isConnected ? (
-            <div className="flex flex-col items-center justify-center p-6 border border-dashed border-slate-800/80 rounded-2xl bg-slate-900/20 gap-5">
-              <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500">
-                <ShieldAlert size={20} />
-              </div>
-              <div className="text-center">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">Security Access Restricted</h4>
-                <p className="text-[10px] text-slate-500 font-semibold mt-1">Wallet connection is required to authenticate.</p>
-              </div>
-
+            <div className="space-y-4">
               {/* Custom styled ConnectButton */}
               <ConnectButton.Custom>
                 {({ account, chain, openConnectModal, mounted }) => {
@@ -427,48 +414,67 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                           userSelect: 'none',
                         },
                       })}
-                      className="w-full flex justify-center mt-2"
+                      className="w-full flex justify-center"
                     >
                       {!connected && (
                         <motion.button
-                          whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(212,167,44,0.35)' }}
+                          whileHover={{ scale: 1.02, boxShadow: '0 8px 25px rgba(217,119,6,0.25)' }}
                           whileTap={{ scale: 0.98 }}
                           onClick={openConnectModal}
                           type="button"
-                          className="w-full relative overflow-hidden py-3 bg-gradient-to-r from-[#D4A72C] via-[#E8B931] to-[#D4A72C] text-black font-black font-sans uppercase tracking-wider rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 text-xs"
+                          className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 text-sm shadow-md"
                         >
-                          <Sparkles size={14} className="text-black animate-pulse" />
-                          <span>Connect Wallet to Enter</span>
+                          <Wallet className="mr-1 h-4 w-4" />
+                          <span>Connect Wallet</span>
                         </motion.button>
                       )}
                     </div>
                   );
                 }}
               </ConnectButton.Custom>
+
+              {/* Mock / Disabled Create Profile button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  toast.error("Please connect your wallet first!");
+                }}
+                type="button"
+                className="w-full py-3.5 border border-amber-400/50 bg-white hover:bg-amber-400/5 text-gray-700 font-bold rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 text-sm"
+              >
+                <User className="mr-1 h-4 w-4 text-gray-400" />
+                <span>Create Profile</span>
+              </motion.button>
+
+              <div className="mt-8 flex items-center justify-center space-x-2 text-[10px] text-gray-400">
+                <Sparkles className="h-3 w-3 text-amber-500 animate-pulse" />
+                <span>Secured by blockchain technology</span>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleCreateProfile} className="space-y-4">
-              <div className="bg-slate-900/30 border border-slate-800/60 rounded-xl p-3 text-[11px] font-mono text-[#D4A72C] flex items-center gap-2">
-                <Sparkles size={13} className="flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
-                <span>Wallet connected. Set up your Web3 username to continue.</span>
+              <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-3 text-[11px] font-medium text-amber-800 flex items-center gap-2">
+                <Sparkles size={13} className="flex-shrink-0 text-amber-600 animate-spin" style={{ animationDuration: '3s' }} />
+                <span>Connected! Set up your username and choose an avatar to continue.</span>
               </div>
 
               {/* Username Input */}
               <div className="space-y-1">
-                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Username</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Username</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Satoshi_99"
+                  placeholder="Enter your username"
                   maxLength={20}
-                  className="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-[#D4A72C] focus:ring-1 focus:ring-[#D4A72C]/30 transition-all duration-300"
+                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 transition-all duration-300"
                 />
               </div>
 
               {/* Preset Avatar Selection */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Select Avatar</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Select Avatar</label>
                 <div className="grid grid-cols-6 gap-2">
                   {PRESET_AVATARS.map((av) => {
                     const isSelected = selectedAvatar === av.url;
@@ -479,16 +485,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setSelectedAvatar(av.url)}
-                        className={`aspect-square rounded-xl overflow-hidden border bg-slate-950/80 transition-all cursor-pointer p-0.5 relative ${
+                        className={`aspect-square rounded-xl overflow-hidden border bg-white transition-all cursor-pointer p-0.5 relative ${
                           isSelected
-                            ? 'border-[#D4A72C] shadow-md shadow-[rgba(212,167,44,0.25)]'
-                            : 'border-slate-800 hover:border-slate-600'
+                            ? 'border-amber-500 shadow-md shadow-[rgba(217,119,6,0.15)]'
+                            : 'border-gray-200 hover:border-gray-400'
                         }`}
                       >
                         <img src={av.url} alt={av.name} className="w-full h-full object-contain" />
                         {isSelected && (
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-[#D4A72C]">
-                            <Check size={12} strokeWidth={3} />
+                          <div className="absolute inset-0 bg-amber-500/10 flex items-center justify-center text-amber-600">
+                            <Check size={14} strokeWidth={3} />
                           </div>
                         )}
                       </motion.button>
@@ -500,23 +506,23 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               {/* Socials (Optional) */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Twitter (X)</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Twitter (X)</label>
                   <input
                     type="text"
                     value={twitter}
                     onChange={(e) => setTwitter(e.target.value)}
                     placeholder="@username"
-                    className="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3 py-2 text-[11px] font-bold text-white outline-none focus:border-[#D4A72C] transition-colors"
+                    className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 transition-colors"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Discord</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Discord</label>
                   <input
                     type="text"
                     value={discord}
                     onChange={(e) => setDiscord(e.target.value)}
                     placeholder="username"
-                    className="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3 py-2 text-[11px] font-bold text-white outline-none focus:border-[#D4A72C] transition-colors"
+                    className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/10 transition-colors"
                   />
                 </div>
               </div>
@@ -527,11 +533,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                 disabled={creating}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="w-full btn-primary py-3 flex items-center justify-center gap-2 cursor-pointer font-black text-xs uppercase shadow-md shadow-[rgba(212,167,44,0.2)]"
+                className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm rounded-2xl shadow-md shadow-amber-500/15 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {creating ? (
                   <>
-                    <Loader2 size={13} className="animate-spin" /> Creating Profile...
+                    <Loader2 size={14} className="animate-spin" /> Creating Profile...
                   </>
                 ) : (
                   'Create Profile & Enter'
