@@ -772,18 +772,12 @@ export function SocialPay() {
             </div>
 
             {/* Step 3: Input Amount */}
-            <div style={{
-              background: 'rgba(6,10,38,0.95)',
-              border: '1px solid rgba(0,229,255,0.25)',
-              borderRadius: 16,
-              padding: '16px',
-              boxShadow: '0 0 20px rgba(0,229,255,0.05)',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'Orbitron, sans-serif', letterSpacing: 2, textTransform: 'uppercase' }}>
+            <div className="bg-[var(--bg-input)] border border-[var(--border-dim)] rounded-2xl p-4 shadow-sm">
+              <div className="flex justify-between items-center mb-2.5">
+                <span className="text-[10px] text-[var(--text-secondary)] font-extrabold uppercase tracking-wider">
                   Amount to Send
                 </span>
-                <span style={{ fontSize: 11, color: 'var(--accent-cyan)', fontWeight: 700, fontFamily: 'Orbitron, sans-serif' }}>
+                <span className="text-xs text-[var(--accent-gold-2)] font-black">
                   {selectedAssetType === 'USDC' && 'USDC'}
                   {selectedAssetType === 'LAUNCHED' && (selectedMemeToken?.ticker || 'TOKEN')}
                   {selectedAssetType === 'CUSTOM' && (customTokenSymbol || 'ERC20')}
@@ -795,8 +789,9 @@ export function SocialPay() {
                 value={sendAmount}
                 onChange={(e) => setSendAmount(e.target.value)}
                 placeholder="0.00"
+                className="amount-input-override text-[var(--text-primary)] font-bold text-2xl"
                 style={{
-                  fontSize: '32px',
+                  fontSize: '28px',
                   fontWeight: 900,
                   color: 'var(--text-primary)',
                   background: 'transparent',
@@ -809,7 +804,6 @@ export function SocialPay() {
                   display: 'block',
                   lineHeight: 1.2,
                 }}
-                className="amount-input-override"
                 required
                 min="0.000000000000000001"
                 step="any"
