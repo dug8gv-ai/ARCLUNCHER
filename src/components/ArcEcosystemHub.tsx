@@ -640,11 +640,11 @@ export function ArcEcosystemHub() {
         </div>
       </div>
 
-      {/* ═══ 3-Column Layout ═══ */}
+      {/* ═══ Full-Width Layout ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* ──── LEFT: Unified On-Chain Explorer (5 cols) ──── */}
-        <div className="lg:col-span-5 space-y-4">
+        {/* ──── Unified On-Chain Explorer (Full Width) ──── */}
+        <div className="lg:col-span-12 space-y-4">
           <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] bg-white p-4 space-y-3">
             <div className="flex items-center gap-2">
               <Zap size={18} className="text-amber-500" />
@@ -765,146 +765,6 @@ export function ArcEcosystemHub() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* ──── CENTER: Chart & Swap Stream (4 cols) ──── */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] bg-white overflow-hidden min-h-[400px]">
-            <PriceChart selectedToken={selectedToken} />
-          </div>
-
-          <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-white">
-            <div className="p-4 border-b border-[var(--border-dim)] bg-slate-50/50 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Activity size={16} className="text-[var(--accent-cyan)]" />
-                <h3 className="font-extrabold text-[var(--text-primary)] text-sm">Live Blocks Mined (Arc Chain)</h3>
-              </div>
-            </div>
-            <div className="p-3 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar">
-              <AnimatePresence>
-                {minedBlocks.length === 0 ? (
-                  <div className="text-center py-8 text-[var(--text-secondary)] font-medium">
-                    <Loader2 size={20} className="mx-auto mb-2 animate-spin text-slate-300" />
-                    <p className="text-xs">Listening for live blocks...</p>
-                  </div>
-                ) : (
-                  minedBlocks.map((block, idx) => (
-                    <motion.div key={block.number + '-' + idx} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-between p-2.5 rounded-xl border border-[var(--border-dim)] bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] bg-[rgba(0,240,255,0.1)] text-[var(--accent-cyan)] border border-[var(--accent-cyan)]/25">
-                          #{block.number.toString().slice(-4)}
-                        </div>
-                        <div>
-                          <div className="font-bold text-xs text-[var(--text-primary)]">
-                            Block <span className="font-black">#{block.number}</span>
-                          </div>
-                          <div className="text-[10px] text-[var(--text-secondary)]">
-                            {block.txCount} txs • Gas: {Number(block.gasUsed).toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-black text-xs text-[var(--accent-cyan)]">
-                          {block.volume > 0 ? `${block.volume.toFixed(4)} ARC` : '0.00 ARC'}
-                        </div>
-                        <div className="text-[9px] text-[var(--text-secondary)]">Vol</div>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-
-        {/* ──── RIGHT: Fast Routing Panel (3 cols) ──── */}
-        <div className="lg:col-span-3">
-          <div className="sticky top-8 space-y-6">
-            
-            <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-white p-5 relative">
-              <h3 className="font-extrabold text-[var(--text-primary)] text-base mb-5 flex items-center gap-2">
-                <ArrowRightLeft size={16} className="text-[var(--accent-cyan)]" /> Fast Routing
-              </h3>
-
-              {!selectedToken ? (
-                <div className="text-center py-10 px-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
-                  <Search size={28} className="mx-auto text-slate-300 mb-3" />
-                  <p className="text-sm font-bold text-[var(--text-secondary)]">Select a token to trade</p>
-                </div>
-              ) : selectedToken._isExternalToken ? (
-                <div className="text-center py-10 px-4 border-2 border-dashed border-amber-200 rounded-2xl bg-amber-50">
-                  <Globe size={28} className="mx-auto text-amber-400 mb-3" />
-                  <p className="text-sm font-bold text-amber-700">External Token</p>
-                  <p className="text-xs text-amber-600 mt-1">Trading only available for ArcOmni tokens</p>
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-blue-50/50 border border-blue-100">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center font-bold text-xs text-indigo-700 overflow-hidden">
-                      {selectedToken.image_url ? <img src={selectedToken.image_url} alt="" className="w-full h-full object-cover" /> : selectedToken.ticker.substring(0, 2)}
-                    </div>
-                    <div>
-                      <div className="font-black text-sm text-[var(--text-primary)]">{selectedToken.name} <span className="text-[10px] text-[var(--text-secondary)]">{selectedToken.ticker}</span></div>
-                      <div className="text-[9px] font-mono text-[var(--text-secondary)]">{truncateAddr(selectedToken.token_address)}</div>
-                    </div>
-                  </div>
-
-                  <div className="flex bg-slate-100 p-1 rounded-xl">
-                    <button onClick={() => setSwapDirection('BUY')} className={`flex-1 py-2 rounded-lg text-xs font-black transition-all ${swapDirection === 'BUY' ? 'bg-white text-emerald-600 shadow-sm border border-emerald-100' : 'text-[var(--text-secondary)]'}`}>BUY</button>
-                    <button onClick={() => setSwapDirection('SELL')} className={`flex-1 py-2 rounded-lg text-xs font-black transition-all ${swapDirection === 'SELL' ? 'bg-white text-rose-600 shadow-sm border border-rose-100' : 'text-[var(--text-secondary)]'}`}>SELL</button>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Pay With</label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {(['USDC', 'EURC', 'crBTC'] as const).map(a => (
-                        <button key={a} onClick={() => setBaseAnchor(a)} className={`py-1.5 rounded-lg text-[10px] font-bold border transition-all ${baseAnchor === a ? 'bg-[rgba(0,242,254,0.05)] border-[var(--accent-cyan)] text-[var(--accent-cyan)]' : 'bg-white border-[var(--border-dim)] text-[var(--text-secondary)]'}`}>{a}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <input type="number" value={swapAmount} onChange={(e) => setSwapAmount(e.target.value)} placeholder="0.0" className="w-full bg-slate-50 border border-[var(--border-dim)] rounded-xl px-4 py-3 text-base font-bold outline-none focus:border-[var(--accent-cyan)] transition-colors pr-16" />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[var(--text-secondary)] bg-white px-2 py-0.5 rounded-lg border border-slate-200">
-                      {swapDirection === 'BUY' ? baseAnchor : selectedToken.ticker}
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={handleSwapExecute}
-                    disabled={isSwapping || !swapAmount || Number(swapAmount) <= 0}
-                    className={`w-full py-3.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all shadow-lg flex items-center justify-center gap-2 ${
-                      isSwapping || !swapAmount || Number(swapAmount) <= 0
-                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                        : swapDirection === 'BUY' 
-                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/25' 
-                          : 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/25'
-                    }`}
-                  >
-                    {isSwapping ? <><Loader2 size={16} className="animate-spin" /> Routing...</> : <>Execute {swapDirection}</>}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="card rounded-[24px] shadow-sm border border-[var(--border-dim)] overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-white relative">
-              <div className="absolute top-0 right-0 p-4 opacity-10"><Globe size={60} /></div>
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Network Connectivity</h4>
-              <div className="space-y-3 relative z-10">
-                <div>
-                  <div className="text-[9px] text-slate-400 font-bold">Arc Defi Router</div>
-                  <div className="font-mono text-xs text-blue-300 mt-0.5 break-all">{ARC_DEFI_ROUTER_ADDRESS}</div>
-                </div>
-                <div>
-                  <div className="text-[9px] text-slate-400 font-bold">Latency</div>
-                  <div className="font-black text-emerald-400 text-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 12ms (Optimal)
-                  </div>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
         
