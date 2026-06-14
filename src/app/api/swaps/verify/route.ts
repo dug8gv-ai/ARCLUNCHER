@@ -3,13 +3,13 @@ import { createPublicClient, http } from 'viem';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 const arcTestnet = {
-  id: 4156,
+  id: 5042002,
   name: 'Arc Testnet',
   network: 'arc-testnet',
-  nativeCurrency: { decimals: 18, name: 'ARC', symbol: 'ARC' },
+  nativeCurrency: { decimals: 18, name: 'USDC', symbol: 'USDC' },
   rpcUrls: {
-    default: { http: ['https://rpc-testnet.arcscan.app'] },
-    public: { http: ['https://rpc-testnet.arcscan.app'] },
+    default: { http: ['https://rpc.testnet.arc.network'] },
+    public: { http: ['https://rpc.testnet.arc.network'] },
   },
 };
 
@@ -45,6 +45,44 @@ export async function POST(req: Request) {
     if (dbError) {
       console.error("Database secure insert failed:", dbError);
       return NextResponse.json({ error: 'Database write failed' }, { status: 500 });
+    }
+
+    // 3. Securely update user volume and points (10 USDC Volume = 1 ARCL Point)
+    try {
+      const walletLower = swapData.user_address?.toLowerCase();
+      if (walletLower) {
+        const swapUsdcAmount = Number(swapData.usdc_amount || 0);
+        const pointsEarned = swapUsdcAmount / 10;
+
+        const { data: existingStats } = await supabaseAdmin
+          .from('user_stats')
+          .select('*')
+          .eq('wallet', walletLower);
+
+        const currentStats = existingStats && existingStats.length > 0 ? existingStats[0] : null;
+
+        if (currentStats) {
+          const newVolume = Number(currentStats.total_volume || 0) + swapUsdcAmount;
+          const newPoints = Number(currentStats.points || 0) + pointsEarned;
+          await supabaseAdmin
+            .from('user_stats')
+            .update({
+              total_volume: newVolume,
+              points: newPoints
+            })
+            .eq('wallet', walletLower);
+        } else {
+          await supabaseAdmin
+            .from('user_stats')
+            .insert({
+              wallet: walletLower,
+              total_volume: swapUsdcAmount,
+              points: pointsEarned
+            });
+        }
+      }
+    } catch (statsErr) {
+      console.error("Failed to update user stats in verification API:", statsErr);
     }
 
     return NextResponse.json({ success: true });

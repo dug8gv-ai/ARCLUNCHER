@@ -453,38 +453,21 @@ export function SocialPay() {
       window.dispatchEvent(new Event('arc-balance-update'));
 
       // Add point trigger for Social Payment volume tracker if sending USDC
-      if (selectedAssetType === 'USDC') {
+      if (selectedAssetType === 'USDC' && userAddress) {
         try {
           const swapUsdcAmount = Number(sendAmount);
-          const pointsEarned = swapUsdcAmount / 10;
-          const walletLower = userAddress?.toLowerCase();
+          const walletLower = userAddress.toLowerCase();
           
-          if (walletLower) {
-            const { data: existingStats } = await supabase
-              .from('user_stats')
-              .select('*')
-              .eq('wallet', walletLower);
-
-            const currentStats = existingStats && existingStats.length > 0 ? existingStats[0] : null;
-
-            if (currentStats) {
-              await supabase
-                .from('user_stats')
-                .update({
-                  total_volume: Number(currentStats.total_volume || 0) + swapUsdcAmount,
-                  points: Number(currentStats.points || 0) + pointsEarned
-                })
-                .eq('wallet', walletLower);
-            } else {
-              await supabase
-                .from('user_stats')
-                .insert({
-                  wallet: walletLower,
-                  total_volume: swapUsdcAmount,
-                  points: pointsEarned
-                });
-            }
-          }
+          // 🛡️ SECURITY PROTOCOL: Secure backend stats update
+          await fetch('/api/stats/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              txHash,
+              walletAddress: walletLower,
+              usdVolume: swapUsdcAmount
+            })
+          });
         } catch (statsErr) {
           console.error('Error tracking points for Social Pay USDC volume:', statsErr);
         }

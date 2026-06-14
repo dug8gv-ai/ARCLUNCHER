@@ -222,6 +222,30 @@ export function TradingPanel({ token }: TradingPanelProps) {
     calculateEstimate(amount);
   }, [amount, isBuy, token]);
 
+  const waitForTxReceipt = async (hash: `0x${string}`) => {
+    if (!publicClient) return;
+    try {
+      return await publicClient.waitForTransactionReceipt({ 
+        hash,
+        timeout: 30000,
+        pollingInterval: 1000
+      });
+    } catch (err) {
+      console.warn("waitForTransactionReceipt timed out or failed, falling back to manual polling:", err);
+      // Fallback manual polling for 30 seconds
+      for (let i = 0; i < 20; i++) {
+        try {
+          const receipt = await publicClient.getTransactionReceipt({ hash });
+          if (receipt) return receipt;
+        } catch (e) {
+          // not ready
+        }
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      throw new Error("Transaction confirmation timed out. Please check your wallet history.");
+    }
+  };
+
   const handleTrade = async () => {
     if (!isConnected) {
       await triggerPremiumAlert("WALLET REQUIRED", [
@@ -280,7 +304,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
           functionName: 'approve',
           args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, usdcAmount],
         });
-        await publicClient?.waitForTransactionReceipt({ hash: approveHash });
+        await waitForTxReceipt(approveHash);
       } else {
         // Approve Tokens for Sell
         const approveHash = await writeContractAsync({
@@ -289,7 +313,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
           functionName: 'approve',
           args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, tokenAmountWei],
         });
-        await publicClient?.waitForTransactionReceipt({ hash: approveHash });
+        await waitForTxReceipt(approveHash);
       }
 
       setStatus('swapping');
@@ -300,12 +324,9 @@ export function TradingPanel({ token }: TradingPanelProps) {
         args: [token.token_address as `0x${string}`, usdcAmount, tokenAmountWei, isBuy],
       });
 
+      await waitForTxReceipt(swapHash);
 
-      await publicClient?.waitForTransactionReceipt({ hash: swapHash });
-
-      // Sync with Supabase
-      // BUY:  usdc_amount = USDC spent,  token_amount = tokens received (estimate)
-      // SELL: usdc_amount = USDC received (estimate), token_amount = tokens sold (actual input)
+      // Sync with Supabase (will also securely update stats/points on backend verification!)
       const cleanEstimate = Number(estimatedTokens.replace(/,/g, ''));
       const actualTokensSold = Number(amount); // exact tokens user entered & approved
       const swapData = {
@@ -331,68 +352,6 @@ export function TradingPanel({ token }: TradingPanelProps) {
         ], 'error');
         setStatus('idle');
         return;
-      }
-
-      // Track user volume & points: 10 USDC Volume = 1 ARCL Point. Store in user_stats.
-      try {
-        if (userAddress) {
-          const swapUsdcAmount = Number(isBuy ? amount : cleanEstimate);
-          const pointsEarned = swapUsdcAmount / 10;
-          const walletLower = userAddress.toLowerCase();
-
-          const { data: existingStats, error: fetchErr } = await supabase
-            .from('user_stats')
-            .select('*')
-            .eq('wallet', walletLower);
-
-          if (fetchErr) {
-            console.error("Fetch Stats Error:", fetchErr.message);
-            await triggerPremiumAlert("POINTS FETCH ERROR", [
-              { label: "Error Message", value: fetchErr.message }
-            ], "error");
-          }
-
-          const currentStats = existingStats && existingStats.length > 0 ? existingStats[0] : null;
-
-          if (currentStats) {
-            const newVolume = Number(currentStats.total_volume || 0) + swapUsdcAmount;
-            const newPoints = Number(currentStats.points || 0) + pointsEarned;
-            const { error: updateErr } = await supabase
-              .from('user_stats')
-              .update({
-                total_volume: newVolume,
-                points: newPoints
-              })
-              .eq('wallet', walletLower);
-            
-            if (updateErr) {
-              console.error("Update Stats Error:", updateErr.message);
-              await triggerPremiumAlert("POINTS UPDATE ERROR", [
-                { label: "Error Message", value: updateErr.message }
-              ], "error");
-            }
-          } else {
-            const { error: insertErr } = await supabase
-              .from('user_stats')
-              .insert({
-                wallet: walletLower,
-                total_volume: swapUsdcAmount,
-                points: pointsEarned
-              });
-            
-            if (insertErr) {
-              console.error("Insert Stats Error:", insertErr.message);
-              await triggerPremiumAlert("POINTS INSERT ERROR", [
-                { label: "Error Message", value: insertErr.message }
-              ], "error");
-            }
-          }
-        }
-      } catch (statsErr: any) {
-        console.error("Error updating user stats:", statsErr);
-        await triggerPremiumAlert("STATS CATCH ERROR", [
-          { label: "Error Message", value: statsErr.message }
-        ], "error");
       }
 
       await triggerPremiumAlert("SWAP SUCCESS", [

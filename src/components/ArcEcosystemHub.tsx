@@ -503,6 +503,30 @@ export function ArcEcosystemHub() {
        return;
     }
 
+    const waitForTxReceipt = async (hash: `0x${string}`) => {
+      if (!publicClient) return;
+      try {
+        return await publicClient.waitForTransactionReceipt({ 
+          hash,
+          timeout: 30000,
+          pollingInterval: 1000
+        });
+      } catch (err) {
+        console.warn("waitForTransactionReceipt timed out or failed, falling back to manual polling:", err);
+        // Fallback manual polling for 30 seconds
+        for (let i = 0; i < 20; i++) {
+          try {
+            const receipt = await publicClient.getTransactionReceipt({ hash });
+            if (receipt) return receipt;
+          } catch (e) {
+            // not ready
+          }
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+        throw new Error("Transaction confirmation timed out. Please check your wallet history.");
+      }
+    };
+
     setIsSwapping(true);
     try {
       let anchorAddress = ECOSYSTEM_USDC_ADDRESS;
@@ -522,7 +546,7 @@ export function ArcEcosystemHub() {
         functionName: 'approve',
         args: [ARC_DEFI_ROUTER_ADDRESS as `0x${string}`, amountInWei],
       });
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: approveTx });
+      await waitForTxReceipt(approveTx);
 
       toast.loading("Executing Swap via ArcDefiRouter...", { id: 'swap-toast' });
       const path = [tokenIn as `0x${string}`, tokenOut as `0x${string}`];
@@ -535,7 +559,7 @@ export function ArcEcosystemHub() {
         args: [amountInWei, BigInt(0), path, address as `0x${string}`, deadline],
       });
       
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: swapTx });
+      await waitForTxReceipt(swapTx);
 
       const swapData = {
         user_address: address?.toLowerCase(),

@@ -1269,7 +1269,7 @@ export default function Home() {
                         Click any token on the markets list below to open its dedicated Trade desk & Price Charts!
                       </div>
                       <div className="flex-1 min-h-0">
-                        <Leaderboard onSelectToken={handleSelectToken} />
+                        <Leaderboard onSelectToken={handleSelectToken} onlyArcOmni={true} />
                       </div>
                     </div>
                   </div>
@@ -1330,7 +1330,7 @@ export default function Home() {
                       </p>
                     </div>
                     <div className="h-[550px]">
-                      <Leaderboard onSelectToken={handleSelectToken} />
+                      <Leaderboard onSelectToken={handleSelectToken} onlyArcOmni={true} />
                     </div>
                   </div>
                 )}
@@ -1385,7 +1385,7 @@ export default function Home() {
             {/* LEADERBOARD TAB VIEW */}
             {currentView === 'leaderboard' && (
               <div className="card rounded-[32px] p-6 sm:p-8 shadow-sm animate-in fade-in duration-200">
-                <Leaderboard onSelectToken={handleSelectToken} />
+                <Leaderboard onSelectToken={handleSelectToken} onlyArcOmni={true} />
               </div>
             )}
 

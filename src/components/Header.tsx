@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useDisconnect, usePublicClient } from 'wagmi';
+import { useAccount, useDisconnect, usePublicClient, useSignMessage } from 'wagmi';
 import { User, MessageSquare, Check, Loader2, ChevronDown, Award, Settings, LogOut } from 'lucide-react';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,6 +25,7 @@ export function Header() {
   const { isConnected, address: userAddress } = useAccount();
   const { disconnect } = useDisconnect();
   const publicClient = usePublicClient();
+  const { signMessageAsync } = useSignMessage();
 
   // Wallet Balances (Real on-chain)
   const [usdcBalance, setUsdcBalance] = useState<number>(0);
@@ -200,12 +201,6 @@ export function Header() {
 
     try {
       const walletLower = userAddress.toLowerCase();
-      // Check if profile exists
-      const { data: existing } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('wallet', walletLower)
-        .single();
 
       const profilePayload = {
         wallet: walletLower,
@@ -215,29 +210,37 @@ export function Header() {
         twitter: formTwitter,
       };
 
-      let error;
-      if (existing) {
-        const { error: err } = await supabase
-          .from('profiles')
-          .update(profilePayload)
-          .eq('wallet', walletLower);
-        error = err;
-      } else {
-        const { error: err } = await supabase
-          .from('profiles')
-          .insert(profilePayload);
-        error = err;
+      // 🛡️ SECURITY PROTOCOL: Secure Cryptographic Authorization Signature
+      const message = `Authorize ArcOmni Profile Update:\nWallet: ${walletLower}\nName: ${profilePayload.name}\nTime: ${Date.now()}`;
+      toast.loading("Signing profile update request...", { id: 'profile-toast' });
+      
+      const signature = await signMessageAsync({ message });
+
+      toast.loading("Updating profile securely...", { id: 'profile-toast' });
+      const apiRes = await fetch('/api/profiles/upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          wallet: walletLower, 
+          name: profilePayload.name, 
+          avatar: profilePayload.avatar, 
+          discord: profilePayload.discord, 
+          twitter: profilePayload.twitter, 
+          message, 
+          signature 
+        })
+      });
+
+      if (!apiRes.ok) {
+        throw new Error('Backend verification failed for profile update.');
       }
 
-      if (error) {
-        toast.error('Error saving profile: ' + error.message);
-      } else {
-        setIsModalOpen(false);
-        fetchProfileAndStats();
-      }
+      toast.success('Profile updated successfully!', { id: 'profile-toast' });
+      setIsModalOpen(false);
+      fetchProfileAndStats();
     } catch (err: any) {
       console.error(err);
-      toast.error('Error updating profile: ' + err.message);
+      toast.error('Error updating profile: ' + (err.shortMessage || err.message), { id: 'profile-toast' });
     } finally {
       setSaving(false);
     }

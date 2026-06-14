@@ -372,7 +372,7 @@ export default function ArcGlobalDashboard() {
                   <h3 className="text-lg font-black text-[var(--text-primary)]">ARC MEME LEADERBOARD</h3>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mt-0.5">Click any active launch to open its charts and trade desks.</p>
                 </div>
-                <Leaderboard onSelectToken={handleSelectToken} />
+                <Leaderboard onSelectToken={handleSelectToken} onlyArcOmni={false} />
               </div>
             )}
 

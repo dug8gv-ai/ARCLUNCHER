@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useSendTransaction, usePublicClient, useWriteContract } from 'wagmi';
+import { useAccount, useSendTransaction, usePublicClient, useWriteContract, useSignMessage } from 'wagmi';
 import { parseUnits, erc20Abi, isAddress } from 'viem';
 import { supabase } from '@/lib/supabase';
 import { Search, Send, QrCode, Copy, Check, Users, Loader2, DollarSign, Wallet, ArrowRight, UserCheck, Settings, CheckSquare, Plus, FileText } from 'lucide-react';
@@ -24,6 +24,7 @@ export default function SocialPay() {
   const publicClient = usePublicClient();
   const { sendTransactionAsync } = useSendTransaction();
   const { writeContractAsync } = useWriteContract();
+  const { signMessageAsync } = useSignMessage();
 
   // Connected profile states
   const [activeSubTab, setActiveSubTab] = useState<'instant' | 'escrow' | 'autopay'>('instant');
@@ -151,27 +152,33 @@ export default function SocialPay() {
         twitter: profileTwitter
       };
 
-      const { data: existing } = await supabase
-        .from('profiles')
-        .select('wallet')
-        .eq('wallet', walletLower)
-        .single();
+      // 🛡️ SECURITY PROTOCOL: Cryptographic Signature authorization for profiles updates
+      const message = `Authorize ArcOmni Profile Update:\nWallet: ${walletLower}\nName: ${payload.name}\nTime: ${Date.now()}`;
+      
+      const signature = await signMessageAsync({ message });
 
-      let err;
-      if (existing) {
-        const { error } = await supabase.from('profiles').update(payload).eq('wallet', walletLower);
-        err = error;
-      } else {
-        const { error } = await supabase.from('profiles').insert(payload);
-        err = error;
+      const apiRes = await fetch('/api/profiles/upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wallet: walletLower,
+          name: payload.name,
+          avatar: payload.avatar,
+          discord: payload.discord,
+          twitter: payload.twitter,
+          message,
+          signature
+        })
+      });
+
+      if (!apiRes.ok) {
+        throw new Error('Backend failed to update profile securely.');
       }
-
-      if (err) throw err;
 
       await loadProfile();
       setIsProfileModalOpen(false);
     } catch (e: any) {
-      alert('Error updating profile: ' + e.message);
+      alert('Error updating profile: ' + (e.shortMessage || e.message));
     } finally {
       setIsSavingProfile(false);
     }

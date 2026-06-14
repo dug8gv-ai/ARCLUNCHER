@@ -4,10 +4,17 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, TrendingUp, Users, Copy, Trash2, Award, ArrowUpRight, DollarSign, Info, Globe, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useAccount } from 'wagmi';
+import { useAccount, useSignMessage } from 'wagmi';
 
-export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) => void }) {
+export function Leaderboard({ 
+  onSelectToken, 
+  onlyArcOmni = true 
+}: { 
+  onSelectToken?: (token: any) => void;
+  onlyArcOmni?: boolean;
+}) {
   const { address: userAddress } = useAccount();
+  const { signMessageAsync } = useSignMessage();
   const ADMIN_WALLET = '0x218b09A7d9FF6D69082Ac605bb27029bC321B5C3';
   const isAdmin = userAddress?.toLowerCase() === ADMIN_WALLET.toLowerCase();
 
@@ -119,54 +126,56 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
 
       // ── 2. Fetch ALL on-chain tokens from ArcScan API ──
       let arcScanTokens: any[] = [];
-      try {
-        let nextParams: any = null;
-        let pagesFetched = 0;
-        const maxPages = 10; // Fetch up to 500 tokens for the leaderboard
+      if (!onlyArcOmni) {
+        try {
+          let nextParams: any = null;
+          let pagesFetched = 0;
+          const maxPages = 2; // Fetch up to 100 tokens (fast loading!)
 
-        while (pagesFetched < maxPages) {
-          let url = 'https://testnet.arcscan.app/api/v2/tokens';
-          if (nextParams) {
-            const params = new URLSearchParams();
-            if (nextParams.contract_address_hash) params.set('contract_address_hash', nextParams.contract_address_hash);
-            if (nextParams.holders_count !== undefined) params.set('holders_count', String(nextParams.holders_count));
-            if (nextParams.items_count !== undefined) params.set('items_count', String(nextParams.items_count));
-            if (nextParams.name) params.set('name', nextParams.name);
-            url = `${url}?${params.toString()}`;
+          while (pagesFetched < maxPages) {
+            let url = 'https://testnet.arcscan.app/api/v2/tokens';
+            if (nextParams) {
+              const params = new URLSearchParams();
+              if (nextParams.contract_address_hash) params.set('contract_address_hash', nextParams.contract_address_hash);
+              if (nextParams.holders_count !== undefined) params.set('holders_count', String(nextParams.holders_count));
+              if (nextParams.items_count !== undefined) params.set('items_count', String(nextParams.items_count));
+              if (nextParams.name) params.set('name', nextParams.name);
+              url = `${url}?${params.toString()}`;
+            }
+
+            const arcRes = await fetch(url);
+            if (!arcRes.ok) break;
+            
+            const arcData = await arcRes.json();
+            const items = arcData.items || [];
+            
+            // Only include ERC-20 tokens that are NOT already in ArcOmni
+            const mapped = items
+              .filter((t: any) => t.type === 'ERC-20' && !arcOmniMap.has(t.address_hash.toLowerCase()))
+              .map((t: any) => ({
+                id: t.address_hash,
+                token_address: t.address_hash,
+                name: t.name || 'Unknown Token',
+                ticker: t.symbol || '???',
+                image_url: t.icon_url || null,
+                holders: Number(t.holders_count || 0),
+                priceChange: '0.00',
+                created_at: null,
+                is_pinned: false,
+                badge_type: null,
+                _source: 'arcscan' as const,
+                _holdersRaw: t.holders_count
+              }));
+
+            arcScanTokens = [...arcScanTokens, ...mapped];
+            nextParams = arcData.next_page_params;
+            pagesFetched++;
+
+            if (!nextParams) break;
           }
-
-          const arcRes = await fetch(url);
-          if (!arcRes.ok) break;
-          
-          const arcData = await arcRes.json();
-          const items = arcData.items || [];
-          
-          // Only include ERC-20 tokens that are NOT already in ArcOmni
-          const mapped = items
-            .filter((t: any) => t.type === 'ERC-20' && !arcOmniMap.has(t.address_hash.toLowerCase()))
-            .map((t: any) => ({
-              id: t.address_hash,
-              token_address: t.address_hash,
-              name: t.name || 'Unknown Token',
-              ticker: t.symbol || '???',
-              image_url: t.icon_url || null,
-              holders: Number(t.holders_count || 0),
-              priceChange: '0.00',
-              created_at: null,
-              is_pinned: false,
-              badge_type: null,
-              _source: 'arcscan' as const,
-              _holdersRaw: t.holders_count
-            }));
-
-          arcScanTokens = [...arcScanTokens, ...mapped];
-          nextParams = arcData.next_page_params;
-          pagesFetched++;
-
-          if (!nextParams) break;
+        } catch (arcErr) {
+          console.error('ArcScan API fetch failed:', arcErr);
         }
-      } catch (arcErr) {
-        console.error('ArcScan API fetch failed:', arcErr);
       }
 
       // ── 3. Merge: ArcOmni first (pinned priority), then ArcScan by holders ──
@@ -222,31 +231,34 @@ export function Leaderboard({ onSelectToken }: { onSelectToken?: (token: any) =>
 
   const handleToggleAffiliate = async (wallet: string, currentStatus: boolean) => {
     try {
+      if (!userAddress) {
+        await triggerAlert("WALLET REQUIRED", "Please connect your wallet first!", "error");
+        return;
+      }
+      
       const walletLower = wallet.toLowerCase();
       const newStatus = !currentStatus;
 
-      // Check if profile exists
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('wallet', walletLower);
+      // 🛡️ SECURITY PROTOCOL: Cryptographic Signature authorization for admin operations
+      const message = `Authorize Affiliate Toggle:\nTarget Wallet: ${walletLower}\nStatus: ${newStatus}\nTime: ${Date.now()}`;
+      
+      const signature = await signMessageAsync({ message });
 
-      if (existingProfile && existingProfile.length > 0) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ is_affiliate: newStatus })
-          .eq('wallet', walletLower);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('profiles')
-          .insert({
-            wallet: walletLower,
-            is_affiliate: newStatus,
-            name: 'Anonymous',
-            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${walletLower}`
-          });
-        if (error) throw error;
+      const apiRes = await fetch('/api/profiles/upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wallet: userAddress.toLowerCase(),
+          targetWallet: walletLower,
+          is_affiliate: newStatus,
+          message,
+          signature
+        })
+      });
+
+      if (!apiRes.ok) {
+        const errorData = await apiRes.json();
+        throw new Error(errorData.error || 'Backend verification failed.');
       }
 
       await triggerAlert("AFFILIATE UPDATED", "Affiliate badge status updated successfully!", "success");
