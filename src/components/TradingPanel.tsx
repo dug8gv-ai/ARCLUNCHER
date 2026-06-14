@@ -323,16 +323,13 @@ export function TradingPanel({ token }: TradingPanelProps) {
         usdcAmount = parseUnits(cleanEstimate, decimals);
       }
 
-      // Max uint256 allowance (0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
-      const maxAllowance = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-
       if (isBuy) {
         // Approve USDC
         const approveHash = await writeContractAsync({
           address: USDC_ADDRESS as `0x${string}`,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, maxAllowance],
+          args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, usdcAmount],
           maxFeePerGas,
           maxPriorityFeePerGas,
         });
@@ -343,7 +340,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
           address: token.token_address as `0x${string}`,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, maxAllowance],
+          args: [ARC_LAUNCHER_ADDRESS as `0x${string}`, tokenAmountWei],
           maxFeePerGas,
           maxPriorityFeePerGas,
         });
