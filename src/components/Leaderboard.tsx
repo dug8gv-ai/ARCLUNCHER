@@ -104,7 +104,7 @@ export function Leaderboard({
       if (tokenAddresses.length > 0) {
         const { data } = await supabase
           .from('token_swaps')
-          .select('token_address,user_address,usdc_amount,token_amount,created_at')
+          .select('token_address,user_address,usdc_amount,token_amount,timestamp')
           .in('token_address', tokenAddresses);
         allSwaps = data || [];
       }
@@ -113,7 +113,7 @@ export function Leaderboard({
       const enrichedArcOmni = (tokensData || []).map(token => {
         arcOmniMap.set(token.token_address.toLowerCase(), true);
         const tokenSwaps = (allSwaps.filter(s => s.token_address === token.token_address) || [])
-          .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+          .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
         const holders = new Set(tokenSwaps.map(s => s.user_address)).size;
         
         let priceChange = 0;
@@ -124,7 +124,7 @@ export function Leaderboard({
             : 0;
           
           const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-          const swapsBefore24h = tokenSwaps.filter(s => new Date(s.created_at) < twentyFourHoursAgo);
+          const swapsBefore24h = tokenSwaps.filter(s => new Date(s.timestamp) < twentyFourHoursAgo);
           
           let price24hAgo = 0;
           if (swapsBefore24h.length > 0) {

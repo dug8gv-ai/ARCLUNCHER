@@ -129,7 +129,7 @@ export function ArcEcosystemHub() {
         if (addresses.length > 0) {
           const { data } = await supabase
             .from('token_swaps')
-            .select('token_address,user_address,usdc_amount,token_amount,created_at')
+            .select('token_address,user_address,usdc_amount,token_amount,timestamp')
             .in('token_address', addresses);
           allSwaps = data || [];
         }
@@ -137,7 +137,7 @@ export function ArcEcosystemHub() {
         arcOmniTokens = (dbTokensData || []).map(token => {
           arcOmniMap.set(token.token_address.toLowerCase(), true);
           const tSwaps = (allSwaps.filter(s => s.token_address === token.token_address) || [])
-            .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+            .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
           const holdersCount = new Set(tSwaps.map(s => s.user_address)).size;
           
           let pChange = 0;
@@ -148,7 +148,7 @@ export function ArcEcosystemHub() {
               : 0;
             
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-            const swapsBefore24h = tSwaps.filter(s => new Date(s.created_at) < twentyFourHoursAgo);
+            const swapsBefore24h = tSwaps.filter(s => new Date(s.timestamp) < twentyFourHoursAgo);
             
             let price24hAgo = 0;
             if (swapsBefore24h.length > 0) {
