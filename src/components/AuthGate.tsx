@@ -433,20 +433,6 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                 }}
               </ConnectButton.Custom>
 
-              {/* Mock / Disabled Create Profile button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  toast.error("Please connect your wallet first!");
-                }}
-                type="button"
-                className="w-full py-3.5 border border-amber-400/50 bg-white hover:bg-amber-400/5 text-gray-700 font-bold rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 text-sm"
-              >
-                <User className="mr-1 h-4 w-4 text-gray-400" />
-                <span>Create Profile</span>
-              </motion.button>
-
               <div className="mt-8 flex items-center justify-center space-x-2 text-[10px] text-gray-400">
                 <Sparkles className="h-3 w-3 text-amber-500 animate-pulse" />
                 <span>Secured by blockchain technology</span>
