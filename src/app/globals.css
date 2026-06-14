@@ -112,7 +112,7 @@ body {
   min-height: 100dvh;
 }
 
-body > canvas { display: none !important; }
+body > canvas { display: block !important; position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 body > * { position: relative; z-index: 1; }
 
 /* ── Typography ───────────────────────────── */
