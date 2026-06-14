@@ -5,13 +5,20 @@ import { Toaster } from "react-hot-toast";
 import { WelcomeSplash } from "@/components/WelcomeSplash";
 import { RainBackgroundClient } from "@/components/RainBackgroundClient";
 import { AuthGate } from "@/components/AuthGate";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
   title: "ArcOmni Pro | Global Analytics Edition",
   description: "High-Frequency Token Launchpad on Arc Testnet",
-  icons: { icon: "/main-logo.jpg" },
+  icons: {
+    icon: "/main-logo.jpg",
+    apple: "/icons/apple-touch-icon.png",
+  },
   other: {
     "arcomni-verification": "arcomni-v6dhz4pcxva-1780563092138",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "apple-mobile-web-app-title": "ArcOmni",
   },
 };
 
@@ -36,6 +43,7 @@ export default function RootLayout({
         className="antialiased overflow-x-hidden"
         style={{ position: "relative" }}
       >
+        <ServiceWorkerRegister />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {/* ── Ambient rain — client-only, z-0, pointer-events:none ── */}
           <RainBackgroundClient />
