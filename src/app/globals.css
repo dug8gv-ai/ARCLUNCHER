@@ -431,19 +431,25 @@ input, textarea, [contenteditable] {
 
 /* Bottom navigation bar for mobile */
 .pwa-bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 9999;
-  background: var(--bg-sidebar);
-  border-top: 1px solid var(--border-dim);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 6px 4px 8px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  display: none !important;
+}
+
+@media (max-width: 1023px) {
+  .pwa-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border-dim);
+    display: flex !important;
+    justify-content: space-around;
+    align-items: center;
+    padding: 6px 4px 8px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
 }
 
 .pwa-bottom-nav button {

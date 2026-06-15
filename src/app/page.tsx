@@ -852,7 +852,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex antialiased selection:bg-blue-900 selection:text-white">
+    <div className="h-screen flex antialiased overflow-hidden selection:bg-blue-900 selection:text-white">
       
       {/* 1. Desktop Sidebar Navigation (Luxury White & Calm Blue layout) */}
       <aside className="hidden lg:flex w-72 flex-col bg-[var(--bg-sidebar)] border-r border-[var(--border-dim)] p-6 space-y-8 sticky top-0 h-screen overflow-y-auto justify-start z-30">

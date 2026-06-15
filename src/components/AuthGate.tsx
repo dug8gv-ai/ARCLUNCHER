@@ -218,16 +218,47 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                       className="w-full flex justify-center"
                     >
                       {!connected && (
-                        <motion.button
-                          whileHover={{ scale: 1.02, boxShadow: '0 8px 25px rgba(217,119,6,0.25)' }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={openConnectModal}
-                          type="button"
-                          className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 text-sm shadow-md"
-                        >
-                          <Wallet className="mr-1 h-4 w-4" />
-                          <span>Connect Wallet</span>
-                        </motion.button>
+                        <div className="w-full space-y-4">
+                          <motion.button
+                            whileHover={{ scale: 1.02, boxShadow: '0 8px 25px rgba(217,119,6,0.25)' }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={openConnectModal}
+                            type="button"
+                            className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 text-sm shadow-md"
+                          >
+                            <Wallet className="mr-1 h-4 w-4" />
+                            <span>Connect Wallet</span>
+                          </motion.button>
+
+                          <div className="block lg:hidden border-t border-gray-100 pt-4 mt-2">
+                            <p className="text-[10px] text-center text-gray-500 font-bold uppercase tracking-wider mb-3">
+                              Or open directly in wallet app:
+                            </p>
+                            <div className="grid grid-cols-3 gap-2">
+                              <a
+                                href="https://metamask.app.link/dapp/arcomni.vercel.app"
+                                className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-gray-200 bg-white transition-all text-center gap-1 active:scale-95"
+                              >
+                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=metamask" className="w-6 h-6 rounded-lg" alt="MetaMask" />
+                                <span className="text-[9px] font-bold text-gray-700">MetaMask</span>
+                              </a>
+                              <a
+                                href="https://link.trustwallet.com/open_url?coin_id=60&url=https://arcomni.vercel.app"
+                                className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-gray-200 bg-white transition-all text-center gap-1 active:scale-95"
+                              >
+                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=trust" className="w-6 h-6 rounded-lg" alt="Trust" />
+                                <span className="text-[9px] font-bold text-gray-700">Trust</span>
+                              </a>
+                              <a
+                                href="https://go.cb-w.com/dapp?cb_url=https://arcomni.vercel.app"
+                                className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-gray-200 bg-white transition-all text-center gap-1 active:scale-95"
+                              >
+                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=coinbase" className="w-6 h-6 rounded-lg" alt="Coinbase" />
+                                <span className="text-[9px] font-bold text-gray-700">Coinbase</span>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   );
