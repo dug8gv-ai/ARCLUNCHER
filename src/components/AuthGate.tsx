@@ -52,6 +52,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   const [checking, setChecking] = useState(true);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [dismissed, setDismissed] = useState(false);
 
   // Profile Form States
   const [name, setName] = useState('');
@@ -90,6 +91,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isConnected && address) {
       checkProfile();
+      setDismissed(false);
     } else {
       setHasProfile(null);
       setChecking(false);
@@ -159,118 +161,56 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 2. Unlocked: Render App Children
-  if (isConnected && hasProfile === true) {
+  // 2. Unlocked: Render App Children directly if guest, profile completed, or modal dismissed
+  if (!isConnected || hasProfile === true || dismissed) {
     return <>{children}</>;
   }
 
-  // 3. Locked state: Wallet not connected or Profile missing
+  // 3. Connected but profile missing: Render profile creation modal over the app
   return (
-    <div className="relative w-full min-h-screen overflow-x-hidden flex items-center justify-center bg-[#FAF9F6]/85 backdrop-blur-[6px]">
-      {/* Decorative Blur Spheres */}
-      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+    <>
+      {children}
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
+        {/* Decorative Blur Spheres */}
+        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="w-full max-w-md bg-white border border-[#f1ede4] rounded-[32px] p-8 shadow-[0_20px_50px_rgba(217,119,6,0.06)] relative overflow-hidden z-10"
-      >
-        {/* Luxury top gradient line */}
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#D4A72C] to-transparent" />
-
-        {/* Brand / Header */}
-        <div className="text-center space-y-2 mb-8">
-          <OrbitingLogo />
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-600 mb-1"
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="w-full max-w-md bg-white border border-[#f1ede4] rounded-[32px] p-8 shadow-2xl relative overflow-hidden z-10"
+        >
+          {/* Close button to let them browse without profile setup */}
+          <button
+            onClick={() => setDismissed(true)}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 p-2 rounded-full transition-all cursor-pointer font-bold text-[11px] w-6 h-6 flex items-center justify-center"
+            title="Close and browse"
           >
-            Welcome
-          </motion.h1>
-          <p className="text-xs text-gray-500 font-semibold max-w-xs mx-auto leading-relaxed">
-            Connect your wallet to access premium features
-          </p>
-        </div>
+            ✕
+          </button>
 
-        {/* Action Panel */}
-        <div>
-          {!isConnected ? (
-            <div className="space-y-4">
-              {/* Custom styled ConnectButton */}
-              <ConnectButton.Custom>
-                {({ account, chain, openConnectModal, mounted }) => {
-                  const ready = mounted;
-                  const connected = ready && account && chain;
-                  return (
-                    <div
-                      {...(!ready && {
-                        'aria-hidden': true,
-                        style: {
-                          opacity: 0,
-                          pointerEvents: 'none',
-                          userSelect: 'none',
-                        },
-                      })}
-                      className="w-full flex justify-center"
-                    >
-                      {!connected && (
-                        <div className="w-full space-y-4">
-                          <motion.button
-                            whileHover={{ scale: 1.02, boxShadow: '0 8px 25px rgba(217,119,6,0.25)' }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={openConnectModal}
-                            type="button"
-                            className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 text-sm shadow-md"
-                          >
-                            <Wallet className="mr-1 h-4 w-4" />
-                            <span>Connect Wallet</span>
-                          </motion.button>
+          {/* Luxury top gradient line */}
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#D4A72C] to-transparent" />
 
-                          <div className="block lg:hidden border-t border-gray-100 pt-4 mt-2">
-                            <p className="text-[10px] text-center text-gray-500 font-bold uppercase tracking-wider mb-3">
-                              Or open directly in wallet app:
-                            </p>
-                            <div className="grid grid-cols-3 gap-2">
-                              <a
-                                href="https://metamask.app.link/dapp/arcomni.vercel.app"
-                                className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-gray-200 bg-white transition-all text-center gap-1 active:scale-95"
-                              >
-                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=metamask" className="w-6 h-6 rounded-lg" alt="MetaMask" />
-                                <span className="text-[9px] font-bold text-gray-700">MetaMask</span>
-                              </a>
-                              <a
-                                href="https://link.trustwallet.com/open_url?coin_id=60&url=https://arcomni.vercel.app"
-                                className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-gray-200 bg-white transition-all text-center gap-1 active:scale-95"
-                              >
-                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=trust" className="w-6 h-6 rounded-lg" alt="Trust" />
-                                <span className="text-[9px] font-bold text-gray-700">Trust</span>
-                              </a>
-                              <a
-                                href="https://go.cb-w.com/dapp?cb_url=https://arcomni.vercel.app"
-                                className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-gray-200 bg-white transition-all text-center gap-1 active:scale-95"
-                              >
-                                <img src="https://api.dicebear.com/7.x/identicon/svg?seed=coinbase" className="w-6 h-6 rounded-lg" alt="Coinbase" />
-                                <span className="text-[9px] font-bold text-gray-700">Coinbase</span>
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                }}
-              </ConnectButton.Custom>
+          {/* Brand / Header */}
+          <div className="text-center space-y-2 mb-8">
+            <OrbitingLogo />
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-600 mb-1"
+            >
+              Welcome
+            </motion.h1>
+            <p className="text-xs text-gray-500 font-semibold max-w-xs mx-auto leading-relaxed">
+              Connected! Setup your profile to access premium ecosystem features.
+            </p>
+          </div>
 
-              <div className="mt-8 flex items-center justify-center space-x-2 text-[10px] text-gray-400">
-                <Sparkles className="h-3 w-3 text-amber-500 animate-pulse" />
-                <span>Secured by blockchain technology</span>
-              </div>
-            </div>
-          ) : (
+          {/* Action Panel */}
+          <div>
             <form onSubmit={handleCreateProfile} className="space-y-4">
               <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-3 text-[11px] font-medium text-amber-800 flex items-center gap-2">
                 <Sparkles size={13} className="flex-shrink-0 text-amber-600 animate-spin" style={{ animationDuration: '3s' }} />
@@ -362,9 +302,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                 )}
               </motion.button>
             </form>
-          )}
-        </div>
-      </motion.div>
-    </div>
+          </div>
+        </motion.div>
+      </div>
+    </>
   );
 }
